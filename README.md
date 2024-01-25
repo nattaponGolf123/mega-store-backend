@@ -31,4 +31,4 @@ The primary goal of this project is to showcase the effectiveness and simplicity
 Instructions on how to set up, run the project, and test the API endpoints are provided in the documentation.
 
 ## Contributions
-Feel free to fork this repository, submit issues, and send pull requests to enhance the functionalities or to propose improvements. Your contributions are highly appreciated!
+Feel free to fork this repository, submit issues, and send pull requests to enhance the functionalities or to propose improvements. Your contributions are highly appreciated!!
