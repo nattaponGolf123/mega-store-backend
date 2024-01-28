@@ -7,17 +7,31 @@
 
 import Foundation
 import Vapor
+import JWT
   
 class AuthController: RouteCollection {
 
     func boot(routes: RoutesBuilder) throws {
         let auth = routes.grouped("auth")
-        auth.post(use: signin)
+        auth.post(use: signinJWT)
         
+        auth.group("token_verify") { authVerify in
+            authVerify.post(use: verifyToken)
+        }
+    }
+    
+    // POST /user/token_verify
+    func verifyToken(req: Request) throws -> HTTPStatus {
+        do {
+            _ = try req.jwt.verify(as: UserPayload.self)
+            return .ok
+        } catch {
+            return .unauthorized
+        }
     }
     
     // POST /user
-    func signin(req: Request) async throws -> User {
+    func signinJWT(req: Request) async throws -> [String: String] {
         // try to decode param by Auth
         let content = try req.content.decode(SignIn.self)
 
@@ -28,20 +42,27 @@ class AuthController: RouteCollection {
         var loadUsers = try LocalDatastore.shared.load(fileName: "users",
                                                        type: Users.self)
         
-        guard 
+        guard
             var foundUser = loadUsers.find(username: content.username),
             foundUser.password.lowercased() == content.password.lowercased()
         else { throw Abort(.notFound) }
         
-        foundUser.generateToken()
+        let payload = UserPayload(subject: "vapor-user",
+                                  expiration: .init(value: .distantFuture),
+                                  userID: foundUser.id,
+                                  username: foundUser.username,
+                                  userFullname: foundUser.fullname)
+        let token = try req.jwt.sign(payload)
         
+        foundUser.setToken(token,
+                           expriedAt: payload.expiration.value)
         loadUsers.replace(foundUser)
         
         // save
         try LocalDatastore.shared.save(fileName: "users",
                                        data: loadUsers)
-
-        return foundUser
+        
+        return ["token": token]
     }
     
 }

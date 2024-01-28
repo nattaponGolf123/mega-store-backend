@@ -1,4 +1,5 @@
 import Vapor
+import JWT
 import Leaf
 
 // configures your application
@@ -26,10 +27,15 @@ public func configure(_ app: Application) async throws {
             print("STAGE: \(stage)")
         }
         
+        if let stage = Environment.get("STAGE") {
+            print("STAGE: \(stage)")
+        }
+        
     default:
         break
     }
     
+    app.jwt.signers.use(.hs256(key: getJWTKey()))
     app.views.use(.leaf)
     
     // uncomment to serve files from /Public folder
@@ -37,4 +43,9 @@ public func configure(_ app: Application) async throws {
 
     // register routes
     try routes(app)
+}
+
+private func getJWTKey() -> String {
+    let _defaultKey = "Ddk_JfGFRFde7eOW71DX8-0RnAvN1741rFme3ESBE2A="
+    return Environment.get("JWT_KEY") ?? _defaultKey
 }

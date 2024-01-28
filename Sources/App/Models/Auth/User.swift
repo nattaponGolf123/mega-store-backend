@@ -73,6 +73,12 @@ struct User: Codable {
         tokenExpried = Date().addingTimeInterval(_15Day)
     }
     
+    mutating func setToken(_ token: String,
+                  expriedAt: Date) {
+        self.token = token
+        self.tokenExpried = expriedAt
+    }
+    
     enum CodingKeys: String, CodingKey {
         case id = "id"
         case username = "username"
