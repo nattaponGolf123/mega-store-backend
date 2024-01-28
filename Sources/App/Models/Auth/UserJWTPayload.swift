@@ -9,7 +9,7 @@ import Foundation
 import Vapor
 import JWT
 
-struct UserPayload: JWTPayload {
+struct UserJWTPayload: JWTPayload {
     
     enum CodingKeys: String, CodingKey {
         case subject = "sub"
@@ -70,4 +70,6 @@ struct UserPayload: JWTPayload {
         try self.expiration.verifyNotExpired()
     }
 }
+
+extension UserJWTPayload: Authenticatable { }
 

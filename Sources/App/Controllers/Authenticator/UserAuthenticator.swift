@@ -7,32 +7,19 @@
 
 import Foundation
 import Vapor
+import JWT
 
 struct UserAuthenticator: AsyncBearerAuthenticator {
     
     func authenticate(bearer: BearerAuthorization,
                       for request: Request) async throws {
-        
-        //load user list from disk
-        let loadUsers = try LocalDatastore.shared.load(fileName: "users",
-                                                       type: Users.self)
-        let token = bearer.token
-        guard
-            let foundUser = loadUsers.find(token: token)
-        else { throw Abort(.unauthorized) }
-        
-        //check expried
-        if let expriedDate = foundUser.tokenExpried {
-            let now = Date()
-            
-            // token expried
-            if expriedDate < now {
-                throw Abort(.unauthorized)
-            }
+        do {
+            let userPayload = try request.jwt.verify(as: UserJWTPayload.self)
+            // stamp user into auth list
+            request.auth.login(userPayload)
+        } catch {
+            throw Abort(.unauthorized)
         }
-        
-        // stamp user into auth list
-        request.auth.login(foundUser)
    }
     
 }

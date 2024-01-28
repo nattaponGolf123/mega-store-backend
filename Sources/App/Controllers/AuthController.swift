@@ -23,7 +23,7 @@ class AuthController: RouteCollection {
     // POST /user/token_verify
     func verifyToken(req: Request) throws -> HTTPStatus {
         do {
-            _ = try req.jwt.verify(as: UserPayload.self)
+            _ = try req.jwt.verify(as: UserJWTPayload.self)
             return .ok
         } catch {
             return .unauthorized
@@ -47,7 +47,7 @@ class AuthController: RouteCollection {
             foundUser.password.lowercased() == content.password.lowercased()
         else { throw Abort(.notFound) }
         
-        let payload = UserPayload(subject: "vapor-user",
+        let payload = UserJWTPayload(subject: "vapor-user",
                                   expiration: .init(value: .distantFuture),
                                   userID: foundUser.id,
                                   username: foundUser.username,
