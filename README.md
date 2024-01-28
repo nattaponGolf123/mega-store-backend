@@ -20,7 +20,7 @@ The primary goal of this project is to showcase the effectiveness and simplicity
 - **Open with Xcode:**
   To open the project in Xcode, run the following command in the terminal:
   ```
-  open Package.swift
+  vapor xcode
   ```
 - **Run with CLI:**
   To run the project using the command line interface, execute:
