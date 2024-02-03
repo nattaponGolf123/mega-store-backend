@@ -50,9 +50,11 @@ class ProductController: RouteCollection {
         try CreateProduct.validate(content: req)
         
         let newProduct = Product(name: content.name,
-                                       price: content.price,
-                                       description: content.description,
-                                       unit: content.unit)
+                                 description: content.description,
+                                 unit: content.unit,
+                                 price: content.price,
+                                 categoryID: UUID())
+                                 
         try await newProduct.create(on: req.db)
         
         return newProduct
@@ -150,10 +152,10 @@ private extension ProductController {
             updateBuilder.set(\.$description, 
                                to: description)
         }
-        if let unit = content.unit {
-            updateBuilder.set(\.$unit, 
-                               to: unit)
-        }
+//        if let unit = content.unit {
+//            updateBuilder.set(\.$unit, 
+//                               to: unit)
+//        }
         return updateBuilder
     }
     
