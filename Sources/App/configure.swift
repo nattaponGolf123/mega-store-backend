@@ -42,6 +42,8 @@ public func configure(_ app: Application) async throws {
     
     app.jwt.signers.use(.hs256(key: getJWTKey()))
     app.views.use(.leaf)
+
+    //configPwd(app)
     
     // uncomment to serve files from /Public folder
     // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
@@ -50,9 +52,10 @@ public func configure(_ app: Application) async throws {
     try routes(app)
     
     // Configure migrations
+    //app.migrations.add(CreateUserMigration())
     //app.migrations.add(CollectionMigration(), to: .mongo)
 //    app.migrations.add(CollectionMigration())
-//    try await app.autoMigrate()
+    //try await app.autoMigrate()
 }
 
 private func getJWTKey() -> String {
@@ -64,4 +67,20 @@ private func getJWTKey() -> String {
 private func getMongoDBURLPath() -> String {
     "mongodb://localhost:27017/MyDB"
     //"mongodb://host.docker.internal:27017/MyDB"
+}
+
+private func configPwd(_ app: Application) {
+ switch app.environment {
+    case .production:
+       app.passwords.use(.bcrypt)
+
+    case .development:
+        app.passwords.use(.bcrypt)
+        
+    case .testing:
+        app.passwords.use(.plaintext)        
+        
+    default:
+        break
+    }
 }

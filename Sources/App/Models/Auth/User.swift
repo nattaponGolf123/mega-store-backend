@@ -16,39 +16,39 @@ enum UserType: String, Codable {
 
 final class User: Model, Content {
     static let schema = "Users"
-
+    
     @ID(key: .id)
     var id: UUID?
-
+    
     @Field(key: "username")
     var username: String
-
-    @Field(key: "password")
+    
+    @Field(key: "password_hash")
     var password: String
-
+    
     @Field(key: "fullname")
     var fullname: String
-        
+    
     @Enum(key: "type")
     var type: UserType
-
+    
     @OptionalField(key: "token")
     var token: String?
-
+    
     @OptionalField(key: "expried")
     var tokenExpried: Date?
-
+    
     @Timestamp(key: "created_at", on: .create, format: .iso8601)
     var createdAt: Date?
-
+    
     @Timestamp(key: "updated_at", on: .update, format: .iso8601)
     var updatedAt: Date?
-
-    @Timestamp(key: "devared_at", on: .delete, format: .iso8601)
-    var devaredAt: Date?
-  
+    
+    @Timestamp(key: "deleted_at", on: .delete, format: .iso8601)
+    var deletedAt: Date?
+    
     init() { }
-
+    
     init(id: UUID? = nil,
          username: String,
          password: String,
@@ -64,8 +64,8 @@ final class User: Model, Content {
         self.token = token
         self.tokenExpried = tokenExpried
     }
-
-    func setToken(_ token: String, 
+    
+    func setToken(_ token: String,
                   expried: Date) {
         self.token = token
         self.tokenExpried = expried
@@ -83,13 +83,20 @@ extension User: AsyncResponseEncodable {
     }
 }
 
- extension User {
-     struct Stub {
-         static var user1: User {
-             return User(username: "user1",
-                         password: "user1",
-                         fullname: "User 1")
-         }
-     }
- }
-
+extension User {
+    struct Stub {
+        static var user1: User {
+            return User(username: "user1",
+                        password: "user1",
+                        fullname: "User 1")
+        }
+        
+        static var admin: User {
+            return User(username: "admin",
+                        password: "$2b$12$XruECCesDASy02gxkP4rVe3OE6Vg2vi.Hny1weIeIGAVGjYUYL1nu",
+                        fullname: "Admin",
+                        userType: .admin)
+        }
+    }
+}
+    

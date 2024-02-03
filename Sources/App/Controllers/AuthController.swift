@@ -8,9 +8,10 @@
 import Foundation
 import Vapor
 import JWT
-  
-class AuthController: RouteCollection {
+import Fluent
 
+class AuthController: RouteCollection {
+    
     func boot(routes: RoutesBuilder) throws {
         let auth = routes.grouped("auth")
         auth.post(use: signinJWT)
@@ -34,36 +35,53 @@ class AuthController: RouteCollection {
     func signinJWT(req: Request) async throws -> [String: String] {
         // try to decode param by Auth
         let content = try req.content.decode(SignIn.self)
-
+        
         // validate
         try SignIn.validate(content: req)
-
-        // load from local
-//        var loadUsers = try LocalDatastore.shared.load(fileName: "users",
-//                                                       type: Users.self)
-//        
-//        guard
-//            var foundUser = loadUsers.find(username: content.username),
-//            foundUser.password.lowercased() == content.password.lowercased()
-//        else { throw Abort(.notFound) }
-//        
-//        let payload = UserJWTPayload(subject: "vapor-user",
-//                                  expiration: .init(value: .distantFuture),
-//                                  userID: foundUser.id,
-//                                  username: foundUser.username,
-//                                  userFullname: foundUser.fullname)
-//        let token = try req.jwt.sign(payload)
-//        
-//        foundUser.setToken(token,
-//                           expriedAt: payload.expiration.value)
-//        loadUsers.replace(foundUser)
-//        
-//        // save
-//        try LocalDatastore.shared.save(fileName: "users",
-//                                       data: loadUsers)
-        
-        //return ["token": token]
-        return [ "token" : ""]
+                
+        // load from database
+        do {
+            let foundUser = try await User.query(on: req.db)
+                .filter(\.$username == content.username)
+                .first()
+//            let users = try await User.query(on: req.db).all()
+//            let foundUser = users.first
+            
+            
+            // debug
+            //let pwdDigest = try req.password.hash(content.password)
+            
+//            print("pwdDigest")
+//            print(pwdDigest)
+//            
+//            print("foundUser.pwd")
+//            print(foundUser?.password)
+            //let pwdDigest = try await req.password.async.hash(content.password)
+            guard
+                let foundUser = foundUser,
+                foundUser.password == content.password
+            else { throw Abort(.notFound) }
+            
+                    
+            let payload = UserJWTPayload(subject: "mega-store-user",
+                                         expiration: .init(value: .distantFuture),
+                                         userID: foundUser.id!,
+                                         username: foundUser.username,
+                                         userFullname: foundUser.fullname,
+                                         isAdmin: foundUser.type == UserType.admin)
+            
+            
+            let token = try req.jwt.sign(payload)
+            
+            foundUser.setToken(token,
+                               expried: payload.expiration.value)
+            
+            try await foundUser.save(on: req.db)
+            
+            return ["token": token]
+        } catch {
+            throw Abort(.notFound)
+        }
     }
     
 }
@@ -73,7 +91,7 @@ extension AuthController {
     struct SignIn: Content, Validatable {
         let username: String
         let password: String
-     
+        
         static func validations(_ validations: inout Validations) {
             validations.add("username", as: String.self,
                             is: .count(3...))
