@@ -19,7 +19,7 @@ class ProductController: RouteCollection {
         products.group(":id") { productWithID in
             productWithID.get(use: getByID)
             productWithID.put(use: update)
-            productWithID.delete(use: delete)
+            productWithID.delete(use: delete)            
         }
     }
     
