@@ -37,6 +37,12 @@ public func configure(_ app: Application) async throws {
         break
     }
     
+    // config response to snake case
+    let encoder = JSONEncoder()
+    encoder.keyEncodingStrategy = .convertToSnakeCase
+    ContentConfiguration.global.use(encoder: encoder,
+                                    for: .json)
+    
     try app.databases.use(.mongo(connectionString: getMongoDBURLPath()),
                           as: .mongo)
     

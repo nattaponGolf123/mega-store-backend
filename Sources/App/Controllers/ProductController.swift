@@ -48,12 +48,22 @@ class ProductController: RouteCollection {
         
         // validate
         try CreateProduct.validate(content: req)
-        
+                
         let newProduct = Product(name: content.name,
                                  description: content.description,
                                  unit: content.unit,
                                  price: content.price,
-                                 categoryID: UUID())
+                                 categoryID: UUID(),
+                                 manufacturer: nil,
+                                 barcode: nil,
+                                 imageUrl: nil,
+                                 tags: ["test"],
+                                 variants: [
+                                     .init(variantID: UUID(),
+                                           variantName: "v name",
+                                           variantSKU: "sku",
+                                           price: 100)
+                                  ])
                                  
         try await newProduct.create(on: req.db)
         

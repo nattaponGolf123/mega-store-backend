@@ -16,7 +16,7 @@ struct ProductVariant: Codable, Content {
     var variantSKU: String
     var price: Double
     var additionalDescription: String?
-    var image: String?
+    var imageUrl: String?
     var color: String?
     var barcode: String?
     var dimensions: ProductDimensions?
@@ -27,7 +27,7 @@ struct ProductVariant: Codable, Content {
          variantSKU: String,
          price: Double,
          additionalDescription: String? = nil,
-         image: String? = nil,
+         imageUrl: String? = nil,
          color: String? = nil,
          barcode: String? = nil,
          dimensions: ProductDimensions? = nil) {
@@ -37,7 +37,7 @@ struct ProductVariant: Codable, Content {
         self.variantSKU = variantSKU
         self.price = price
         self.additionalDescription = additionalDescription
-        self.image = image
+        self.imageUrl = imageUrl
         self.color = color
         self.barcode = barcode
         self.dimensions = dimensions
@@ -51,7 +51,7 @@ struct ProductVariant: Codable, Content {
         try container.encode(variantSKU, forKey: .variantSKU)
         try container.encode(price, forKey: .price)
         try container.encode(additionalDescription, forKey: .additionalDescription)
-        try container.encode(image, forKey: .image)
+        try container.encode(imageUrl, forKey: .imageUrl)
         try container.encode(color, forKey: .color)
         try container.encode(barcode, forKey: .barcode)
         try container.encode(dimensions, forKey: .dimensions)
@@ -65,7 +65,7 @@ struct ProductVariant: Codable, Content {
         variantSKU = try container.decode(String.self, forKey: .variantSKU)
         price = try container.decode(Double.self, forKey: .price)
         additionalDescription = try? container.decode(String.self, forKey: .additionalDescription)
-        image = try? container.decode(String.self, forKey: .image)
+        imageUrl = try? container.decode(String.self, forKey: .imageUrl)
         color = try? container.decode(String.self, forKey: .color)
         barcode = try? container.decode(String.self, forKey: .barcode)
         dimensions = try? container.decode(ProductDimensions.self, forKey: .dimensions)
@@ -78,7 +78,7 @@ struct ProductVariant: Codable, Content {
         case variantSKU = "variant_sku"
         case price
         case additionalDescription = "additional_description"
-        case image = "image_url"
+        case imageUrl = "image_url"
         case color
         case barcode
         case dimensions

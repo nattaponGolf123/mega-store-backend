@@ -37,7 +37,7 @@ final class Product: Model, Content {
     var barcode: String?
 
     @OptionalField(key: "image_url")
-    var image: String?
+    var imageUrl: String?
 
     @Field(key: "tags")
     var tags: [String]
@@ -64,7 +64,7 @@ final class Product: Model, Content {
          categoryID: UUID,
          manufacturer: String? = nil,
          barcode: String? = nil,
-         image: String? = nil,
+         imageUrl: String? = nil,
          tags: [String] = [],
          variants: [ProductVariant] = [],
          createdAt: Date? = nil) {
@@ -76,11 +76,12 @@ final class Product: Model, Content {
         self.categoryID = categoryID
         self.manufacturer = manufacturer
         self.barcode = barcode
-        self.image = image
+        self.imageUrl = imageUrl
         self.tags = tags
         self.variants = variants
         self.createdAt = createdAt ?? Date()
     }
+
 }
 
 /*
