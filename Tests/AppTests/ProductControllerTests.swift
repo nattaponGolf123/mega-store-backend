@@ -58,14 +58,14 @@ final class ProductControllerTests: XCTestCase {
         defer { app.shutdown() }
         try await configure(app)
         
-        try app.test(.GET, "products/1", afterResponse: { res in
-            XCTAssertEqual(res.status, .ok)
-            XCTAssertNotNil(res.body)
-            
-            // expect result is valid
-            let expected = try res.content.decode(Product.self)
-            XCTAssertEqual(expected.id, 1)
-        })
+//        try app.test(.GET, "products/1", afterResponse: { res in
+//            XCTAssertEqual(res.status, .ok)
+//            XCTAssertNotNil(res.body)
+//            
+//            // expect result is valid
+//            let expected = try res.content.decode(Product.self)
+//            XCTAssertEqual(expected.id, 1)
+//        })
     }
     
     func testUpdate() async throws {

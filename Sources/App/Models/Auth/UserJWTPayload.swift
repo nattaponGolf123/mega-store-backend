@@ -17,25 +17,29 @@ struct UserJWTPayload: JWTPayload {
         case id = "id"
         case username = "username"
         case fullname = "fullname"
+        case isAdmin = "admin"
     }
     
     let subject: SubjectClaim
     let expiration: ExpirationClaim
     
-    let userID: Int
+    let userID: UUID
     let username: String
     let userFullname: String
+    let isAdmin: Bool
     
     init(subject: SubjectClaim, 
          expiration: ExpirationClaim,
-         userID: Int,
+         userID: UUID,
          username: String,
-         userFullname: String) {
+         userFullname: String,
+         isAdmin: Bool = false) {
         self.subject = subject
         self.expiration = expiration
         self.userID = userID
         self.username = username
         self.userFullname = userFullname
+        self.isAdmin = isAdmin
     }
     
     init(from decoder: Decoder) throws {
@@ -44,12 +48,14 @@ struct UserJWTPayload: JWTPayload {
                                        forKey: .subject)
         expiration = try container.decode(ExpirationClaim.self,
                                           forKey: .expiration)
-        userID = try container.decode(Int.self,
+        userID = try container.decode(UUID.self,
                                       forKey: .id)
         username = try container.decode(String.self,
                                         forKey: .username)
         userFullname = (try? container.decode(String?.self,
                                             forKey: .fullname)) ?? ""
+        isAdmin = (try? container.decode(Bool?.self,
+                                        forKey: .isAdmin)) ?? false
     }
     
     func encode(to encoder: Encoder) throws {
@@ -64,6 +70,8 @@ struct UserJWTPayload: JWTPayload {
                              forKey: .username)
         try container.encode(userFullname,
                              forKey: .fullname)
+        try container.encode(isAdmin,
+                                forKey: .isAdmin)
     }
     
     func verify(using signer: JWTSigner) throws {

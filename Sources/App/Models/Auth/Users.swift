@@ -32,7 +32,7 @@ struct Users: Codable {
         }
     }
     
-    func find(id: Int) -> User? {
+    func find(id: UUID) -> User? {
         return lists.first { $0.id == id }
     }
         

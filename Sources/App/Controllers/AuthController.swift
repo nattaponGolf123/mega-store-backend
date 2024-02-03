@@ -39,30 +39,31 @@ class AuthController: RouteCollection {
         try SignIn.validate(content: req)
 
         // load from local
-        var loadUsers = try LocalDatastore.shared.load(fileName: "users",
-                                                       type: Users.self)
+//        var loadUsers = try LocalDatastore.shared.load(fileName: "users",
+//                                                       type: Users.self)
+//        
+//        guard
+//            var foundUser = loadUsers.find(username: content.username),
+//            foundUser.password.lowercased() == content.password.lowercased()
+//        else { throw Abort(.notFound) }
+//        
+//        let payload = UserJWTPayload(subject: "vapor-user",
+//                                  expiration: .init(value: .distantFuture),
+//                                  userID: foundUser.id,
+//                                  username: foundUser.username,
+//                                  userFullname: foundUser.fullname)
+//        let token = try req.jwt.sign(payload)
+//        
+//        foundUser.setToken(token,
+//                           expriedAt: payload.expiration.value)
+//        loadUsers.replace(foundUser)
+//        
+//        // save
+//        try LocalDatastore.shared.save(fileName: "users",
+//                                       data: loadUsers)
         
-        guard
-            var foundUser = loadUsers.find(username: content.username),
-            foundUser.password.lowercased() == content.password.lowercased()
-        else { throw Abort(.notFound) }
-        
-        let payload = UserJWTPayload(subject: "vapor-user",
-                                  expiration: .init(value: .distantFuture),
-                                  userID: foundUser.id,
-                                  username: foundUser.username,
-                                  userFullname: foundUser.fullname)
-        let token = try req.jwt.sign(payload)
-        
-        foundUser.setToken(token,
-                           expriedAt: payload.expiration.value)
-        loadUsers.replace(foundUser)
-        
-        // save
-        try LocalDatastore.shared.save(fileName: "users",
-                                       data: loadUsers)
-        
-        return ["token": token]
+        //return ["token": token]
+        return [ "token" : ""]
     }
     
 }

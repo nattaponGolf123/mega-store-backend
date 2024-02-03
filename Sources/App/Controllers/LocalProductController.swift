@@ -6,9 +6,8 @@
 //
 
 import Vapor
-import Fluent
-
-class ProductController: RouteCollection {
+  
+class LocalProductController: RouteCollection {
 
     func boot(routes: RoutesBuilder) throws {
         
@@ -24,146 +23,131 @@ class ProductController: RouteCollection {
     }
     
     // GET /products
-    func all(req: Request) async throws -> [Product] {
+    func all(req: Request) async throws -> LocalProducts {
         do {
             let query = try req.query.decode(QueryProduct.self)
             
             if let name = query.name {
                 // return with filter by name
-                return try await Product.query(on: req.db)
-                    .filter(\.$name =~ name)
-                    .all()
+                let foundProducts = LocalProducts.Stub.applDevices.filter(withName: name)
+                return foundProducts
             }
             // return all product
-            return try await Product.query(on: req.db).all()
+            return LocalProducts.Stub.applDevices
         } catch {
-            return try await Product.query(on: req.db).all()
+            // return all product
+            return LocalProducts.Stub.applDevices
         }
     }
     
     // POST /products
-    func create(req: Request) async throws -> Product {
+    func create(req: Request) async throws -> LocalProduct {
         // try to decode param by CreateContent
         let content = try req.content.decode(CreateProduct.self)
         
         // validate
         try CreateProduct.validate(content: req)
         
-        let newProduct = Product(name: content.name,
-                                       price: content.price,
-                                       description: content.description,
-                                       unit: content.unit)
-        try await newProduct.create(on: req.db)
+        // load from local
+        var loadProducts = try LocalDatastore.shared.load(fileName: "products",
+                                                          type: LocalProducts.self)
+        let lastedID = loadProducts.latedID()
+                
+        // new product
+        let newProduct = LocalProduct(id: lastedID,
+                                 name: content.name,
+                                 price: content.price,
+                                 description: content.description,
+                                 unit: content.unit)
+        loadProducts.append(newProduct)
+        
+        // save to datastore
+        try LocalDatastore.shared.save(fileName: "products",
+                                       data: loadProducts)
         
         return newProduct
     }
     
     // GET /products/:id
-    func getByID(req: Request) async throws -> Product {
+    func getByID(req: Request) async throws -> LocalProduct {
         guard
-            let id = req.parameters.get("id"),
-            let uuid = UUID(id)
+            let idRaw = req.parameters.get("id"),
+            let id = Int(idRaw) 
         else { throw Abort(.badRequest) }
         
-        do {
-            guard
-                let product = try await Product.query(on: req.db)
-                .filter(\.$id == uuid)
-                .first()
-            else { throw Abort(.notFound) }
-            
-            return product
-        } catch {
-            throw Abort(.notFound)
-        }
+        // load from local
+        let loadProducts = try LocalDatastore.shared.load(fileName: "products",
+                                                          type: LocalProducts.self)
+        
+        guard 
+            let foundProduct = loadProducts.find(id: id)
+        else { throw Abort(.notFound) }
+        
+        return foundProduct
     }
     
     // PUT /products/:id
-    func update(req: Request) async throws -> Product {
+    func update(req: Request) async throws -> LocalProduct {
         guard
-            let id = req.parameters.get("id"),
-            let uuid = UUID(id)
+            let idRaw = req.parameters.get("id"),
+            let id = Int(idRaw)
         else { throw Abort(.badRequest) }
         
-        // try to decode param by UpdateProduct
+        // try to decode param by CreateContent
         let content = try req.content.decode(UpdateProduct.self)
         
         // validate
         try UpdateProduct.validate(content: req)
         
-        let updateBuilder = updateProductFieldsBuilder(uuid: uuid,
-                                                    content: content,
-                                                    db: req.db)
-        try await updateBuilder.update()
-                
-        do {
-            guard
-                let product = try await getByIDBuilder(uuid: uuid,
-                                                       db: req.db).first()
-            else { throw Abort(.notFound) }
-            
-            return product
-        } catch {
-            throw Abort(.notFound)
-        }
+        // load from local
+        var loadProducts = try LocalDatastore.shared.load(fileName: "products",
+                                                          type: LocalProducts.self)
+        
+        guard
+            let foundProduct = loadProducts.find(id: id)
+        else { throw Abort(.notFound) }
+        
+        let modifyProduct = LocalProduct(id: id,
+                                    name: content.name ?? foundProduct.name,
+                                    price: content.price ?? foundProduct.price,
+                                    description: content.description ?? foundProduct.description,
+                                    unit: content.unit ?? foundProduct.unit)
+        
+        loadProducts.replace(modifyProduct)
+        
+        //save to datastore
+        try LocalDatastore.shared.save(fileName: "products",
+                                       data: loadProducts)
+        
+        return modifyProduct
     }
     
     // DELETE /products/:id
     func delete(req: Request) async throws -> HTTPStatus {
         guard
-            let id = req.parameters.get("id"),
-            let uuid = UUID(id)
+            let idRaw = req.parameters.get("id"),
+            let id = Int(idRaw)
         else { throw Abort(.badRequest) }
         
-        do {
-            guard
-                let product = try await getByIDBuilder(uuid: uuid,
-                                                       db: req.db).first()
-            else { throw Abort(.notFound) }
-            
-            try await product.delete(on: req.db)
-        } catch {
-            throw Abort(.notFound)
-        }
+        // load from local
+        var loadProducts = try LocalDatastore.shared.load(fileName: "products",
+                                                          type: LocalProducts.self)
+        
+        guard
+            let _ = loadProducts.find(id: id)
+        else { throw Abort(.notFound) }
+        
+        loadProducts.delete(id: id)
+        
+        //save to datastore
+        try LocalDatastore.shared.save(fileName: "products",
+                                       data: loadProducts)
                 
         return .ok
     }
 }
 
-private extension ProductController {
-    
-    // Helper function to update product fields in the database
-    func updateProductFieldsBuilder(uuid: UUID,
-                                    content: UpdateProduct,
-                                    db: Database) -> QueryBuilder<Product> {
-        let updateBuilder = Product.query(on: db).filter(\.$id == uuid)
-        
-        if let name = content.name {
-            updateBuilder.set(\.$name, 
-                               to: name)
-        }
-        if let price = content.price {
-            updateBuilder.set(\.$price, 
-                               to: price)
-        }
-        if let description = content.description {
-            updateBuilder.set(\.$description, 
-                               to: description)
-        }
-        if let unit = content.unit {
-            updateBuilder.set(\.$unit, 
-                               to: unit)
-        }
-        return updateBuilder
-    }
-    
-    func getByIDBuilder(uuid: UUID,
-                        db: Database) -> QueryBuilder<Product> {
-        return Product.query(on: db).filter(\.$id == uuid)
-    }
-}
-
-extension ProductController {
+extension LocalProductController {
     
     struct QueryProduct: Content {
         let name: String?
@@ -176,7 +160,7 @@ extension ProductController {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             let _id = try container.decode(String.self,
                                            forKey: .id)
-            guard
+            guard 
                 let id = Int(_id)
             else { throw Abort(.badRequest) }
             
