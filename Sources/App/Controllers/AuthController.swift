@@ -38,31 +38,27 @@ class AuthController: RouteCollection {
         
         // validate
         try SignIn.validate(content: req)
-                
+        
         // load from database
         do {
-            let foundUser = try await User.query(on: req.db)
-                .filter(\.$username == content.username)
-                .first()
-//            let users = try await User.query(on: req.db).all()
-//            let foundUser = users.first
-            
-            
+            guard 
+                let foundUser = try await User.query(on: req.db)
+                    .filter(\.$username == content.username)
+                    .first()
+            else {
+                throw Abort(.notFound)
+            }
+
             // debug
             //let pwdDigest = try req.password.hash(content.password)
             
-//            print("pwdDigest")
-//            print(pwdDigest)
-//            
-//            print("foundUser.pwd")
-//            print(foundUser?.password)
-            //let pwdDigest = try await req.password.async.hash(content.password)
+            let pwdVerify = try req.password.verify(content.password,
+                                                    created: foundUser.password)
             guard
-                let foundUser = foundUser,
-                foundUser.password == content.password
+                pwdVerify
             else { throw Abort(.notFound) }
             
-                    
+            
             let payload = UserJWTPayload(subject: "mega-store-user",
                                          expiration: .init(value: .distantFuture),
                                          userID: foundUser.id!,

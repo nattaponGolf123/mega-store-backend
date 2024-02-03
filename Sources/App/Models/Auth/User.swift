@@ -93,7 +93,7 @@ extension User {
         
         static var admin: User {
             return User(username: "admin",
-                        password: "$2b$12$XruECCesDASy02gxkP4rVe3OE6Vg2vi.Hny1weIeIGAVGjYUYL1nu",
+                        password: "$2b$12$Iys1MXvDx5JvfOFgHAnCAOG9/h51Es9chnc3RpMjbZDjox.rgN9pa",
                         fullname: "Admin",
                         userType: .admin)
         }

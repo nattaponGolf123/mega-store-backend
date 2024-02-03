@@ -23,7 +23,8 @@ struct CollectionMigration: AsyncMigration {
         try await database.schema("ProductCategories").delete()
         
         // Drop Products collection
-        try await database.schema("Products").delete()
+        try await database.schema("Products").delete()        
+        
     }
 }
 
