@@ -80,6 +80,25 @@ class AuthController: RouteCollection {
         }
     }
     
+    //POST /user/logout
+    func logout(req: Request) async throws -> HTTPStatus {
+        do {
+            let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
+            guard
+                let foundUser = try await User.find(userPayload.userID,
+                                                     on: req.db)
+            else {
+                throw Abort(.notFound)
+            }
+            
+            foundUser.clearToken()
+            try await foundUser.save(on: req.db)
+            
+            return .ok
+        } catch {
+            return .unauthorized
+        }
+    }
 }
 
 extension AuthController {

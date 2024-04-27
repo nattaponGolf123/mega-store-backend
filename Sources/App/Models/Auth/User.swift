@@ -10,8 +10,8 @@ import Vapor
 import Fluent
 
 enum UserType: String, Codable {
-    case admin //= "ADMIN"
-    case user //= "USER"
+    case admin
+    case user
 }
 
 final class User: Model, Content {
@@ -69,6 +69,11 @@ final class User: Model, Content {
                   expried: Date) {
         self.token = token
         self.tokenExpried = expried
+    }
+    
+    func clearToken() {
+        self.token = nil
+        self.tokenExpried = nil
     }
 }
 
