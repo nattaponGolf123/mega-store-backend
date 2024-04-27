@@ -10,8 +10,8 @@ import Vapor
 import Fluent
 
 enum UserType: String, Codable {
-    case admin
-    case user
+    case admin //= "ADMIN"
+    case user //= "USER"
 }
 
 final class User: Model, Content {
@@ -24,7 +24,7 @@ final class User: Model, Content {
     var username: String
     
     @Field(key: "password_hash")
-    var password: String
+    var passwordHash: String
     
     @Field(key: "fullname")
     var fullname: String
@@ -51,14 +51,14 @@ final class User: Model, Content {
     
     init(id: UUID? = nil,
          username: String,
-         password: String,
+         passwordHash: String,
          fullname: String,
          userType: UserType = .user,
          token: String? = nil,
          tokenExpried: Date? = nil) {
         self.id = id ?? UUID()
         self.username = username
-        self.password = password
+        self.passwordHash = passwordHash
         self.fullname = fullname
         self.type = userType
         self.token = token
@@ -76,7 +76,7 @@ extension User: Authenticatable {}
 
 extension User: AsyncResponseEncodable {
     func encodeResponse(for request: Request) async throws -> Response {
-        var response = Response()
+        let response = Response()
         try response.content.encode(self,
                                     as: .json)
         return response
@@ -87,13 +87,13 @@ extension User {
     struct Stub {
         static var user1: User {
             return User(username: "user1",
-                        password: "user1",
+                        passwordHash: "user1",
                         fullname: "User 1")
         }
         
         static var admin: User {
             return User(username: "admin",
-                        password: "$2b$12$Iys1MXvDx5JvfOFgHAnCAOG9/h51Es9chnc3RpMjbZDjox.rgN9pa",
+                        passwordHash: "$2b$12$Iys1MXvDx5JvfOFgHAnCAOG9/h51Es9chnc3RpMjbZDjox.rgN9pa",
                         fullname: "Admin",
                         userType: .admin)
         }

@@ -58,10 +58,11 @@ public func configure(_ app: Application) async throws {
     try routes(app)
     
     // Configure migrations
-    //app.migrations.add(CreateUserMigration())
-    //app.migrations.add(CollectionMigration(), to: .mongo)
-//    app.migrations.add(CollectionMigration())
-    //try await app.autoMigrate()
+    app.migrations.add(CreateUserMigration())
+//    app.migrations.add(CollectionMigration(), to: .mongo)
+    app.migrations.add(CollectionMigration())
+    
+    try await app.autoMigrate()
 }
 
 private func getJWTKey() -> String {

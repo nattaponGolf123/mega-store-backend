@@ -53,7 +53,7 @@ class AuthController: RouteCollection {
             //let pwdDigest = try req.password.hash(content.password)
             
             let pwdVerify = try req.password.verify(content.password,
-                                                    created: foundUser.password)
+                                                    created: foundUser.passwordHash)
             guard
                 pwdVerify
             else { throw Abort(.notFound) }

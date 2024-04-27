@@ -38,13 +38,13 @@ func routes(_ app: Application) throws {
     //let protected = app.grouped(UserAuthenticator()).grouped(User.guardMiddleware())
     let protected = app.grouped(UserAuthenticator()).grouped(UserJWTPayload.guardMiddleware())
     try protected.register(collection: ProductController())
-    
+        
     // init stub datasource
-    try LocalDatastore.shared.save(fileName: "products",
-                                   data: LocalProducts.Stub.applDevices)
-    
-    try LocalDatastore.shared.save(fileName: "users",
-                                   data: Users.Stub.allUsers)
+//    try LocalDatastore.shared.save(fileName: "products",
+//                                   data: LocalProducts.Stub.applDevices)
+//    
+//    try LocalDatastore.shared.save(fileName: "users",
+//                                   data: Users.Stub.allUsers)
     
 }
 
