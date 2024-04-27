@@ -19,6 +19,10 @@ class AuthController: RouteCollection {
         auth.group("token_verify") { authVerify in
             authVerify.post(use: verifyToken)
         }
+        
+        auth.group("logout") { authLogout in
+            authLogout.post(use: logout)
+        }
     }
     
     // POST /user/token_verify
@@ -86,7 +90,7 @@ class AuthController: RouteCollection {
             let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
             guard
                 let foundUser = try await User.find(userPayload.userID,
-                                                     on: req.db)
+                                                    on: req.db)
             else {
                 throw Abort(.notFound)
             }
