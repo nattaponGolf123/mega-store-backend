@@ -26,9 +26,20 @@ class AuthController: RouteCollection {
     }
     
     // POST /user/token_verify
-    func verifyToken(req: Request) throws -> HTTPStatus {
+    func verifyToken(req: Request) async throws -> HTTPStatus {
         do {
             _ = try req.jwt.verify(as: UserJWTPayload.self)
+            
+            // check user.tokenExpried is not nil
+//            let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
+//            guard
+//                let foundUser = try await User.find(userPayload.userID,
+//                                                    on: req.db),
+//                foundUser.tokenExpried != nil
+//            else {
+//                throw Abort(.notFound)
+//            }
+            
             return .ok
         } catch {
             return .unauthorized
