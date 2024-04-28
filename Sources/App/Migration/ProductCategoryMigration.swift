@@ -14,8 +14,7 @@ struct ProductCategoryMigration: AsyncMigration {
         try await ProductCategorySchema.createBuilder(database: database).create()
         
         // new mocks
-        try await ProductCategory.Stub.steel.save(on: database)
-        //try await User.Stub.admin.save(on: database)
+        try await ProductCategory.Stub.steel.save(on: database)    
     }
 
     func revert(on database: Database) async throws {

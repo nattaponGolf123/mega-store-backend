@@ -75,7 +75,8 @@ private func getMongoDBURLPath() -> String {
 private func configMigrations(_ app: Application) async throws {
     app.migrations.add(CreateUserMigration())
     app.migrations.add(ProductCategoryMigration())
-//    app.migrations.add(CollectionMigration(), to: .mongo)
+    app.migrations.add(ServiceCategoryMigration())
+
     app.migrations.add(CollectionMigration())
     
     try await app.autoMigrate()
