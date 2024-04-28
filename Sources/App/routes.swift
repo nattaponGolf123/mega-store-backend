@@ -39,6 +39,7 @@ func routes(_ app: Application) throws {
     //let protected = app.grouped(UserAuthenticator()).grouped(User.guardMiddleware())
     let protected = app.grouped(UserAuthenticator()).grouped(UserJWTPayload.guardMiddleware())
     try protected.register(collection: UserController())
+    try protected.register(collection: ProductCategoryController())
     
     //poc
     try protected.register(collection: ProductController())

@@ -22,18 +22,21 @@ class ProductCategoryController: RouteCollection {
             withID.delete(use: delete)
         }
         
-        cates.group("all") { all in
-            all.get(use: getAll)
-        }
-        
         cates.group("search") { _search in
             _search.get(use: search)
         }
     }
     
-    // GET /product_categories
+    // GET /product_categories?show_deleted=true
     func all(req: Request) async throws -> [ProductCategory] {
-        return try await ProductCategory.query(on: req.db).all()
+        let showDeleted = req.query["show_deleted"] == "true"
+        
+        if showDeleted {
+            //fetch all inclued deleted
+            return try await ProductCategory.query(on: req.db).withDeleted().all()
+        } else {
+            return try await ProductCategory.query(on: req.db).filter(\.$deletedAt == nil).all()
+        }
     }
     
     // POST /product_categories
@@ -95,20 +98,18 @@ class ProductCategoryController: RouteCollection {
     }
     
     // DELETE /product_categories/:id
-    func delete(req: Request) async throws -> HTTPStatus {
+    func delete(req: Request) async throws -> ProductCategory {
         guard
             let id = req.parameters.get("id"),
             let uuid = UUID(id)
         else { throw Abort(.badRequest) }
         
-        try await ProductCategory.query(on: req.db).filter(\.$id == uuid).delete()
-                
-        return .ok
-    }
-    
-    // GET /product_categories/all
-    func getAll(req: Request) async throws -> [ProductCategory] {
-        return try await ProductCategory.query(on: req.db).all()
+        guard
+            let cate = try await ProductCategory.query(on: req.db).filter(\.$id == uuid).first()
+        else { throw Abort(.notFound) }
+        
+        try await cate.delete(on: req.db).get()
+        return cate
     }
     
     // GET /product_categories/search
