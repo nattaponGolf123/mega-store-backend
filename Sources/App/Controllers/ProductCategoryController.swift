@@ -25,6 +25,10 @@ class ProductCategoryController: RouteCollection {
         cates.group("all") { all in
             all.get(use: getAll)
         }
+        
+        cates.group("search") { _search in
+            _search.get(use: search)
+        }
     }
     
     // GET /product_categories
@@ -105,6 +109,16 @@ class ProductCategoryController: RouteCollection {
     // GET /product_categories/all
     func getAll(req: Request) async throws -> [ProductCategory] {
         return try await ProductCategory.query(on: req.db).all()
+    }
+    
+    // GET /product_categories/search
+    func search(req: Request) async throws -> [ProductCategory] {
+        guard
+            let search = req.query[String.self,
+                                   at: "q"]
+        else { throw Abort(.badRequest) }
+        
+        return try await ProductCategory.query(on: req.db).filter(\.$name ~~ search).all()
     }
     
 }

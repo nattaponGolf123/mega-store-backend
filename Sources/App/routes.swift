@@ -11,7 +11,7 @@ func routes(_ app: Application) throws {
         break
     }
     
-    
+    // POC section
     app.get { req async in
         "Welcome to Swift Vapor Playground"
     }
@@ -29,7 +29,8 @@ func routes(_ app: Application) throws {
         
         return .ok
     }
-        
+    // =========================
+    
     // no auth
     try app.register(collection: AuthController())
     //try app.register(collection: ProductController())
