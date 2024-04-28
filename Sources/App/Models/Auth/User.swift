@@ -65,6 +65,28 @@ final class User: Model, Content {
         self.tokenExpried = tokenExpried
     }
     
+//    init(username: String,
+//         passwordHash: String,
+//         fullname: String) {
+//        self.id = UUID()
+//        self.username = username
+//        self.passwordHash = passwordHash
+//        self.fullname = fullname
+//        self.type = userType
+//        self.token =
+//        self.tokenExpried = tokenExpried
+//    }
+    
+    func newUser(username: String,
+                 password: String,
+                 fullname: String) -> User {
+        return User(id: .init(),
+                    username: username,
+                    passwordHash: password,
+                    fullname: fullname,
+                    userType: .user)
+    }
+    
     func setToken(_ token: String,
                   expried: Date) {
         self.token = token
