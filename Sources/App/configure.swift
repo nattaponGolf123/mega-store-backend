@@ -58,11 +58,7 @@ public func configure(_ app: Application) async throws {
     try routes(app)
     
     // Configure migrations
-    app.migrations.add(CreateUserMigration())
-//    app.migrations.add(CollectionMigration(), to: .mongo)
-    app.migrations.add(CollectionMigration())
-    
-    try await app.autoMigrate()
+    try await configMigrations(app)
 }
 
 private func getJWTKey() -> String {
@@ -74,6 +70,15 @@ private func getJWTKey() -> String {
 private func getMongoDBURLPath() -> String {
     "mongodb://localhost:27017/MyDB"
     //"mongodb://host.docker.internal:27017/MyDB"
+}
+
+private func configMigrations(_ app: Application) async throws {
+    app.migrations.add(CreateUserMigration())
+    app.migrations.add(ProductCategoryMigration())
+//    app.migrations.add(CollectionMigration(), to: .mongo)
+    app.migrations.add(CollectionMigration())
+    
+    try await app.autoMigrate()
 }
 
 private func configPwd(_ app: Application) {

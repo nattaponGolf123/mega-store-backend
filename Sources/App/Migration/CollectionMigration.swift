@@ -17,8 +17,6 @@ struct CollectionMigration: AsyncMigration {
         // Create Products collection
         try await ProductSchema.createBuilder(database: database).create()
         
-        // Create User
-        //try await UserSchema.createBuilder(database: database).create()
     }
     
     func revert(on database: Database) async throws {

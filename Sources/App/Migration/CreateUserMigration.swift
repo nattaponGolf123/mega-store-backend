@@ -14,8 +14,9 @@ struct CreateUserMigration: AsyncMigration {
         //try await database.schema(User.schema).delete()
         
         try await UserSchema.createBuilder(database: database).create()
+        
         // new mock admin user
-        try await User.Stub.admin.save(on: database)        
+        try await User.Stub.admin.save(on: database)
     }
 
     func revert(on database: Database) async throws {

@@ -10,7 +10,7 @@ import Vapor
 import Fluent
 
 class ProductSchema {
-    static let schema: String = "Products"
+    static var schema: String { Product.schema }
     
     static func createBuilder(database: Database) -> SchemaBuilder {
         database.schema(Self.schema)
