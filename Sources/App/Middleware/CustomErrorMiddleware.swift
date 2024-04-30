@@ -24,6 +24,19 @@ final class ErrorHandlerMiddleware: AsyncMiddleware {
                 try response.content.encode(errorResponse)
                 return response
             }
+            // InputErrorMessageProtocol
+            else if let error = error as? InputErrorMessageProtocol,
+                    let content = error as? (any Content) {
+//                let errorResponse = [
+//                    "code": error.code,
+//                    "message": error.message,
+//                    "errors": error.errors
+//                ] as [String : Any]
+//                
+//                try response.content.encode(errorResponse)
+                try response.content.encode(content)
+                return response
+            }
             
             let errorResponse = [
                 "code": error.status.description,
@@ -38,6 +51,7 @@ final class ErrorHandlerMiddleware: AsyncMiddleware {
 }
 
 extension Response {
+    
     static func internalError() throws -> Response {
         let response = Response(status: .internalServerError)
         let errorResponse = [

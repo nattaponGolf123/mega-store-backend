@@ -13,6 +13,7 @@ enum DefaultError {
     case unauthorized
     case invalidInput
     case serverError
+    case dbConnectionError
 }
 
 extension DefaultError: AbortError {
@@ -26,6 +27,8 @@ extension DefaultError: AbortError {
             return "Invalid input"
         case .serverError:
             return "Server error"
+        case .dbConnectionError:
+            return "Database connection error"
         }
         
     }
@@ -39,6 +42,8 @@ extension DefaultError: AbortError {
         case .invalidInput:
             return .badRequest
         case .serverError:
+            return .internalServerError
+        case .dbConnectionError:
             return .internalServerError
         }
     }
@@ -56,6 +61,8 @@ extension DefaultError: ErrorMessageProtocol {
             return "INVALID_INPUT"
         case .serverError:
             return "SERVER_ERROR"
+        case .dbConnectionError:
+            return "DB_CONNECTION_ERROR"
         }
     }
     

@@ -33,9 +33,19 @@ class ProductCategoryController: RouteCollection {
         
         if showDeleted {
             //fetch all inclued deleted
-            return try await ProductCategory.query(on: req.db).withDeleted().all()
+            
+            do {
+                return try await ProductCategory.query(on: req.db).withDeleted().all()
+            } catch {
+                throw DefaultError.dbConnectionError
+            }
+                        
         } else {
-            return try await ProductCategory.query(on: req.db).filter(\.$deletedAt == nil).all()
+            do {
+                return try await ProductCategory.query(on: req.db).filter(\.$deletedAt == nil).all()
+            } catch {
+                throw DefaultError.dbConnectionError
+            }
         }
     }
     
@@ -45,10 +55,23 @@ class ProductCategoryController: RouteCollection {
         let content = try req.content.decode(CreateProductCategory.self)
         
         // validate
-        try CreateProductCategory.validate(content: req)
+        do {
+            try CreateProductCategory.validate(content: req)
+        } catch let error as ValidationsError {
+            //parse
+            let errors = InputError.parse(failures: error.failures)
+            // return error response
+            throw InputValidateError.inputValidateFailed(errors: errors)
+        } catch {
+            throw DefaultError.invalidInput
+        }
         
         let newCate = ProductCategory(name: content.name)
-        try await newCate.save(on: req.db).get()
+        do {
+            try await newCate.save(on: req.db).get()
+        } catch {
+            throw DefaultError.dbConnectionError
+        }
         
         return newCate
     }
@@ -183,10 +206,10 @@ extension ProductCategoryController {
         enum CodingKeys: String, CodingKey {
             case name = "name"
         }
-        
+                
         static func validations(_ validations: inout Validations) {
             validations.add("name", as: String.self,
-                            is: .count(1...))
+                            is: .count(3...400))
         }
     }
     
