@@ -8,8 +8,8 @@
 import Foundation
 import Vapor
 
-extension ProductCategoryController {
-   
+extension ServiceCategoryController {
+    
     struct CreateContent: Content, Validatable {
         let name: String
         
