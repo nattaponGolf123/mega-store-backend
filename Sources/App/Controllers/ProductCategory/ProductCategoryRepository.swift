@@ -15,7 +15,7 @@ protocol ProductCategoryRepositoryProtocol {
     func create(content: ProductCategoryController.CreateContent,
                 on db: Database) async throws -> ProductCategory
     func find(id: UUID,
-              on db: Database) async throws -> ProductCategory?
+              on db: Database) async throws -> ProductCategory
     func update(id: UUID,
                 with content: ProductCategoryController.UpdateContent,
                 on db: Database) async throws -> ProductCategory
@@ -34,7 +34,8 @@ class FluentProductCategoryRepository: ProductCategoryRepositoryProtocol {
                 return try await ProductCategory.query(on: db).filter(\.$deletedAt == nil).all()
             }
         } catch {
-            throw DefaultError.dbConnectionError
+            // Handle all other errors
+            throw DefaultError.error(message: error.localizedDescription)
         }
     }
 
@@ -49,18 +50,14 @@ class FluentProductCategoryRepository: ProductCategoryRepositoryProtocol {
 
             // Return the newly created category
             return newCate
-        } catch let error as FluentError {
-            // Handle Fluent specific errors, e.g., model not found
-            print(error)
-            throw DefaultError.dbConnectionError
         } catch {
             // Handle all other errors
-            throw DefaultError.serverError
+            throw DefaultError.error(message: error.localizedDescription)
         }
     }
 
     func find(id: UUID,
-              on db: Database) async throws -> ProductCategory? {
+              on db: Database) async throws -> ProductCategory {
         do {
             guard
                 let category = try await ProductCategory.query(on: db).filter(\.$id == id).first()
@@ -68,7 +65,8 @@ class FluentProductCategoryRepository: ProductCategoryRepositoryProtocol {
             
             return category
         } catch {
-            throw DefaultError.dbConnectionError
+            // Handle all other errors
+            throw DefaultError.error(message: error.localizedDescription)
         }
     }
 
@@ -88,11 +86,9 @@ class FluentProductCategoryRepository: ProductCategoryRepositoryProtocol {
             else { throw DefaultError.notFound }
 
             return category
-        } catch let error as FluentError {
-            print(error)
-            throw DefaultError.dbConnectionError
         } catch {
-            throw DefaultError.serverError
+            // Handle all other errors
+            throw DefaultError.error(message: error.localizedDescription)
         }
     }
 
@@ -107,7 +103,8 @@ class FluentProductCategoryRepository: ProductCategoryRepositoryProtocol {
             
             return category
         } catch {
-            throw DefaultError.dbConnectionError
+            // Handle all other errors
+            throw DefaultError.error(message: error.localizedDescription)
         }
     }
 
@@ -116,7 +113,8 @@ class FluentProductCategoryRepository: ProductCategoryRepositoryProtocol {
         do {
             return try await ProductCategory.query(on: db).filter(\.$name ~~ name).all()
         } catch {
-            throw DefaultError.dbConnectionError
+            // Handle all other errors
+            throw DefaultError.error(message: error.localizedDescription)
         }
     }
 }

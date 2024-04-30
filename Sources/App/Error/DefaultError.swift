@@ -14,6 +14,8 @@ enum DefaultError {
     case invalidInput
     case serverError
     case dbConnectionError
+    case insertFailed
+    case error(message: String)
 }
 
 extension DefaultError: AbortError {
@@ -29,6 +31,10 @@ extension DefaultError: AbortError {
             return "Server error"
         case .dbConnectionError:
             return "Database connection error"
+        case .insertFailed:
+            return "Insert failed"
+        case .error(let message):
+            return message
         }
         
     }
@@ -45,6 +51,10 @@ extension DefaultError: AbortError {
             return .internalServerError
         case .dbConnectionError:
             return .internalServerError
+        case .insertFailed:
+            return .badRequest
+        case .error:
+            return .badRequest
         }
     }
     
@@ -63,6 +73,10 @@ extension DefaultError: ErrorMessageProtocol {
             return "SERVER_ERROR"
         case .dbConnectionError:
             return "DB_CONNECTION_ERROR"
+        case .insertFailed:
+            return "INSERT_FAILED"
+        case .error:
+            return "ERROR"            
         }
     }
     
