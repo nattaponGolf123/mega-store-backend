@@ -51,30 +51,38 @@ class ProductCategoryController: RouteCollection {
     
     // POST /product_categories
     func create(req: Request) async throws -> ProductCategory {
-        // try to decode param by CreateContent
-        let content = try req.content.decode(CreateProductCategory.self)
-        
-        // validate
         do {
+            // Decode the incoming content
+            let content = try req.content.decode(CreateProductCategory.self)
+
+            // Validate the content directly
             try CreateProductCategory.validate(content: req)
+
+            // Initialize the ProductCategory from the validated content
+            let newCate = ProductCategory(name: content.name)
+
+            // Attempt to save the new category to the database
+            try await newCate.save(on: req.db)
+
+            // Return the newly created category
+            return newCate
         } catch let error as ValidationsError {
-            //parse
+            // Parse and throw a more specific input validation error if validation fails
             let errors = InputError.parse(failures: error.failures)
-            // return error response
             throw InputValidateError.inputValidateFailed(errors: errors)
-        } catch {
+        } catch let error as DecodingError {
+            // Handle JSON decoding errors
+            print(error)
             throw DefaultError.invalidInput
-        }
-        
-        let newCate = ProductCategory(name: content.name)
-        do {
-            try await newCate.save(on: req.db).get()
-        } catch {
+        } catch let error as FluentError {
+            // Handle Fluent specific errors, e.g., model not found
+            print(error)
             throw DefaultError.dbConnectionError
+        } catch {
+            // Handle all other errors
+            throw DefaultError.serverError
         }
-        
-        return newCate
-    }
+    }    
     
     // GET /product_categories/:id
     func getByID(req: Request) async throws -> ProductCategory {
@@ -84,55 +92,44 @@ class ProductCategoryController: RouteCollection {
         else { throw DefaultError.invalidInput }
         
         guard
-            let cate = try await ProductCategory.query(on: req.db).filter(\.$id == id).first()
+            let category = try await ProductCategory.query(on: req.db).filter(\.$id == id).first()
         else { throw DefaultError.notFound }
         
-        return cate
+        return category
     }
     
     // PUT /product_categories/:id
     func update(req: Request) async throws -> ProductCategory {
-        
+     
         do {
-            // try to decode param by CreateContent
+            // Decode the incoming content and validate it
             let content = try req.content.decode(UpdateProductCategory.self)
+            try UpdateProductCategory.validate(content: req)
             
-            // validate
-            do {
-                try CreateProductCategory.validate(content: req)
-            } catch let error as ValidationsError {
-                //parse
-                let errors = InputError.parse(failures: error.failures)
-                // return error response
-                throw InputValidateError.inputValidateFailed(errors: errors)
-            } catch {
+            // Extract the ID from the request's parameters
+            guard let id = req.parameters.get("id", as: UUID.self) else {
                 throw DefaultError.invalidInput
             }
-            
-            guard
-                let id = req.parameters.get("id",
-                                            as: UUID.self)
-            else { throw DefaultError.invalidInput }
-            
-            do {
-                let updateBuilder = updateFieldsBuilder(uuid: id,
-                                                    content: content,
-                                                    db: req.db)
-                try await updateBuilder.update()
-                guard
-                    let cate = try await getByIDBuilder(uuid: id,
-                                                           db: req.db).first()
-                else { throw DefaultError.notFound }
-                
-                return cate
-            } catch {
-                throw DefaultError.dbConnectionError
+
+            // Update the product category in the database
+            let updateBuilder = updateFieldsBuilder(uuid: id, content: content, db: req.db)
+            try await updateBuilder.update()
+
+            // Retrieve the updated product category
+            guard let category = try await getByIDBuilder(uuid: id, db: req.db).first() else {
+                throw DefaultError.notFound
             }
-            
+
+            return category
+        } catch let error as ValidationsError {
+            let errors = InputError.parse(failures: error.failures)
+            throw InputValidateError.inputValidateFailed(errors: errors)
+        } catch let error as FluentError {
+            print(error)
+            throw DefaultError.dbConnectionError
         } catch {
-            throw DefaultError.invalidInput
+            throw DefaultError.serverError
         }
-                
     }
     
     // DELETE /product_categories/:id
