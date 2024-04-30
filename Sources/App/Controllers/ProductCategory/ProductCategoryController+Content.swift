@@ -10,9 +10,9 @@ import Vapor
 
 extension ProductCategoryController {
     
-    struct Query: Content {
-        let name: String?
-    }
+//    struct Query: Content {
+//        let name: String?
+//    }
 
 //    struct RequestContent: Content {
 //        let id: Int

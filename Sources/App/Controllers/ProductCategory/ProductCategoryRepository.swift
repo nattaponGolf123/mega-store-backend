@@ -44,12 +44,21 @@ class FluentProductCategoryRepository: ProductCategoryRepositoryProtocol {
         do {
             // Initialize the ProductCategory from the validated content
             let newCate = ProductCategory(name: content.name)
-
+            
+            // check of duplicate name
+            let duplicate = try await ProductCategory.query(on: db).filter(\.$name == content.name).first()
+            
+            if duplicate != nil {
+                throw CommonError.duplicateName
+            }
+            
             // Attempt to save the new category to the database
             try await newCate.save(on: db)
-
+            
             // Return the newly created category
             return newCate
+        } catch let error as CommonError {
+            throw error
         } catch {
             // Handle all other errors
             throw DefaultError.error(message: error.localizedDescription)
