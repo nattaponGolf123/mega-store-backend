@@ -48,11 +48,16 @@ public func configure(_ app: Application) async throws {
     
     app.jwt.signers.use(.hs256(key: getJWTKey()))
     app.views.use(.leaf)
-
+    
+    
     //configPwd(app)
     
     // uncomment to serve files from /Public folder
     // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+    
+    // middleware
+    app.middleware.use(CustomErrorMiddleware())
+    
 
     // register routes
     try routes(app)

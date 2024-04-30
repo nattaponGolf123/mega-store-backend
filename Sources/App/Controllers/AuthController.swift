@@ -42,7 +42,8 @@ class AuthController: RouteCollection {
             
             return .ok
         } catch {
-            return .unauthorized
+            //return .unauthorized
+            throw AuthError.invalidToken
         }
     }
     
@@ -61,7 +62,8 @@ class AuthController: RouteCollection {
                     .filter(\.$username == content.username)
                     .first()
             else {
-                throw Abort(.notFound)
+                //throw Abort(.notFound)
+                throw AuthError.userNotFound
             }
 
             // debug
@@ -71,7 +73,10 @@ class AuthController: RouteCollection {
                                                     created: foundUser.passwordHash)
             guard
                 pwdVerify
-            else { throw Abort(.notFound) }
+            else {
+                //throw Abort(.notFound)
+                throw AuthError.invalidUsernameOrPassword
+            }
             
             
             let payload = UserJWTPayload(subject: "mega-store-user",
@@ -91,7 +96,8 @@ class AuthController: RouteCollection {
             
             return ["token": token]
         } catch {
-            throw Abort(.notFound)
+            //throw Abort(.notFound)
+            throw AuthError.userNotFound
         }
     }
     
@@ -103,7 +109,8 @@ class AuthController: RouteCollection {
                 let foundUser = try await User.find(userPayload.userID,
                                                     on: req.db)
             else {
-                throw Abort(.notFound)
+                //throw Abort(.notFound)
+                throw AuthError.userNotFound
             }
             
             foundUser.clearToken()
@@ -111,7 +118,8 @@ class AuthController: RouteCollection {
             
             return .ok
         } catch {
-            return .unauthorized
+            //return .unauthorized
+            throw AuthError.userNotFound
         }
     }
 }
