@@ -81,8 +81,9 @@ class FluentProductCategoryRepository: ProductCategoryRepositoryProtocol {
             try await updateBuilder.update()
 
             // Retrieve the updated product category
-            guard let category = try await Self.getByIDBuilder(uuid: id,
-                                                               db: db).first() 
+            guard 
+                let category = try await Self.getByIDBuilder(uuid: id,
+                                                             db: db).first()
             else { throw DefaultError.notFound }
 
             return category

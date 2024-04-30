@@ -45,10 +45,10 @@ class ProductCategoryValidator: ProductCategoryValidatorProtocol {
             try UpdateContent.validate(content: req)
             
             // Extract the ID from the request's parameters
-            guard let id = req.parameters.get("id", 
-                                              as: UUID.self) else {
-                throw DefaultError.invalidInput
-            }
+            guard 
+                let id = req.parameters.get("id",
+                                            as: UUID.self)
+            else { throw DefaultError.invalidInput }
             
             return (id, content)
         } catch let error as ValidationsError {
