@@ -40,6 +40,7 @@ public func configure(_ app: Application) async throws {
     // config response to snake case
     let encoder = JSONEncoder()
     encoder.keyEncodingStrategy = .convertToSnakeCase
+    encoder.dateEncodingStrategy = .iso8601
     ContentConfiguration.global.use(encoder: encoder,
                                     for: .json)
     

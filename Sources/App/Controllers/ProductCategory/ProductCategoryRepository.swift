@@ -8,6 +8,7 @@
 import Foundation
 import Vapor
 import Fluent
+import FluentMongoDriver
 
 protocol ProductCategoryRepositoryProtocol {
     func fetchAll(showDeleted: Bool,
@@ -44,21 +45,14 @@ class FluentProductCategoryRepository: ProductCategoryRepositoryProtocol {
         do {
             // Initialize the ProductCategory from the validated content
             let newCate = ProductCategory(name: content.name)
-            
-            // check of duplicate name
-            let duplicate = try await ProductCategory.query(on: db).filter(\.$name == content.name).first()
-            
-            if duplicate != nil {
-                throw CommonError.duplicateName
-            }
-            
+    
             // Attempt to save the new category to the database
             try await newCate.save(on: db)
             
             // Return the newly created category
             return newCate
-        } catch let error as CommonError {
-            throw error
+        } catch let error as FluentMongoDriver.FluentMongoError where error == .insertFailed {
+            throw CommonError.duplicateName
         } catch {
             // Handle all other errors
             throw DefaultError.error(message: error.localizedDescription)
@@ -88,14 +82,18 @@ class FluentProductCategoryRepository: ProductCategoryRepositoryProtocol {
                                                          content: content,
                                                          db: db)
             try await updateBuilder.update()
-
+            
             // Retrieve the updated product category
-            guard 
+            guard
                 let category = try await Self.getByIDBuilder(uuid: id,
                                                              db: db).first()
             else { throw DefaultError.notFound }
-
+            
             return category
+        } catch let error as FluentMongoDriver.FluentMongoError where error == .insertFailed {
+            throw CommonError.duplicateName
+        } catch let error as DefaultError {
+            throw error
         } catch {
             // Handle all other errors
             throw DefaultError.error(message: error.localizedDescription)
@@ -112,6 +110,8 @@ class FluentProductCategoryRepository: ProductCategoryRepositoryProtocol {
             try await category.delete(on: db).get()
             
             return category
+        } catch let error as DefaultError {
+            throw error
         } catch {
             // Handle all other errors
             throw DefaultError.error(message: error.localizedDescription)
