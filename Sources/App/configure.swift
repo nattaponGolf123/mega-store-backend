@@ -56,7 +56,7 @@ public func configure(_ app: Application) async throws {
     // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
     
     // middleware
-    app.middleware.use(CustomErrorMiddleware())
+    app.middleware.use(ErrorHandlerMiddleware())
     
 
     // register routes

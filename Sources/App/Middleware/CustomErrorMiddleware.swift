@@ -8,8 +8,8 @@
 import Foundation
 import Vapor
 
-final class CustomErrorMiddleware: AsyncMiddleware {
-    func respond(to request: Request, 
+final class ErrorHandlerMiddleware: AsyncMiddleware {
+    func respond(to request: Request,
                  chainingTo next: AsyncResponder) async throws -> Response {
         do {
             return try await next.respond(to: request)
