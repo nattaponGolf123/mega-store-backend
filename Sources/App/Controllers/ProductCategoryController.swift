@@ -31,8 +31,8 @@ class ProductCategoryController: RouteCollection {
     func all(req: Request) async throws -> [ProductCategory] {
         let showDeleted = req.query["show_deleted"] == "true"
         
+        //fetch all inclued deleted
         if showDeleted {
-            //fetch all inclued deleted
             
             do {
                 return try await ProductCategory.query(on: req.db).withDeleted().all()
@@ -81,43 +81,58 @@ class ProductCategoryController: RouteCollection {
         guard
             let id = req.parameters.get("id",
                                         as: UUID.self)
-        else { throw Abort(.badRequest) }
+        else { throw DefaultError.invalidInput }
         
         guard
             let cate = try await ProductCategory.query(on: req.db).filter(\.$id == id).first()
-        else { throw Abort(.notFound) }
+        else { throw DefaultError.notFound }
         
         return cate
     }
     
     // PUT /product_categories/:id
     func update(req: Request) async throws -> ProductCategory {
-        // try to decode param by CreateContent
-        let content = try req.content.decode(UpdateProductCategory.self)
-        
-        // validate
-        try CreateProductCategory.validate(content: req)
-        
-        guard
-            let id = req.parameters.get("id",
-                                        as: UUID.self)
-        else { throw Abort(.badRequest) }
-        
-        let updateBuilder = updateFieldsBuilder(uuid: id,
-                                                content: content,
-                                                db: req.db)
-        try await updateBuilder.update()
         
         do {
-            guard
-                let cate = try await getByIDBuilder(uuid: id,
-                                                       db: req.db).first()
-            else { throw Abort(.notFound) }
+            // try to decode param by CreateContent
+            let content = try req.content.decode(UpdateProductCategory.self)
             
-            return cate
+            // validate
+            do {
+                try CreateProductCategory.validate(content: req)
+            } catch let error as ValidationsError {
+                //parse
+                let errors = InputError.parse(failures: error.failures)
+                // return error response
+                throw InputValidateError.inputValidateFailed(errors: errors)
+            } catch {
+                throw DefaultError.invalidInput
+            }
+            
+            guard
+                let id = req.parameters.get("id",
+                                            as: UUID.self)
+            else { throw DefaultError.invalidInput }
+            
+            do {
+                let updateBuilder = updateFieldsBuilder(uuid: id,
+                                                    content: content,
+                                                    db: req.db)
+                try await updateBuilder.update()
+                guard
+                    let cate = try await getByIDBuilder(uuid: id,
+                                                           db: req.db).first()
+                else { throw DefaultError.notFound }
+                
+                return cate
+            } catch {
+                throw DefaultError.dbConnectionError
+            }
+            
         } catch {
-            throw Abort(.notFound)
+            throw DefaultError.invalidInput
         }
+                
     }
     
     // DELETE /product_categories/:id
@@ -125,13 +140,18 @@ class ProductCategoryController: RouteCollection {
         guard
             let id = req.parameters.get("id"),
             let uuid = UUID(id)
-        else { throw Abort(.badRequest) }
+        else { throw DefaultError.invalidInput }
         
         guard
             let cate = try await ProductCategory.query(on: req.db).filter(\.$id == uuid).first()
-        else { throw Abort(.notFound) }
+        else { throw DefaultError.notFound }
         
-        try await cate.delete(on: req.db).get()
+        do {
+            try await cate.delete(on: req.db).get()
+        } catch {
+            throw DefaultError.dbConnectionError
+        }
+        
         return cate
     }
     
@@ -140,9 +160,13 @@ class ProductCategoryController: RouteCollection {
         guard
             let search = req.query[String.self,
                                    at: "q"]
-        else { throw Abort(.badRequest) }
+        else { throw DefaultError.invalidInput }
         
-        return try await ProductCategory.query(on: req.db).filter(\.$name ~~ search).all()
+        do {
+            return try await ProductCategory.query(on: req.db).filter(\.$name ~~ search).all()
+        } catch {
+            throw DefaultError.dbConnectionError
+        }
     }
     
 }
