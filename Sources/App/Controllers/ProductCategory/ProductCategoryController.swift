@@ -10,6 +10,13 @@ import Fluent
 import Vapor
 
 class ProductCategoryController: RouteCollection {
+    
+    private(set) var repository: ProductCategoryRepositoryProtocol
+    
+    init(repository: ProductCategoryRepositoryProtocol = FluentProductCategoryRepository()) {
+        self.repository = repository
+    }
+    
     func boot(routes: RoutesBuilder) throws {
         
         let cates = routes.grouped("product_categories")
@@ -53,10 +60,10 @@ class ProductCategoryController: RouteCollection {
     func create(req: Request) async throws -> ProductCategory {
         do {
             // Decode the incoming content
-            let content = try req.content.decode(CreateProductCategory.self)
+            let content = try req.content.decode(Self.CreateContent.self)
 
             // Validate the content directly
-            try CreateProductCategory.validate(content: req)
+            try Self.CreateContent.validate(content: req)
 
             // Initialize the ProductCategory from the validated content
             let newCate = ProductCategory(name: content.name)
@@ -82,7 +89,7 @@ class ProductCategoryController: RouteCollection {
             // Handle all other errors
             throw DefaultError.serverError
         }
-    }    
+    }
     
     // GET /product_categories/:id
     func getByID(req: Request) async throws -> ProductCategory {
@@ -103,8 +110,8 @@ class ProductCategoryController: RouteCollection {
      
         do {
             // Decode the incoming content and validate it
-            let content = try req.content.decode(UpdateProductCategory.self)
-            try UpdateProductCategory.validate(content: req)
+            let content = try req.content.decode(Self.UpdateContent.self)
+            try Self.UpdateContent.validate(content: req)
             
             // Extract the ID from the request's parameters
             guard let id = req.parameters.get("id", as: UUID.self) else {
@@ -172,7 +179,7 @@ private extension ProductCategoryController {
     
     // Helper function to update product fields in the database
     func updateFieldsBuilder(uuid: UUID,
-                             content: UpdateProductCategory,
+                             content: ProductCategoryController.UpdateContent,
                              db: Database) -> QueryBuilder<ProductCategory> {
         let updateBuilder = ProductCategory.query(on: db).filter(\.$id == uuid)
         
@@ -189,69 +196,4 @@ private extension ProductCategoryController {
         return ProductCategory.query(on: db).filter(\.$id == uuid)
     }
 }
-
-extension ProductCategoryController {
-    
-    struct QueryProductCategory: Content {
-        let name: String?
-    }
-    
-    struct RequestParameter: Content {
-        let id: Int
-        
-        init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            let _id = try container.decode(String.self,
-                                           forKey: .id)
-            guard
-                let id = Int(_id)
-            else { throw Abort(.badRequest) }
-            
-            self.id = id
-        }
-    }
-    
-    struct CreateProductCategory: Content, Validatable {
-        let name: String
-        
-        init(name: String) {
-            self.name = name
-        }
-        
-        init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.name = try container.decode(String.self,
-                                             forKey: .name)
-        }
-        
-        enum CodingKeys: String, CodingKey {
-            case name = "name"
-        }
-                
-        static func validations(_ validations: inout Validations) {
-            validations.add("name", as: String.self,
-                            is: .count(3...400))
-        }
-    }
-    
-    struct UpdateProductCategory: Content, Validatable {
-        let name: String?
-        
-        init(name: String? = nil) {
-            self.name = name
-        }
-        
-        enum CodingKeys: String, CodingKey {
-            case name = "name"
-        }
-        
-        static func validations(_ validations: inout Validations) {
-            validations.add("name", as: String.self,
-                            is: .count(1...))
-        }
-    }
-    
-}
-
-
 
