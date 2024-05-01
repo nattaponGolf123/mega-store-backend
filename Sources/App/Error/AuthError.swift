@@ -15,6 +15,7 @@ enum AuthError {
     case invalidRefreshToken
     case userNotFound
     case userNotAuthorized
+    case error(message: String)
 }
 
 extension AuthError: AbortError {
@@ -32,6 +33,8 @@ extension AuthError: AbortError {
             return "User not found"
         case .userNotAuthorized:
             return "User not authorized"
+        case .error(let message):
+            return message
         }
     }
 
@@ -49,6 +52,8 @@ extension AuthError: AbortError {
             return .notFound
         case .userNotAuthorized:
             return .unauthorized
+        case .error:
+            return .badRequest
         }
     }
     
@@ -69,10 +74,66 @@ extension AuthError: ErrorMessageProtocol {
             return "USER_NOT_FOUND"
         case .userNotAuthorized:
             return "USER_NOT_AUTHORIZED"
+        case .error:
+            return "ERROR"
         }
     }
     
     var message: String {
         return reason
+    }
+}
+
+extension AuthError: Content {
+    //decode
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let code = try container.decode(String.self, forKey: .code)
+        let message = try container.decode(String.self, forKey: .message)
+
+        switch code {
+        case "INVALID_USERNAME_OR_PASSWORD":
+            self = .invalidUsernameOrPassword
+        case "USER_ALREADY_EXISTS":
+            self = .userAlreadyExists
+        case "INVALID_TOKEN":
+            self = .invalidToken
+        case "INVALID_REFRESH_TOKEN":
+            self = .invalidRefreshToken
+        case "USER_NOT_FOUND":
+            self = .userNotFound
+        case "USER_NOT_AUTHORIZED":
+            self = .userNotAuthorized
+        default:
+            self = .error(message: message)
+        }
+    }
+    
+    //encode
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case .invalidUsernameOrPassword:
+            try container.encode("INVALID_USERNAME_OR_PASSWORD", forKey: .code)
+        case .userAlreadyExists:
+            try container.encode("USER_ALREADY_EXISTS", forKey: .code)
+        case .invalidToken:
+            try container.encode("INVALID_TOKEN", forKey: .code)
+        case .invalidRefreshToken:
+            try container.encode("INVALID_REFRESH_TOKEN", forKey: .code)
+        case .userNotFound:
+            try container.encode("USER_NOT_FOUND", forKey: .code)
+        case .userNotAuthorized:
+            try container.encode("USER_NOT_AUTHORIZED", forKey: .code)
+        case .error:
+            try container.encode("ERROR", forKey: .code)
+        }
+        
+        try container.encode(message, forKey: .message)
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case code
+        case message
     }
 }

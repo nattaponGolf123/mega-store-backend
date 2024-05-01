@@ -42,6 +42,15 @@ struct UserJWTPayload: JWTPayload {
         self.isAdmin = isAdmin
     }
     
+    init(user: User) {
+        self.init(subject: .init(value: "mega-store-user"),
+                  expiration: .init(value: .distantFuture),
+                  userID: user.id ?? .init(),
+                  username: user.username,
+                  userFullname: user.fullname,
+                  isAdmin: user.type == UserType.admin)
+    }
+    
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         subject = try container.decode(SubjectClaim.self,

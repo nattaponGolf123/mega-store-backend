@@ -22,7 +22,7 @@ class ServiceCategoryController: RouteCollection {
     
     func boot(routes: RoutesBuilder) throws {
         
-        let cates = routes.grouped("product_categories")
+        let cates = routes.grouped("service_categories")
         cates.get(use: all)
         cates.post(use: create)
         
@@ -37,7 +37,7 @@ class ServiceCategoryController: RouteCollection {
         }
     }
     
-    // GET /product_categories?show_deleted=true
+    // GET /service_categories?show_deleted=true
     func all(req: Request) async throws -> [ServiceCategory] {
         let showDeleted = req.query["show_deleted"] == "true"
         
@@ -45,7 +45,7 @@ class ServiceCategoryController: RouteCollection {
                                    on: req.db)
     }
     
-    // POST /product_categories
+    // POST /service_categories
     func create(req: Request) async throws -> ServiceCategory {
         let content = try validator.validateCreate(req)
         
@@ -53,7 +53,7 @@ class ServiceCategoryController: RouteCollection {
                                            on: req.db)
     }
     
-    // GET /product_categories/:id
+    // GET /service_categories/:id
     func getByID(req: Request) async throws -> ServiceCategory {
         let uuid = try validator.validateID(req)
         
@@ -61,7 +61,7 @@ class ServiceCategoryController: RouteCollection {
                                          on: req.db)
     }
     
-    // PUT /product_categories/:id
+    // PUT /service_categories/:id
     func update(req: Request) async throws -> ServiceCategory {
         let (uuid, content) = try validator.validateUpdate(req)
         
@@ -70,7 +70,7 @@ class ServiceCategoryController: RouteCollection {
                                            on: req.db)
     }
 
-    // DELETE /product_categories/:id
+    // DELETE /service_categories/:id
     func delete(req: Request) async throws -> ServiceCategory {
         let uuid = try validator.validateID(req)
         
@@ -78,7 +78,7 @@ class ServiceCategoryController: RouteCollection {
                                            on: req.db)
     }
     
-    // GET /product_categories/search
+    // GET /service_categories/search
     func search(req: Request) async throws -> [ServiceCategory] {
         let q = try validator.validateSearchQuery(req)
         
