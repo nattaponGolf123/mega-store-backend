@@ -17,6 +17,8 @@ protocol ProductCategoryRepositoryProtocol {
                 on db: Database) async throws -> ProductCategory
     func find(id: UUID,
               on db: Database) async throws -> ProductCategory
+    func find(name: String,
+              on db: Database) async throws -> ProductCategory
     func update(id: UUID,
                 with content: ProductCategoryController.UpdateContent,
                 on db: Database) async throws -> ProductCategory
@@ -72,11 +74,28 @@ class FluentProductCategoryRepository: ProductCategoryRepositoryProtocol {
             throw DefaultError.error(message: error.localizedDescription)
         }
     }
+    
+    func find(name: String,
+              on db: Database) async throws -> ProductCategory {
+        do {
+            guard
+                let category = try await ProductCategory.query(on: db).filter(\.$name == name).first()
+            else { throw DefaultError.notFound }
+            
+            return category
+        } catch let error as DefaultError {
+            throw error
+        } catch {
+            // Handle all other errors
+            throw DefaultError.error(message: error.localizedDescription)
+        }
+    }
 
     func update(id: UUID, 
                 with content: ProductCategoryController.UpdateContent,
                 on db: Database) async throws -> ProductCategory {
         do {
+            
             // Update the product category in the database
             let updateBuilder = Self.updateFieldsBuilder(uuid: id,
                                                          content: content,

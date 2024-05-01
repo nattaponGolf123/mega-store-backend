@@ -64,10 +64,35 @@ class ProductCategoryController: RouteCollection {
     // PUT /product_categories/:id
     func update(req: Request) async throws -> ProductCategory {
         let (uuid, content) = try validator.validateUpdate(req)
-        
-        return try await repository.update(id: uuid,
-                                           with: content,
-                                           on: req.db)
+         
+        do {
+            // check is duplicate name
+            guard
+                let name = content.name 
+            else { throw DefaultError.invalidInput }
+            
+            let _ = try await repository.find(name: name,
+                                              on: req.db)
+            
+            throw CommonError.duplicateName
+            
+        } catch let error as DefaultError {
+            switch error {
+            case .notFound: // no duplicte
+                return try await repository.update(id: uuid,
+                                                   with: content,
+                                                   on: req.db)
+            default:
+                throw error
+            }
+            
+        } catch let error as CommonError {
+            throw error
+            
+        } catch {
+            // Handle all other errors
+            throw DefaultError.error(message: error.localizedDescription)
+        }
     }
 
     // DELETE /product_categories/:id

@@ -17,6 +17,8 @@ protocol ServiceCategoryRepositoryProtocol {
                 on db: Database) async throws -> ServiceCategory
     func find(id: UUID,
               on db: Database) async throws -> ServiceCategory
+    func find(name: String,
+              on db: Database) async throws -> ServiceCategory
     func update(id: UUID,
                 with content: ServiceCategoryController.UpdateContent,
                 on db: Database) async throws -> ServiceCategory
@@ -73,7 +75,23 @@ class FluentServiceCategoryRepository: ServiceCategoryRepositoryProtocol {
         }
     }
 
-    func update(id: UUID, 
+    func find(name: String,
+              on db: Database) async throws -> ServiceCategory {
+        do {
+            guard
+                let category = try await ServiceCategory.query(on: db).filter(\.$name == name).first()
+            else { throw DefaultError.notFound }
+            
+            return category
+        } catch let error as DefaultError {
+            throw error
+        } catch {
+            // Handle all other errors
+            throw DefaultError.error(message: error.localizedDescription)
+        }
+    }
+    
+    func update(id: UUID,
                 with content: ServiceCategoryController.UpdateContent,
                 on db: Database) async throws -> ServiceCategory {
         do {
