@@ -9,7 +9,7 @@ import Foundation
 import Vapor
 import Fluent
 
-class MyBusinesSchema {
+class MyBusineseSchema {
     static var schema: String { MyBusinese.schema }
     
     static func createBuilder(database: Database) -> SchemaBuilder {

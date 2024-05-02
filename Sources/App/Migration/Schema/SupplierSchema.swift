@@ -10,7 +10,7 @@ import Vapor
 import Fluent
 
 class SupplierSchema {
-    static var schema: String { SupplierGroup.schema }
+    static var schema: String { Supplier.schema }
     
     static func createBuilder(database: Database) -> SchemaBuilder {
         database.schema(Self.schema)

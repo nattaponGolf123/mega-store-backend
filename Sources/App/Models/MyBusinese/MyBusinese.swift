@@ -38,6 +38,15 @@ final class MyBusinese: Model, Content {
     @Field(key: "business_address")
     var businessAddress: [BusinessAddress]
 
+    @Field(key: "logo")
+    var logo: String?
+
+    @Field(key: "stamp_logo")
+    var stampLogo: String?
+
+    @Field(key: "authorized_sign_signature")
+    var authorizedSignSignature: String?
+
     @Field(key: "note")
     var note: String
 
@@ -65,6 +74,9 @@ final class MyBusinese: Model, Content {
          legalStatus: BusinessType,
          website: String,
          businessAddress: [BusinessAddress],
+         logo: String?,
+         stampLogo: String?,
+         authorizedSignSignature: String?,
          note: String) {
         self.id = id ?? UUID()
         self.name = name
@@ -73,6 +85,9 @@ final class MyBusinese: Model, Content {
         self.legalStatus = legalStatus
         self.website = website
         self.businessAddress = businessAddress
+        self.logo = logo
+        self.stampLogo = stampLogo
+        self.authorizedSignSignature = authorizedSignSignature
         self.note = note
     }
 
@@ -81,18 +96,65 @@ final class MyBusinese: Model, Content {
         var phoneNumber: String        
         var email: String
         var address: String
+
+        enum CodingKeys: String, CodingKey {
+            case contactPerson = "contact_person"
+            case phoneNumber = "phone_number"
+            case email
+            case address
+        }
     }
 
     struct BusinessAddress: Content {
         var address: String
+        var branch: String        
         var city: String
         var postalCode: String
         var country: String
         var phoneNumber: String
         var email: String
         var fax: String
+
+        enum CodingKeys: String, CodingKey {            
+            case address
+            case branch
+            case city
+            case postalCode = "postal_code"
+            case country
+            case phoneNumber = "phone_number"
+            case email
+            case fax
+        }
     }
 
+}
+
+extension MyBusinese {
+    struct Stub {
+        static var myCompany: MyBusinese {
+            MyBusinese(id: UUID(),
+                                   name: "ABC Industries",
+                                   contactInformation: MyBusinese.ContactInformation(contactPerson: "John Doe",
+                                                                                     phoneNumber: "123-456-7890",
+                                                                                     email: "abc@email.com",
+                                                                                        address: "1234 Industrial Way, Business City, BC 56789"),
+                                      taxNumber: "123123212123",
+                                        legalStatus: .limitedCompany,
+                                        website: "www.abcindustries.com",
+                                        businessAddress: [MyBusinese.BusinessAddress(address: "123",
+                                                                                        branch: "123",
+                                                                                      city: "Bangkok",
+                                                                                      postalCode: "12022",
+                                                                                      country: "Thailand",
+                                                                                      phoneNumber: "123-456-7890",
+                                                                                      email: "",
+                                                                                      fax: "")],
+                                        logo: "https://www.abcindustries.com/logo.png",
+                                        stampLogo: "https://www.abcindustries.com/stamp.png",
+                                        authorizedSignSignature: "https://www.abcindustries.com/signature.png",
+                                        note: "Reliable supplier with consistent quality and delivery times.")
+        } 
+    }
 }
 
 /*
@@ -117,8 +179,9 @@ final class MyBusinese: Model, Content {
         "email" : "",
         "fax" : ""
         }],
-    
-    "payment_terms_days": 30,
+    "logo" : "https://www.abcindustries.com/logo.png",
+    "stamp_logo" : "https://www.abcindustries.com/stamp.png",
+    "authorized_sign_signature" : "https://www.abcindustries.com/signature.png",
     "note": "Reliable supplier with consistent quality and delivery times.",
     "created_at": "2021-03-05T07:00:00Z",
     "updated_at": "2021-03-05T07:00:00Z",

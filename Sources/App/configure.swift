@@ -83,6 +83,11 @@ private func configMigrations(_ app: Application) async throws {
     app.migrations.add(ProductCategoryMigration())
     app.migrations.add(ServiceCategoryMigration())
 
+    app.migrations.add(SupplierMigration())
+    app.migrations.add(SupplierGroupMigration())
+
+    app.migrations.add(MyBusineseMigration())
+
     app.migrations.add(CollectionMigration())
     
     try await app.autoMigrate()

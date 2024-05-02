@@ -93,6 +93,7 @@ final class Supplier: Model, Content {
 
     struct BusinessAddress: Content {
         var address: String
+        var branch: String
         var city: String
         var postalCode: String
         var country: String
@@ -102,6 +103,7 @@ final class Supplier: Model, Content {
 
         enum CodingKeys: String, CodingKey {
             case address
+            case branch
             case city
             case postalCode = "postal_code"
             case country
