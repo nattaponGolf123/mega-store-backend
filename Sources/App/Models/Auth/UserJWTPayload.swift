@@ -47,7 +47,7 @@ struct UserJWTPayload: JWTPayload {
                   expiration: .init(value: .distantFuture),
                   userID: user.id ?? .init(),
                   username: user.username,
-                  userFullname: user.fullname,
+                  userFullname: user.personalInformation.fullname,
                   isAdmin: user.type == UserType.admin)
     }
     

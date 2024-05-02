@@ -43,7 +43,7 @@ struct UserController: RouteCollection {
         
         let newUser = User(username: content.username,
                            passwordHash: hashPwd,
-                           fullname: content.fullname,
+                           personalInformation: .init(fullname: content.fullname),
                            userType: .user)
         try await newUser.save(on: req.db).get()
         
