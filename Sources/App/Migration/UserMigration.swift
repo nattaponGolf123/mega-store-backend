@@ -9,10 +9,8 @@ import Foundation
 import Fluent
 import Vapor
 
-struct CreateUserMigration: AsyncMigration {
+struct UserMigration: AsyncMigration {
     func prepare(on database: Database) async throws {
-        //try await database.schema(User.schema).delete()
-        
         try await UserSchema.createBuilder(database: database).create()
         
         // new mock admin user
