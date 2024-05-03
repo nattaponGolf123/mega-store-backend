@@ -128,7 +128,7 @@ final class PurchaseOrder: Model, Content {
          supplierBusinessAddress: BusinessAddress,
          status: PurchaseOrderStatus = .pending,
          currency: String,
-         totalAmountExcludeVat: Bool,
+         productAndServiceAreVatExcluded: Bool,
          vatIncluded: Bool = false,
          taxWithholdingIncluded: Bool = false,
          note: String = "",
@@ -164,7 +164,7 @@ final class PurchaseOrder: Model, Content {
         self.totalAmount = Self.sum(productItems: productItems,
                                     serviceItems: serviceItems)
         
-        self.vat = Self.vatAmount(totalAmountExcludeVat: totalAmountExcludeVat,
+        self.vat = Self.vatAmount(productAndServiceAreVatExcluded: productAndServiceAreVatExcluded,
                                   vatIncluded: vatIncluded,
                                   totalAmount: totalAmount)
         
@@ -173,7 +173,7 @@ final class PurchaseOrder: Model, Content {
                                                             totalAmountIncludeVat: totalAmountIncludeVat)
         } else {
             self.taxWithholding = Self.taxWithholdingAmount(taxWithholdingIncluded: taxWithholdingIncluded,
-                                                            totalAmountExcludeVat: totalAmount)
+                                                            productAndServiceAreVatExcluded: totalAmount)
         }
         
         self.note = note
@@ -196,11 +196,11 @@ extension PurchaseOrder {
         return productTotal + serviceTotal
     }
     
-    static func vatAmount(totalAmountExcludeVat: Bool,
+    static func vatAmount(productAndServiceAreVatExcluded: Bool,
                           vatIncluded: Bool,
                           totalAmount: Double) -> VatAmount? {
         if vatIncluded {
-            if totalAmountExcludeVat {
+            if productAndServiceAreVatExcluded {
                 return VatAmount(totalAmountBeforeVat: totalAmount)
             } else {
                 return VatAmount(totalAmountIncludeVat: totalAmount)
@@ -220,9 +220,9 @@ extension PurchaseOrder {
     }
     
     static func taxWithholdingAmount(taxWithholdingIncluded: Bool,
-                                     totalAmountExcludeVat: Double) -> TaxWithholding? {
+                                     productAndServiceAreVatExcluded: Double) -> TaxWithholding? {
         if taxWithholdingIncluded {
-            return TaxWithholding(totalAmount: totalAmountExcludeVat)
+            return TaxWithholding(totalAmount: productAndServiceAreVatExcluded)
         }
         
         return  nil
