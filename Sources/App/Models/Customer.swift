@@ -9,16 +9,16 @@ import Foundation
 import Vapor
 import Fluent
 
-final class Supplier: Model, Content {
-    static let schema = "Suppliers"
-
+final class Customer: Model, Content {
+    static let schema = "Customers"
+    
     @ID(key: .id)
     var id: UUID?
     
     @Field(key: "name")
     var name: String
 
-     @Field(key: "vat_registered")
+    @Field(key: "vat_registered")
     var vatRegistered: Bool
 
     @Field(key: "contact_information")
@@ -27,7 +27,7 @@ final class Supplier: Model, Content {
     @Field(key: "tax_number")
     var taxNumber: String
 
-    @Enum(key: "legal_status")
+    @Field(key: "legal_status")
     var legalStatus: BusinessType
 
     @Field(key: "website")
@@ -87,6 +87,16 @@ final class Supplier: Model, Content {
         var email: String
         var address: String
 
+        init(contactPerson: String,
+             phoneNumber: String = "",
+             email: String = "",
+             address: String = "") {
+            self.contactPerson = contactPerson
+            self.phoneNumber = phoneNumber
+            self.email = email
+            self.address = address
+        }   
+
         //encode
         func encode(to encoder: Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
@@ -99,10 +109,14 @@ final class Supplier: Model, Content {
         //decode
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            contactPerson = try container.decode(String.self, forKey: .contactPerson)
-            phoneNumber = try container.decode(String.self, forKey: .phoneNumber)
-            email = try container.decode(String.self, forKey: .email)
-            address = try container.decode(String.self, forKey: .address)
+            self.contactPerson = try container.decode(String.self,
+                                                      forKey: .contactPerson)
+            self.phoneNumber = try container.decode(String.self,
+                                                    forKey: .phoneNumber)
+            self.email = try container.decode(String.self,
+                                              forKey: .email)
+            self.address = try container.decode(String.self,
+                                               forKey: .address)
         }
 
         enum CodingKeys: String, CodingKey {
@@ -114,71 +128,34 @@ final class Supplier: Model, Content {
 
     }
 
-
-    // struct Create: Content {
-    //     var name: String
-    //     var contactInformation: ContactInformation
-    //     var taxNumber: String
-    //     var legalStatus: String
-    //     var website: String
-    //     var businessAddress: [BusinessAddress]
-    //     var paymentTermsDays: Int
-    //     var note: String
-    // }
-
-    // struct Update: Content {
-    //     var name: String?
-    //     var contactInformation: ContactInformation?
-    //     var taxNumber: String?
-    //     var legalStatus: String?
-    //     var website: String?
-    //     var businessAddress: [BusinessAddress]?
-    //     var paymentTermsDays: Int?
-    //     var note: String?
-    // }
-
-    // struct Patch: Content {
-    //     var name: String?
-    //     var contactInformation: ContactInformation?
-    //     var taxNumber: String?
-    //     var legalStatus: String?
-    //     var website: String?
-    //     var businessAddress: [BusinessAddress]?
-    //     var paymentTermsDays: Int?
-    //     var note: String?
-    // }
-    
-    
 }
 
-/*
-{
-    "id": "SUP12345", // UUID
-    "name": "ABC Industries",
-    "vat_registered": true,
-    "contact_information": {
-        "contact_person": "John Doe",
-        "phone_number": "123-456-7890",
-        "email": "contact@abcindustries.com",
-        "address": "1234 Industrial Way, Business City, BC 56789"
-    },
-    "tax_number": "123123212123",
-    "legal_tatus" : "corporate" , // ["limited company", "individual"]
-    "website": "www.abcindustries.com",
-    "businese_address": [{
-	    "address" : "123",
-        "city" : "Bangkok",          
-		"postal_code" : "12022",
-        "country" : "Thailand",
-        "phone_number" : "123-456-7890"
-        "email" : "",
-        "fax" : ""        
-	    }],
-    
-    "payment_terms_days": 30,
-    "note": "Reliable supplier with consistent quality and delivery times.",
-    "created_at": "2021-03-05T07:00:00Z",
-    "updated_at": "2021-03-05T07:00:00Z",
-    "deleted_at": null
+extension Customer {
+    struct Stub {
+        
+        static var individul: Customer {
+
+            let contactInformation = ContactInformation(contactPerson: "John Doe",
+                                                                  phoneNumber: "1234567890",
+                                                                  email: "",
+                                                                    address: "123 Main St")
+            let businessAddress = [BusinessAddress(address: "123 Main St",
+                                                            branch: "Main",
+                                                            city: "New York",
+                                                            postalCode: "10001",
+                                                            country: "USA",
+                                                            phoneNumber: "1234567890",
+                                                            email: "",
+                                                            fax: "")]
+            return .init(name: "John Doe",
+                            vatRegistered: false,
+                            contactInformation: contactInformation,
+                            taxNumber: "1234567890",
+                            legalStatus: .individual,
+                            website: "",
+                            businessAddress: businessAddress,
+                            paymentTermsDays: 30,
+                            note: "This is a note")                            
+        }
+    }
 }
-*/

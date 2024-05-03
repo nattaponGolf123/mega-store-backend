@@ -2,35 +2,35 @@
 //  File.swift
 //  
 //
-//  Created by IntrodexMac on 3/5/2567 BE.
+//  Created by IntrodexMac on 4/2/2567 BE.
 //
 
 import Foundation
 import Vapor
 import Fluent
 
-final class SupplierGroup: Model, Content {
-    static let schema = "SupplierGroups"
+final class CustomerGroup: Model, Content {
+    static let schema = "CustomerGroups"
     
     @ID(key: .id)
     var id: UUID?
-
+    
     @Field(key: "name")
     var name: String
 
     @Field(key: "description")
     var description: String
-
+    
     @Timestamp(key: "created_at",
                on: .create,
                format: .iso8601)
     var createdAt: Date?
-
+    
     @Timestamp(key: "updated_at",
                on: .update,
                format: .iso8601)
     var updatedAt: Date?
-
+    
     @Timestamp(key: "deleted_at",
                on: .delete,
                format: .iso8601)
@@ -44,17 +44,16 @@ final class SupplierGroup: Model, Content {
          createdAt: Date? = nil,
          updatedAt: Date? = nil,
          deletedAt: Date? = nil) {
-        self.id = id ?? UUID()
+        self.id = id ?? .init()
         self.name = name
         self.description = description
-        self.createdAt = createdAt
+        self.createdAt = createdAt ?? Date()
         self.updatedAt = updatedAt
         self.deletedAt = deletedAt
     }
-    
 }
 
-extension SupplierGroup {
+extension CustomerGroup {
     struct Create: Content, Validatable {
         let name: String
         let description: String?
@@ -106,13 +105,23 @@ extension SupplierGroup {
     }
 }
 
-/*
-{
-    "id": "00000000-0000-0000-0000-000000000000",
-    "name": "Supplier Group 1",
-    "description": "Supplier Group 1 Description",
-    "created_at": "2021-05-03T00:00
-    "updated_at": "2021-05-03T00:00
-    "deleted_at": "2021-05-03T00:00
+extension CustomerGroup {
+    struct Stub {
+        
+        static var group: [CustomerGroup] {
+            [
+                .init(name: "Retail", 
+                      description: "Retail customers"),
+                .init(name: "Wholesale",
+                      description: "Wholesale customers"),
+                .init(name: "Distributor",
+                      description: "Distributor customers"),
+            ]
+        }
+        
+        static var retail: CustomerGroup {
+            .init(name: "Retail",
+                  description: "Retail customers")
+        }
+    }
 }
-*/

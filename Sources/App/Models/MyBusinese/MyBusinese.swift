@@ -96,41 +96,9 @@ final class MyBusinese: Model, Content {
         self.note = note
     }
 
-    struct ContactInformation: Content {
-        var contactPerson: String
-        var phoneNumber: String        
-        var email: String
-        var address: String
+    
 
-        enum CodingKeys: String, CodingKey {
-            case contactPerson = "contact_person"
-            case phoneNumber = "phone_number"
-            case email
-            case address
-        }
-    }
-
-    struct BusinessAddress: Content {
-        var address: String
-        var branch: String        
-        var city: String
-        var postalCode: String
-        var country: String
-        var phoneNumber: String
-        var email: String
-        var fax: String
-
-        enum CodingKeys: String, CodingKey {            
-            case address
-            case branch
-            case city
-            case postalCode = "postal_code"
-            case country
-            case phoneNumber = "phone_number"
-            case email
-            case fax
-        }
-    }
+   
 
 }
 
@@ -140,14 +108,14 @@ extension MyBusinese {
             MyBusinese(id: UUID(),
                                    name: "ABC Industries",
                                    vatRegistered: true,
-                                   contactInformation: MyBusinese.ContactInformation(contactPerson: "John Doe",
+                                   contactInformation: ContactInformation(contactPerson: "John Doe",
                                                                                      phoneNumber: "123-456-7890",
                                                                                      email: "abc@email.com",
                                                                                         address: "1234 Industrial Way, Business City, BC 56789"),
                                       taxNumber: "123123212123",
                                         legalStatus: .limitedCompany,
                                         website: "www.abcindustries.com",
-                                        businessAddress: [MyBusinese.BusinessAddress(address: "123",
+                                        businessAddress: [BusinessAddress(address: "123",
                                                                                         branch: "123",
                                                                                       city: "Bangkok",
                                                                                       postalCode: "12022",
