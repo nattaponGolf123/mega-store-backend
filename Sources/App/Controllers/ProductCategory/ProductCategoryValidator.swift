@@ -9,16 +9,16 @@ import Foundation
 import Vapor
 
 protocol ProductCategoryValidatorProtocol {
-    func validateCreate(_ req: Request) throws -> ProductCategoryController.CreateContent
-    func validateUpdate(_ req: Request) throws -> (uuid: UUID,content: ProductCategoryController.UpdateContent)
+    func validateCreate(_ req: Request) throws -> ProductCategory.Create
+    func validateUpdate(_ req: Request) throws -> (uuid: UUID,content: ProductCategory.Update)
     func validateID(_ req: Request) throws -> UUID
     func validateSearchQuery(_ req: Request) throws -> String
 }
 
 class ProductCategoryValidator: ProductCategoryValidatorProtocol {
     
-    func validateCreate(_ req: Request) throws -> ProductCategoryController.CreateContent {
-        typealias CreateContent = ProductCategoryController.CreateContent
+    func validateCreate(_ req: Request) throws -> ProductCategory.Create {
+        typealias CreateContent = ProductCategory.Create
         do {
             // Decode the incoming content
             let content = try req.content.decode(CreateContent.self)
@@ -37,8 +37,8 @@ class ProductCategoryValidator: ProductCategoryValidatorProtocol {
         }
     }
 
-    func validateUpdate(_ req: Request) throws -> (uuid: UUID,content: ProductCategoryController.UpdateContent) {
-        typealias UpdateContent = ProductCategoryController.UpdateContent
+    func validateUpdate(_ req: Request) throws -> (uuid: UUID,content: ProductCategory.Update) {
+        typealias UpdateContent = ProductCategory.Update
         do {
             // Decode the incoming content and validate it
             let content = try req.content.decode(UpdateContent.self)

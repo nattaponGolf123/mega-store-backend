@@ -126,6 +126,98 @@ extension Product {
 
 }
 
+extension Product {
+   
+   struct Create: Content, Validatable {
+       let name: String
+       let price: Double
+       let description: String
+       let unit: String
+       
+       init(name: String,
+            price: Double,
+            description: String,
+            unit: String) {
+           self.name = name
+           self.price = price
+           self.description = description
+           self.unit = unit
+       }
+       
+       init(from decoder: Decoder) throws {
+           let container = try decoder.container(keyedBy: CodingKeys.self)
+           self.name = try container.decode(String.self,
+                                            forKey: .name)
+           self.price = try container.decode(Double.self,
+                                             forKey: .price)
+           self.description = (try? container.decode(String.self,
+                                                   forKey: .description)) ?? ""
+           self.unit = (try? container.decodeIfPresent(String.self,
+                                                       forKey: .unit)) ?? ""
+       }
+       
+       enum CodingKeys: String, CodingKey {
+           case name = "name"
+           case price = "price"
+           case description = "des"
+           case unit = "unit"
+       }
+    
+       static func validations(_ validations: inout Validations) {
+           validations.add("name", as: String.self,
+                           is: .count(3...))
+           validations.add("price", as: Double.self,
+                           is: .range(0...))
+           validations.add("des", as: String.self,
+                           is: .count(3...),
+                           required: false)
+           validations.add("unit", as: String.self,
+                           is: .count(3...),
+                           required: false)
+       }
+   }
+   
+   struct Update: Content, Validatable {
+       let name: String?
+       let price: Double?
+       let description: String?
+       let unit: String?
+       
+       init(name: String? = nil,
+            price: Double? = nil,
+            description: String? = nil,
+            unit: String? = nil) {
+           self.name = name
+           self.price = price
+           self.description = description
+           self.unit = unit
+       }
+       
+       enum CodingKeys: String, CodingKey {
+           case name = "name"
+           case price = "price"
+           case description = "des"
+           case unit = "unit"
+       }
+    
+       static func validations(_ validations: inout Validations) {
+           validations.add("name", as: String.self,
+                           is: .count(3...),
+                           required: false)
+           validations.add("price", as: Double.self,
+                           is: .range(0...),
+                           required: false)
+           validations.add("des", as: String.self,
+                           is: .count(3...),
+                           required: false)
+           validations.add("unit", as: String.self,
+                           is: .count(3...),
+                           required: false)
+       }
+   }
+
+}
+
 /*
  {
 	"id": "UUID",

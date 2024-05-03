@@ -9,16 +9,16 @@ import Foundation
 import Vapor
 
 protocol ServiceCategoryValidatorProtocol {
-    func validateCreate(_ req: Request) throws -> ServiceCategoryController.CreateContent
-    func validateUpdate(_ req: Request) throws -> (uuid: UUID,content: ServiceCategoryController.UpdateContent)
+    func validateCreate(_ req: Request) throws -> ServiceCategory.Create
+    func validateUpdate(_ req: Request) throws -> (uuid: UUID,content: ServiceCategory.Update)
     func validateID(_ req: Request) throws -> UUID
     func validateSearchQuery(_ req: Request) throws -> String
 }
 
 class ServiceCategoryValidator: ServiceCategoryValidatorProtocol {
     
-    func validateCreate(_ req: Request) throws -> ServiceCategoryController.CreateContent {
-        typealias CreateContent = ServiceCategoryController.CreateContent
+    func validateCreate(_ req: Request) throws -> ServiceCategory.Create {
+        typealias CreateContent = ServiceCategory.Create
         do {
             // Decode the incoming content
             let content = try req.content.decode(CreateContent.self)
@@ -37,8 +37,8 @@ class ServiceCategoryValidator: ServiceCategoryValidatorProtocol {
         }
     }
 
-    func validateUpdate(_ req: Request) throws -> (uuid: UUID,content: ServiceCategoryController.UpdateContent) {
-        typealias UpdateContent = ServiceCategoryController.UpdateContent
+    func validateUpdate(_ req: Request) throws -> (uuid: UUID,content: ServiceCategory.Update) {
+        typealias UpdateContent = ServiceCategory.Update
         do {
             // Decode the incoming content and validate it
             let content = try req.content.decode(UpdateContent.self)

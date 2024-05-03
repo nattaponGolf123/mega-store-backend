@@ -13,14 +13,14 @@ import FluentMongoDriver
 protocol ServiceCategoryRepositoryProtocol {
     func fetchAll(showDeleted: Bool,
                   on db: Database) async throws -> [ServiceCategory]
-    func create(content: ServiceCategoryController.CreateContent,
+    func create(content: ServiceCategory.Create,
                 on db: Database) async throws -> ServiceCategory
     func find(id: UUID,
               on db: Database) async throws -> ServiceCategory
     func find(name: String,
               on db: Database) async throws -> ServiceCategory
     func update(id: UUID,
-                with content: ServiceCategoryController.UpdateContent,
+                with content: ServiceCategory.Update,
                 on db: Database) async throws -> ServiceCategory
     func delete(id: UUID, on db: Database) async throws -> ServiceCategory
     func search(name: String, on db: Database) async throws -> [ServiceCategory]
@@ -42,7 +42,7 @@ class FluentServiceCategoryRepository: ServiceCategoryRepositoryProtocol {
         }
     }
 
-    func create(content: ServiceCategoryController.CreateContent,
+    func create(content: ServiceCategory.Create,
                 on db: Database) async throws -> ServiceCategory {
         do {
             // Initialize the ServiceCategory from the validated content
@@ -92,7 +92,7 @@ class FluentServiceCategoryRepository: ServiceCategoryRepositoryProtocol {
     }
     
     func update(id: UUID,
-                with content: ServiceCategoryController.UpdateContent,
+                with content: ServiceCategory.Update,
                 on db: Database) async throws -> ServiceCategory {
         do {
             // Update the product category in the database
@@ -151,7 +151,7 @@ extension FluentServiceCategoryRepository {
     
     // Helper function to update product fields in the database
     static func updateFieldsBuilder(uuid: UUID,
-                             content: ServiceCategoryController.UpdateContent,
+                             content: ServiceCategory.Update,
                              db: Database) -> QueryBuilder<ServiceCategory> {
         let updateBuilder = ServiceCategory.query(on: db).filter(\.$id == uuid)
         

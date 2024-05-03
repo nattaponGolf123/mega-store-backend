@@ -13,14 +13,14 @@ import FluentMongoDriver
 protocol ProductCategoryRepositoryProtocol {
     func fetchAll(showDeleted: Bool,
                   on db: Database) async throws -> [ProductCategory]
-    func create(content: ProductCategoryController.CreateContent,
+    func create(content: ProductCategory.Create,
                 on db: Database) async throws -> ProductCategory
     func find(id: UUID,
               on db: Database) async throws -> ProductCategory
     func find(name: String,
               on db: Database) async throws -> ProductCategory
     func update(id: UUID,
-                with content: ProductCategoryController.UpdateContent,
+                with content: ProductCategory.Update,
                 on db: Database) async throws -> ProductCategory
     func delete(id: UUID, on db: Database) async throws -> ProductCategory
     func search(name: String, on db: Database) async throws -> [ProductCategory]
@@ -42,7 +42,7 @@ class FluentProductCategoryRepository: ProductCategoryRepositoryProtocol {
         }
     }
 
-    func create(content: ProductCategoryController.CreateContent,
+    func create(content: ProductCategory.Create,
                 on db: Database) async throws -> ProductCategory {
         do {
             // Initialize the ProductCategory from the validated content
@@ -92,7 +92,7 @@ class FluentProductCategoryRepository: ProductCategoryRepositoryProtocol {
     }
 
     func update(id: UUID, 
-                with content: ProductCategoryController.UpdateContent,
+                with content: ProductCategory.Update,
                 on db: Database) async throws -> ProductCategory {
         do {
             
@@ -152,7 +152,7 @@ extension FluentProductCategoryRepository {
     
     // Helper function to update product fields in the database
     static func updateFieldsBuilder(uuid: UUID,
-                             content: ProductCategoryController.UpdateContent,
+                             content: ProductCategory.Update,
                              db: Database) -> QueryBuilder<ProductCategory> {
         let updateBuilder = ProductCategory.query(on: db).filter(\.$id == uuid)
         

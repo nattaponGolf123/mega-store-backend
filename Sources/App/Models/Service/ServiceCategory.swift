@@ -64,3 +64,45 @@ extension ServiceCategory {
         }
     }
 }
+
+extension ServiceCategory {
+    struct Create: Content, Validatable {
+        let name: String
+        
+        init(name: String) {
+            self.name = name
+        }
+        
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            self.name = try container.decode(String.self,
+                                             forKey: .name)
+        }
+        
+        enum CodingKeys: String, CodingKey {
+            case name = "name"
+        }
+                
+        static func validations(_ validations: inout Validations) {
+            validations.add("name", as: String.self,
+                            is: .count(3...400))
+        }
+    }
+
+    struct Update: Content, Validatable {
+        let name: String?
+        
+        init(name: String? = nil) {
+            self.name = name
+        }
+        
+        enum CodingKeys: String, CodingKey {
+            case name = "name"
+        }
+        
+        static func validations(_ validations: inout Validations) {
+            validations.add("name", as: String.self,
+                            is: .count(1...))
+        }
+    }
+}
