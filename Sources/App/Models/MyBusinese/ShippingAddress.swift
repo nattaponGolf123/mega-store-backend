@@ -1,29 +1,27 @@
 import Foundation
-import Vapor
-import Fluent
 
-struct BusinessAddress: Content {
+struct ShippingAddress: Codable {
     let address: String
-    let branch: String  
-    let subDistrict: String  
+    let branch: String
+    let subDistrict: String
     let city: String
     let province: String
     let country: String
-    
+
     @ThailandPostCode
     var postalCode: String
 
     let phoneNumber: String
     let email: String
     let fax: String
-    
+
     init(address: String,
          branch: String,
          subDistrict: String,
          city: String,
          province: String,
-         postalCode: String,
          country: String = "THA",
+         postalCode: String,
          phoneNumber: String = "",
          email: String = "",
          fax: String = "") {
@@ -32,13 +30,13 @@ struct BusinessAddress: Content {
         self.subDistrict = subDistrict
         self.city = city
         self.province = province
-        self.postalCode = postalCode
         self.country = country
+        self.postalCode = postalCode
         self.phoneNumber = phoneNumber
         self.email = email
         self.fax = fax
     }
-    
+
     //decode
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -63,7 +61,7 @@ struct BusinessAddress: Content {
         self.fax = try container.decode(String.self,
                                         forKey: .fax)
     }
-    
+
     //encode
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
@@ -78,7 +76,7 @@ struct BusinessAddress: Content {
         try container.encode(email, forKey: .email)
         try container.encode(fax, forKey: .fax)
     }
-    
+
     enum CodingKeys: String, CodingKey {
         case address
         case branch
@@ -90,22 +88,5 @@ struct BusinessAddress: Content {
         case phoneNumber = "phone_number"
         case email
         case fax
-    }
-}
-
-extension BusinessAddress {
-    struct Stub {
-        static var usa: BusinessAddress {
-            BusinessAddress(address: "123 Main St",
-                            branch: "Main",
-                            subDistrict: "123",
-                            city: "New York",
-                            province: "NY",
-                            postalCode: "10001",
-                            country: "USA",
-                            phoneNumber: "1234567890",
-                            email: "",
-                            fax: "")
-        }
     }
 }

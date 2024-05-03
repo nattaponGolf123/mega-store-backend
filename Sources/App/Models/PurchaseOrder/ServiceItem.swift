@@ -46,10 +46,11 @@ final class ServiceItem: Model, Content {
          name: String,
          description: String = "",
          quantity: Double = 1.0,
-         price: Double = 0.0,
+         price: Double = 0.0,         
          unit: String = "",
          remark: String = "") {
         self.id = id ?? .init()
+        self.serviceId = serviceId
         self.name = name
         self.description = description
         self.quantity = quantity

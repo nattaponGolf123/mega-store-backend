@@ -14,6 +14,12 @@ enum UserType: String, Codable {
     case user
 }
 
+enum UserRole: String, Codable {
+    case manager
+    case owner
+    case staff    
+}
+
 final class User: Model, Content {
     static let schema = "Users"
     

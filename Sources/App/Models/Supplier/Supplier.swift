@@ -14,7 +14,10 @@ final class Supplier: Model, Content {
 
     @ID(key: .id)
     var id: UUID?
-    
+        
+    @Field(key: "code")
+    var code: String
+
     @Field(key: "name")
     var name: String
 
@@ -35,6 +38,9 @@ final class Supplier: Model, Content {
 
     @Field(key: "business_address")
     var businessAddress: [BusinessAddress]
+    
+    @Field(key: "shipping_address")
+    var shippingAddress: [ShippingAddress]
 
     @Field(key: "payment_terms_days")
     var paymentTermsDays: Int?
@@ -60,6 +66,7 @@ final class Supplier: Model, Content {
     init() { }
 
     init(id: UUID? = nil,
+         number: Int,         
          name: String,
          vatRegistered: Bool,
          contactInformation: ContactInformation,
@@ -67,9 +74,15 @@ final class Supplier: Model, Content {
          legalStatus: BusinessType,
          website: String,
          businessAddress: [BusinessAddress],
+         shippingAddress: [ShippingAddress],
          paymentTermsDays: Int?,
          note: String) {
+
+        @SupplierCode(value: number)
+        var _code: String
+
         self.id = id ?? UUID()
+        self.code = _code
         self.name = name
         self.vatRegistered = vatRegistered
         self.contactInformation = contactInformation
@@ -77,78 +90,11 @@ final class Supplier: Model, Content {
         self.legalStatus = legalStatus
         self.website = website
         self.businessAddress = businessAddress
+        self.shippingAddress = shippingAddress
         self.paymentTermsDays = paymentTermsDays
         self.note = note
     }
 
-    struct ContactInformation: Content {
-        var contactPerson: String
-        var phoneNumber: String
-        var email: String
-        var address: String
-
-        //encode
-        func encode(to encoder: Encoder) throws {
-            var container = encoder.container(keyedBy: CodingKeys.self)
-            try container.encode(contactPerson, forKey: .contactPerson)
-            try container.encode(phoneNumber, forKey: .phoneNumber)
-            try container.encode(email, forKey: .email)
-            try container.encode(address, forKey: .address)
-        }
-
-        //decode
-        init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            contactPerson = try container.decode(String.self, forKey: .contactPerson)
-            phoneNumber = try container.decode(String.self, forKey: .phoneNumber)
-            email = try container.decode(String.self, forKey: .email)
-            address = try container.decode(String.self, forKey: .address)
-        }
-
-        enum CodingKeys: String, CodingKey {
-            case contactPerson = "contact_person"
-            case phoneNumber = "phone_number"
-            case email
-            case address
-        }
-
-    }
-
-
-    // struct Create: Content {
-    //     var name: String
-    //     var contactInformation: ContactInformation
-    //     var taxNumber: String
-    //     var legalStatus: String
-    //     var website: String
-    //     var businessAddress: [BusinessAddress]
-    //     var paymentTermsDays: Int
-    //     var note: String
-    // }
-
-    // struct Update: Content {
-    //     var name: String?
-    //     var contactInformation: ContactInformation?
-    //     var taxNumber: String?
-    //     var legalStatus: String?
-    //     var website: String?
-    //     var businessAddress: [BusinessAddress]?
-    //     var paymentTermsDays: Int?
-    //     var note: String?
-    // }
-
-    // struct Patch: Content {
-    //     var name: String?
-    //     var contactInformation: ContactInformation?
-    //     var taxNumber: String?
-    //     var legalStatus: String?
-    //     var website: String?
-    //     var businessAddress: [BusinessAddress]?
-    //     var paymentTermsDays: Int?
-    //     var note: String?
-    // }
-    
-    
 }
 
 /*
@@ -180,5 +126,37 @@ final class Supplier: Model, Content {
     "created_at": "2021-03-05T07:00:00Z",
     "updated_at": "2021-03-05T07:00:00Z",
     "deleted_at": null
+}
+*/
+
+/*
+@propertyWrapper
+struct SupplierCode {
+    private var value: String
+    
+    init(wrappedValue: String) {
+        self.value = wrappedValue
+    }
+
+    init(wrappedValue: Int) {
+        self.value = String(wrappedValue)
+    }
+    
+    var wrappedValue: String {
+        get { value }
+        set {
+            if isValidSupplierCode(newValue) {
+                value = newValue
+            } else {
+                print("Invalid supplier code format")
+            }
+        }
+    }
+    
+    private func isValidSupplierCode(_ code: String) -> Bool {
+        let regex = #"^S\d{4}\d$"#
+        let predicate = NSPredicate(format: "SELF MATCHES %@", regex)
+        return predicate.evaluate(with: code)
+    }
 }
 */

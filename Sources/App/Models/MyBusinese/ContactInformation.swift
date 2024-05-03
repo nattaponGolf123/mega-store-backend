@@ -6,16 +6,13 @@ struct ContactInformation: Content {
         var contactPerson: String
         var phoneNumber: String        
         var email: String
-        var address: String
 
         init(contactPerson: String,
              phoneNumber: String = "",
-             email: String = "",
-             address: String = "") {
+             email: String = "") {
             self.contactPerson = contactPerson
             self.phoneNumber = phoneNumber
             self.email = email
-            self.address = address
         }
 
         //decode
@@ -27,8 +24,6 @@ struct ContactInformation: Content {
                                                    forKey: .phoneNumber)
             self.email = try container.decode(String.self,
                                              forKey: .email)
-            self.address = try container.decode(String.self,
-                                              forKey: .address)
         }
 
         //encode
@@ -37,14 +32,12 @@ struct ContactInformation: Content {
             try container.encode(contactPerson, forKey: .contactPerson)
             try container.encode(phoneNumber, forKey: .phoneNumber)
             try container.encode(email, forKey: .email)
-            try container.encode(address, forKey: .address)
         }
 
         enum CodingKeys: String, CodingKey {
             case contactPerson = "contact_person"
             case phoneNumber = "phone_number"
             case email
-            case address
         }
 }
 
@@ -53,15 +46,24 @@ extension ContactInformation {
         static var john: ContactInformation {
             ContactInformation(contactPerson: "John Doe",
                                 phoneNumber: "1234567890",
-                                email: "john@email.com",
-                                address: "1234 Main St")
+                                email: "john@email.com")
         }
 
         static var jane: ContactInformation {
             ContactInformation(contactPerson: "Jane Doe",
                                 phoneNumber: "0987654321",
-                                email: "",
-                                address: "4321 Main St")
+                                email: "")
         }
     }
 }
+
+
+/*
+//json response preview
+{
+    "contact_person": "John Doe",
+    "phone_number": "1234567890",
+    "email": "",
+    "address": "1234 Main St"
+}
+*/

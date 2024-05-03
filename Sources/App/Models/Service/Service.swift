@@ -80,15 +80,6 @@ final class Service: Model, Content {
         self.deletedAt = deletedAt
     }
     
-//    func category(on database: Database) async throws -> ServiceCategory? {
-//        guard 
-//            let categoryId = self.categoryId
-//        else { return nil }
-//
-//        return try await ServiceCategory.query(on: database)
-//            .filter(\.$id == categoryId)
-//            .first()
-//    }
 }
 
 extension Service {

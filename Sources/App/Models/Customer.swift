@@ -90,16 +90,13 @@ extension Customer {
             
             let contactInformation = ContactInformation(contactPerson: "John Doe",
                                                         phoneNumber: "1234567890",
-                                                        email: "",
-                                                        address: "123 Main St")
-            let businessAddress = [BusinessAddress(address: "123 Main St",
-                                                   branch: "Main",
-                                                   city: "New York",
-                                                   postalCode: "10001",
-                                                   country: "USA",
-                                                   phoneNumber: "1234567890",
-                                                   email: "",
-                                                   fax: "")]
+                                                        email: "")
+            let businessAddress = [BusinessAddress(address: "123/456",
+                                                   branch: "",
+                                                   subDistrict: "",
+                                                   city: "",
+                                                   province: "",
+                                                   postalCode: "12345")]
             return .init(name: "John Doe",
                          vatRegistered: false,
                          contactInformation: contactInformation,
