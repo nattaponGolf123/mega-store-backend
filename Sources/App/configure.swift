@@ -84,6 +84,7 @@ private func configMigrations(_ app: Application) async throws {
     app.migrations.add(ProductMigration())
     app.migrations.add(ProductCategoryMigration())
 
+    //app.migrations.add(ServiceMigration())
     app.migrations.add(ServiceCategoryMigration())
 
     app.migrations.add(SupplierMigration())

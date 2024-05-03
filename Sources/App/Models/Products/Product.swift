@@ -159,21 +159,23 @@ extension Product {
        enum CodingKeys: String, CodingKey {
            case name = "name"
            case price = "price"
-           case description = "des"
+           case description = "description"
            case unit = "unit"
        }
     
        static func validations(_ validations: inout Validations) {
-           validations.add("name", as: String.self,
-                           is: .count(3...))
-           validations.add("price", as: Double.self,
-                           is: .range(0...))
-           validations.add("des", as: String.self,
-                           is: .count(3...),
-                           required: false)
-           validations.add("unit", as: String.self,
-                           is: .count(3...),
-                           required: false)
+            validations.add("name", as: String.self,
+                            is: .count(1...400),
+                            required: true)
+            // validations.add("description", as: String.self,
+            //                 is: .count(...400),
+            //                 required: false)
+            validations.add("price", as: Double.self,
+                            is: .range(0...),
+                            required: true)
+            validations.add("unit", as: String.self,
+                            is: .count(1...),
+                            required: true)      
        }
    }
    
