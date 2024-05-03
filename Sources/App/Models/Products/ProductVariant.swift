@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by IntrodexMac on 4/2/2567 BE.
 //
@@ -9,76 +9,119 @@ import Foundation
 import Vapor
 import Fluent
 
-struct ProductVariant: Codable, Content {
-    var id: UUID?
-    var variantID: UUID
-    var variantName: String
-    var variantSKU: String
-    var price: Double
-    var additionalDescription: String?
-    var imageUrl: String?
-    var color: String?
-    var barcode: String?
-    var dimensions: ProductDimensions?
+@propertyWrapper
+struct UniqueVariantId {
+    private var value: String?
+    
+    var wrappedValue: String {
+        mutating get {
+            if let existingValue = value {
+                return existingValue
+            } else {
+                let newValue = generateRandomString()
+                value = newValue
+                return newValue
+            }
+        }
+    }
+    
+    private func generateRandomString() -> String {
+        let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        return String((0..<5).map { _ in letters.randomElement()! })
+    }
+}
 
+
+final class ProductVariant:Model, Content {
+    static let schema = "ProductVariant"
+    
+    @ID(key: .id)
+    var id: UUID?
+    
+    @Field(key: "variant_id")
+    var variantId: String
+    
+    @Field(key: "variant_name")
+    var name: String
+    
+    @Field(key: "variant_sku")
+    var sku: String
+    
+    @Field(key: "price")
+    var sellingPrice: Double
+    
+    @Field(key: "additional_description")
+    var additionalDescription: String
+    
+    @Field(key: "image")
+    var image: String?
+    
+    @Field(key: "color")
+    var color: String?
+    
+    @Field(key: "barcode")
+    var barcode: String?
+    
+    @Field(key: "dimensions")
+    var dimensions: ProductDimension?
+    
+    @Timestamp(key: "created_at",
+               on: .create,
+               format: .iso8601)
+    var createdAt: Date?
+    
+    @Timestamp(key: "updated_at",
+               on: .update,
+               format: .iso8601)
+    var updatedAt: Date?
+    
+    @Timestamp(key: "deleted_at",
+               on: .delete,
+               format: .iso8601)
+    var deletedAt: Date?
+    
+    init() { }
+    
     init(id: UUID? = nil,
-         variantID: UUID,
-         variantName: String,
-         variantSKU: String,
-         price: Double,
-         additionalDescription: String? = nil,
-         imageUrl: String? = nil,
+         variantId: String?,
+         name: String,
+         sku: String,
+         sellingPrice: Double,
+         additionalDescription: String,
+         image: String? = nil,
          color: String? = nil,
          barcode: String? = nil,
-         dimensions: ProductDimensions? = nil) {
-        self.id = id ?? UUID()
-        self.variantID = variantID
-        self.variantName = variantName
-        self.variantSKU = variantSKU
-        self.price = price
+         dimensions: ProductDimension? = nil,
+         createdAt: Date? = nil,
+         updatedAt: Date? = nil,
+         deletedAt: Date? = nil) {
+        
+        @UniqueVariantId
+        var _variantId: String
+        
+        self.id = id ?? .init()
+        self.variantId = variantId ?? _variantId
+        self.name = name
+        self.sku = sku
+        self.sellingPrice = sellingPrice
         self.additionalDescription = additionalDescription
-        self.imageUrl = imageUrl
+        self.image = image
         self.color = color
         self.barcode = barcode
         self.dimensions = dimensions
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
     }
-
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(id, forKey: .id)
-        try container.encode(variantID, forKey: .variantID)
-        try container.encode(variantName, forKey: .variantName)
-        try container.encode(variantSKU, forKey: .variantSKU)
-        try container.encode(price, forKey: .price)
-        try container.encode(additionalDescription, forKey: .additionalDescription)
-        try container.encode(imageUrl, forKey: .imageUrl)
-        try container.encode(color, forKey: .color)
-        try container.encode(barcode, forKey: .barcode)
-        try container.encode(dimensions, forKey: .dimensions)
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(UUID.self, forKey: .id)
-        variantID = try container.decode(UUID.self, forKey: .variantID)
-        variantName = try container.decode(String.self, forKey: .variantName)
-        variantSKU = try container.decode(String.self, forKey: .variantSKU)
-        price = try container.decode(Double.self, forKey: .price)
-        additionalDescription = try? container.decode(String.self, forKey: .additionalDescription)
-        imageUrl = try? container.decode(String.self, forKey: .imageUrl)
-        color = try? container.decode(String.self, forKey: .color)
-        barcode = try? container.decode(String.self, forKey: .barcode)
-        dimensions = try? container.decode(ProductDimensions.self, forKey: .dimensions)
-    }
-
+    
     enum CodingKeys: String, CodingKey {
         case id
-        case variantID = "variant_id"
-        case variantName = "variant_name"
-        case variantSKU = "variant_sku"
-        case price
+        case variantId = "variant_id"
+        case name = "variant_name"
+        case sku = "variant_sku"
+        case sellingPrice = "price"
         case additionalDescription = "additional_description"
-        case imageUrl = "image_url"
+        case image
         case color
         case barcode
         case dimensions
@@ -87,38 +130,38 @@ struct ProductVariant: Codable, Content {
 
 /*
  {
-     "id": "UUID",
-     "description": "",
-     "unit_id": 1,
-     "price": 100.11,
-     "category_id": 1,
-     "manufacturer": "",
-     "barcode": "UniqueVariantBarcode",  // Added barcode field
-     "date_added": "ISODate",
-     "last_updated": "ISODate",
-     "delete_at": "ISODate",
-     "image": "",
-     "tags": ["abc", "def"],
-     "variants": [
-         {
-             "id": "UUID",
-             "variant_id": "id",
-             "variant_name": "",
-             "variant_sku": "",
-             "price": 123.44,
-             "additional_description": "",
-             "image": "",
-             "color": "Red",
-             "barcode": "UniqueVariantBarcode",  // Added barcode field
-             "dimensions": {
-                 "length": 1,
-                 "width": 1,
-                 "height": 1,
-                 "weight": 1,
-                 "length_unit": "cm",
-                 "weight_unit": "kg"
-             }
-         }
-     ]
+ "id": "UUID",
+ "description": "",
+ "unit_id": 1,
+ "price": 100.11,
+ "category_id": 1,
+ "manufacturer": "",
+ "barcode": "UniqueVariantBarcode",  // Added barcode field
+ "date_added": "ISODate",
+ "last_updated": "ISODate",
+ "delete_at": "ISODate",
+ "image": "",
+ "tags": ["abc", "def"],
+ "variants": [
+ {
+ "id": "UUID",
+ "variant_id": "id",
+ "variant_name": "",
+ "variant_sku": "",
+ "price": 123.44,
+ "additional_description": "",
+ "image": "",
+ "color": "Red",
+ "barcode": "UniqueVariantBarcode",  // Added barcode field
+ "dimensions": {
+ "length": 1,
+ "width": 1,
+ "height": 1,
+ "weight": 1,
+ "length_unit": "cm",
+ "weight_unit": "kg"
+ }
+ }
+ ]
  }
  */
