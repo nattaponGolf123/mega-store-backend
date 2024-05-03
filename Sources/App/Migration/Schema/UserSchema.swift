@@ -31,13 +31,28 @@ class UserSchema {
     
 }
 
+
 /*
- {
- "username": "theresa59",
- "password": "^7Wqb49P*!",
- "token": "JWT fe61b720b50e8c1755af8250bfb692f20d3b2ed3e1c3d6a42e4ade5e0d46b0b5",
- "date_added": "1995-03-13T16:21:25",
- "last_updated": "1983-02-27T12:25:49",
- "delete_at": "1982-10-11T12:02:34"
- }
- */
+{
+  "_id": "C4303634-E24A-481E-BD2A-DB40EB1D04F4",
+  "updated_at": "2024-05-02T23:31:59Z",
+  "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhZG1pbiI6dHJ1ZSwiZXhwIjo2NDA5MjIxMTIwMCwic3ViIjoibWVnYS1zdG9yZS11c2VyIiwidXNlcm5hbWUiOiJhZG1pbiIsImlkIjoiQzQzMDM2MzQtRTI0QS00ODFFLUJEMkEtREI0MEVCMUQwNEY0IiwiZnVsbG5hbWUiOiJBZG1pbiJ9.BQRefhqOiVammeIxcwIUQQ-bTe9RR7f9tGUJN4rSQOU",
+  "last_login_at": {
+    "$date": "2024-05-02T23:31:59.817Z"
+  },
+  "password_hash": "$2b$12$Iys1MXvDx5JvfOFgHAnCAOG9/h51Es9chnc3RpMjbZDjox.rgN9pa",
+  "username": "admin",
+  "created_at": "2024-05-02T23:31:00Z",
+  "personal_information": {
+    "fullname": "Admin",
+    "email": "",
+    "phone": "",
+    "address": ""
+  },
+  "type": "admin",
+  "expried": {
+    "$date": "4001-01-01T00:00:00.000Z"
+  },
+  "active": true
+}
+*/

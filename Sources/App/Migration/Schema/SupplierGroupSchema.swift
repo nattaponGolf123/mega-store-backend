@@ -17,7 +17,7 @@ class SupplierGroupSchema {
             .id()
             .field("name", .string, .required)
             .unique(on: "name")
-            .field("description", .string, .required)
+            .field("description", .string)
             .field("created_at", .datetime)
             .field("updated_at", .datetime)
             .field("deleted_at", .datetime)
