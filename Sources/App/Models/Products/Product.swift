@@ -34,7 +34,7 @@ final class Product: Model, Content {
     var manufacturer: String
 
     @Field(key: "barcode")
-    var barcode: String
+    var barcode: String?
 
     @Timestamp(key: "created_at",
            on: .create,
@@ -69,12 +69,13 @@ final class Product: Model, Content {
     init() { }
 
     init(id: UUID? = nil,
+        name: String,
          description: String,
          unit: String,
          sellingPrice: Double = 0,
          categoryId: UUID? = nil,
          manufacturer: String = "",
-         barcode: String = "",         
+         barcode: String? = nil,         
          images: [String] = [],
          coverImage: String? = nil,
          tags: [String] = [],
@@ -84,6 +85,7 @@ final class Product: Model, Content {
          updatedAt: Date? = nil,
          deletedAt: Date? = nil) {
         self.id = id
+        self.name = name
         self.description = description
         self.unit = unit
         self.sellingPrice = sellingPrice
@@ -102,8 +104,25 @@ final class Product: Model, Content {
 
 }
 
+extension Product { 
+    struct Stub {
+        static var steel: Product {
+            return Product(name: "Steel",
+             description: "Steel Description",
+              unit: "Kg",
+               sellingPrice: 100.11,
+                categoryId: nil,
+                 manufacturer: "Steel Manufacturer",
+                variants: [ProductVariant.Stub.steelVariant])
+        }
+    }
+}
+
 extension Product {
   
+  static var units: [String] {
+    return ["Peice", "Kg", "Litre", "Gram", "Meter", "Centimeter", "Inch", "Foot", "Yard"]
+  }
 
 }
 

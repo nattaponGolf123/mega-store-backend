@@ -83,7 +83,7 @@ final class ProductVariant:Model, Content {
     init() { }
     
     init(id: UUID? = nil,
-         variantId: String?,
+         variantId: String? = nil,
          name: String,
          sku: String,
          sellingPrice: Double,
@@ -125,6 +125,25 @@ final class ProductVariant:Model, Content {
         case color
         case barcode
         case dimensions
+    }
+}
+
+extension ProductVariant { 
+    struct Stub {
+        static var steelVariant: ProductVariant {
+            return .init(name: "Steel Variant",
+                         sku: "STL-123",
+                         sellingPrice: 100.11,
+                         additionalDescription: "Steel Variant Description",
+                         color: "Silver",
+                         barcode: "STL-123-456",
+                         dimensions: .init(length: 1,
+                                           width: 1,
+                                           height: 1,
+                                           weight: 1,
+                                           lengthUnit: "cm",
+                                           weightUnit: "kg"))
+        }
     }
 }
 
