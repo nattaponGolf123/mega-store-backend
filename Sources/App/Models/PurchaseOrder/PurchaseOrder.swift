@@ -45,14 +45,20 @@ final class PurchaseOrder: Model, Content {
     @Field(key: "supplier_id")
     var supplierId: UUID
     
-    @Field(key: "supplier_vat_registered")
-    var supplierVatRegistered: Bool
-    
     @Field(key: "supplier_contact_information")
     var supplierContactInformation: ContactInformation
     
     @Field(key: "supplier_business_address")
     var supplierBusinessAddress: BusinessAddress
+    
+    @Field(key: "customer_id")
+    var customerId: UUID
+
+    @Field(key: "customer_contact_information")
+    var customerContactInformation: ContactInformation
+
+    @Field(key: "customer_business_address")
+    var customerBusinessAddress: BusinessAddress
     
     @Field(key: "status")
     var status: PurchaseOrderStatus
@@ -121,11 +127,13 @@ final class PurchaseOrder: Model, Content {
          serviceItems: [ServiceItem],
          orderDate: Date = .init(),
          deliveryDate: Date = .init(),
-         paymentTermsDays: Int,
+         paymentTermsDays: Int = 30,
          supplierId: UUID,
-         supplierVatRegistered: Bool = false,
          supplierContactInformation: ContactInformation,
          supplierBusinessAddress: BusinessAddress,
+         customerId: UUID,
+         customerContactInformation: ContactInformation,
+         customerBusinessAddress: BusinessAddress,
          status: PurchaseOrderStatus = .pending,
          currency: String,
          productAndServiceAreVatExcluded: Bool,
@@ -144,7 +152,7 @@ final class PurchaseOrder: Model, Content {
                        initialValue: lastedNumber)
         var _runningNumber: String
         
-        self.id = id
+        self.id = id ?? .init()
         self.runningNumber = _runningNumber
         self.revisionNumber = revisionNumber
         self.isLastedVersion = isLastedVersion
@@ -153,12 +161,14 @@ final class PurchaseOrder: Model, Content {
         self.orderDate = orderDate
         self.deliveryDate = deliveryDate
         self.paymentTermsDays = paymentTermsDays
-        self.supplierId = supplierId
-        self.supplierVatRegistered = supplierVatRegistered
+        self.supplierId = supplierId        
         self.supplierContactInformation = supplierContactInformation
         self.supplierBusinessAddress = supplierBusinessAddress
+        self.customerId = customerId
+        self.customerContactInformation = customerContactInformation
+        self.customerBusinessAddress = customerBusinessAddress
+
         self.status = status
-        self.currency = currency
         
         //sum of productItems and serviceItems
         self.totalAmount = Self.sum(productItems: productItems,
@@ -175,14 +185,68 @@ final class PurchaseOrder: Model, Content {
             self.taxWithholding = Self.taxWithholdingAmount(taxWithholdingIncluded: taxWithholdingIncluded,
                                                             productAndServiceAreVatExcluded: totalAmount)
         }
+
+        self.currency = currency
         
         self.note = note
         self.createdAt = createdAt ?? .init()
         self.updatedAt = updatedAt
         self.deletedAt = deletedAt
+        
         self.creatorId = creatorId
         self.documentVersion = documentVersion
         self.previousVersions = previousVersions
+    }
+    
+  func ableUpdateStatus() -> [PurchaseOrderStatus] {
+        switch status {
+        case .pending:
+            return [.approved, .rejected, .cancelled]
+        case .approved:
+            return [.cancelled]
+        default:
+            return []
+        }
+  }
+
+  func moveStatus(newStatus: PurchaseOrderStatus) {
+        switch status {
+        case .pending:
+            switch newStatus {
+            case .approved:
+                self.status = newStatus
+                self.approvedAt = .init()
+            case .rejected:
+                self.status = newStatus
+                self.rejectedAt = .init()
+            case .cancelled:
+                self.status = newStatus
+                self.cancelledAt = .init()
+            default:
+                break
+            }
+
+        case .approved:
+            switch newStatus {
+            case .cancelled:
+                self.status = newStatus
+                self.cancelledAt = .init()
+            default:
+                break
+            }
+        default:
+            break
+        }
+    }
+
+    func prepareUpdate() {
+      guard isLastedVersion else { return }
+
+      self.isLastedVersion = false
+      previousVersions.append(self)
+
+      self.revisionNumber += 1
+            
     }
     
 }
