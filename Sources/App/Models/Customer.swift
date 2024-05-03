@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by IntrodexMac on 3/5/2567 BE.
 //
@@ -17,48 +17,48 @@ final class Customer: Model, Content {
     
     @Field(key: "name")
     var name: String
-
+    
     @Field(key: "vat_registered")
     var vatRegistered: Bool
-
+    
     @Field(key: "contact_information")
     var contactInformation: ContactInformation
-
+    
     @Field(key: "tax_number")
     var taxNumber: String
-
+    
     @Field(key: "legal_status")
     var legalStatus: BusinessType
-
+    
     @Field(key: "website")
     var website: String
-
+    
     @Field(key: "business_address")
     var businessAddress: [BusinessAddress]
-
+    
     @Field(key: "payment_terms_days")
     var paymentTermsDays: Int?
-
+    
     @Field(key: "note")
     var note: String
-
-    @Timestamp(key: "created_at", 
-               on: .create, 
+    
+    @Timestamp(key: "created_at",
+               on: .create,
                format: .iso8601)
     var createdAt: Date?
-
+    
     @Timestamp(key: "updated_at",
                on: .update,
                format: .iso8601)
     var updatedAt: Date?
-
-    @Timestamp(key: "deleted_at", 
+    
+    @Timestamp(key: "deleted_at",
                on: .delete,
                format: .iso8601)
     var deletedAt: Date?
-
+    
     init() { }
-
+    
     init(id: UUID? = nil,
          name: String,
          vatRegistered: Bool,
@@ -80,82 +80,35 @@ final class Customer: Model, Content {
         self.paymentTermsDays = paymentTermsDays
         self.note = note
     }
-
-    struct ContactInformation: Content {
-        var contactPerson: String
-        var phoneNumber: String
-        var email: String
-        var address: String
-
-        init(contactPerson: String,
-             phoneNumber: String = "",
-             email: String = "",
-             address: String = "") {
-            self.contactPerson = contactPerson
-            self.phoneNumber = phoneNumber
-            self.email = email
-            self.address = address
-        }   
-
-        //encode
-        func encode(to encoder: Encoder) throws {
-            var container = encoder.container(keyedBy: CodingKeys.self)
-            try container.encode(contactPerson, forKey: .contactPerson)
-            try container.encode(phoneNumber, forKey: .phoneNumber)
-            try container.encode(email, forKey: .email)
-            try container.encode(address, forKey: .address)
-        }
-
-        //decode
-        init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.contactPerson = try container.decode(String.self,
-                                                      forKey: .contactPerson)
-            self.phoneNumber = try container.decode(String.self,
-                                                    forKey: .phoneNumber)
-            self.email = try container.decode(String.self,
-                                              forKey: .email)
-            self.address = try container.decode(String.self,
-                                               forKey: .address)
-        }
-
-        enum CodingKeys: String, CodingKey {
-            case contactPerson = "contact_person"
-            case phoneNumber = "phone_number"
-            case email
-            case address
-        }
-
-    }
-
+    
 }
 
 extension Customer {
     struct Stub {
         
         static var individul: Customer {
-
+            
             let contactInformation = ContactInformation(contactPerson: "John Doe",
-                                                                  phoneNumber: "1234567890",
-                                                                  email: "",
-                                                                    address: "123 Main St")
+                                                        phoneNumber: "1234567890",
+                                                        email: "",
+                                                        address: "123 Main St")
             let businessAddress = [BusinessAddress(address: "123 Main St",
-                                                            branch: "Main",
-                                                            city: "New York",
-                                                            postalCode: "10001",
-                                                            country: "USA",
-                                                            phoneNumber: "1234567890",
-                                                            email: "",
-                                                            fax: "")]
+                                                   branch: "Main",
+                                                   city: "New York",
+                                                   postalCode: "10001",
+                                                   country: "USA",
+                                                   phoneNumber: "1234567890",
+                                                   email: "",
+                                                   fax: "")]
             return .init(name: "John Doe",
-                            vatRegistered: false,
-                            contactInformation: contactInformation,
-                            taxNumber: "1234567890",
-                            legalStatus: .individual,
-                            website: "",
-                            businessAddress: businessAddress,
-                            paymentTermsDays: 30,
-                            note: "This is a note")                            
+                         vatRegistered: false,
+                         contactInformation: contactInformation,
+                         taxNumber: "1234567890",
+                         legalStatus: .individual,
+                         website: "",
+                         businessAddress: businessAddress,
+                         paymentTermsDays: 30,
+                         note: "This is a note")
         }
     }
 }

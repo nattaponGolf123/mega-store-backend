@@ -106,6 +106,32 @@ extension SupplierGroup {
     }
 }
 
+extension SupplierGroup {
+    struct Stub {
+        
+        static var group: [SupplierGroup] {
+            [
+                .init(name: "Supplier Group 1",
+                      description: "Supplier Group 1 Description"),
+                .init(name: "Supplier Group 2",
+                      description: "Supplier Group 2 Description"),
+                .init(name: "Supplier Group 3",
+                      description: "Supplier Group 3 Description"),
+                .init(name: "Supplier Group 4",
+                      description: "Supplier Group 4 Description"),
+                .init(name: "Supplier Group 5",
+                      description: "Supplier Group 5 Description"),
+            ]
+        }
+        
+        static var supplierGroup1: SupplierGroup {
+            .init(name: "Supplier Group 1",
+                  description: "Supplier Group 1 Description")
+        }
+    }
+
+}
+
 /*
 {
     "id": "00000000-0000-0000-0000-000000000000",

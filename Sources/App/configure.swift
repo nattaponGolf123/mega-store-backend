@@ -80,12 +80,17 @@ private func getMongoDBURLPath() -> String {
 
 private func configMigrations(_ app: Application) async throws {
     app.migrations.add(UserMigration())
+
     app.migrations.add(ProductMigration())
     app.migrations.add(ProductCategoryMigration())
+
     app.migrations.add(ServiceCategoryMigration())
 
     app.migrations.add(SupplierMigration())
     app.migrations.add(SupplierGroupMigration())
+
+    app.migrations.add(CustomerMigration())
+    app.migrations.add(CustomerGroupMigration())
 
     app.migrations.add(MyBusineseMigration())    
     

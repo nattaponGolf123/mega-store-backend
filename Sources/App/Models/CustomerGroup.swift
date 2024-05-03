@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by IntrodexMac on 4/2/2567 BE.
 //
@@ -17,7 +17,7 @@ final class CustomerGroup: Model, Content {
     
     @Field(key: "name")
     var name: String
-
+    
     @Field(key: "description")
     var description: String
     
@@ -35,9 +35,9 @@ final class CustomerGroup: Model, Content {
                on: .delete,
                format: .iso8601)
     var deletedAt: Date?
-
+    
     init() { }
-
+    
     init(id: UUID? = nil,
          name: String,
          description: String,
@@ -69,26 +69,26 @@ extension CustomerGroup {
             self.name = try container.decode(String.self,
                                              forKey: .name)
             self.description = try? container.decode(String.self,
-                                                    forKey: .description)
+                                                     forKey: .description)
         }
         
         enum CodingKeys: String, CodingKey {
             case name = "name"
             case description = "description"
         }
-                
+        
         static func validations(_ validations: inout Validations) {
             validations.add("name", as: String.self,
                             is: .count(3...200))
         }
     }
-
+    
     struct Update: Content, Validatable {
         let name: String?
         let description: String?
         
         init(name: String? = nil,
-            description: String? = nil) {
+             description: String? = nil) {
             self.name = name
             self.description = description
         }
@@ -110,7 +110,7 @@ extension CustomerGroup {
         
         static var group: [CustomerGroup] {
             [
-                .init(name: "Retail", 
+                .init(name: "Retail",
                       description: "Retail customers"),
                 .init(name: "Wholesale",
                       description: "Wholesale customers"),

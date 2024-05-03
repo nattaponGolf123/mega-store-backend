@@ -47,3 +47,21 @@ struct ContactInformation: Content {
             case address
         }
 }
+
+extension ContactInformation {
+    struct Stub {
+        static var john: ContactInformation {
+            ContactInformation(contactPerson: "John Doe",
+                                phoneNumber: "1234567890",
+                                email: "john@email.com",
+                                address: "1234 Main St")
+        }
+
+        static var jane: ContactInformation {
+            ContactInformation(contactPerson: "Jane Doe",
+                                phoneNumber: "0987654321",
+                                email: "",
+                                address: "4321 Main St")
+        }
+    }
+}
