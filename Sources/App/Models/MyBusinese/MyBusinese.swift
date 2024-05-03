@@ -23,6 +23,9 @@ final class MyBusinese: Model, Content {
     @Field(key: "name")
     var name: String
 
+    @Field(key: "vat_registered")
+    var vatRegistered: Bool
+
     @Field(key: "contact_information")
     var contactInformation: ContactInformation
 
@@ -69,6 +72,7 @@ final class MyBusinese: Model, Content {
 
     init(id: UUID? = nil,
          name: String,
+         vatRegistered: Bool,
          contactInformation: ContactInformation,
          taxNumber: String,
          legalStatus: BusinessType,
@@ -80,6 +84,7 @@ final class MyBusinese: Model, Content {
          note: String) {
         self.id = id ?? UUID()
         self.name = name
+        self.vatRegistered = vatRegistered
         self.contactInformation = contactInformation
         self.taxNumber = taxNumber
         self.legalStatus = legalStatus
@@ -134,6 +139,7 @@ extension MyBusinese {
         static var myCompany: MyBusinese {
             MyBusinese(id: UUID(),
                                    name: "ABC Industries",
+                                   vatRegistered: true,
                                    contactInformation: MyBusinese.ContactInformation(contactPerson: "John Doe",
                                                                                      phoneNumber: "123-456-7890",
                                                                                      email: "abc@email.com",
@@ -161,6 +167,7 @@ extension MyBusinese {
 {
     "id": "SUP12345", // UUID
     "name": "ABC Industries",
+    "vat_registered": true,
     "contact_information": {
         "contact_person": "John Doe",
         "phone_number": "123-456-7890",
