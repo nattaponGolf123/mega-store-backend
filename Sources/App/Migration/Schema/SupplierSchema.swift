@@ -24,7 +24,7 @@ class SupplierSchema {
             .field("website", .string)
             .field("business_address", .json, .required)
             .field("payment_terms_days", .int)
-            .field("note", .string))
+            .field("note", .string)
             .field("created_at", .datetime)
             .field("updated_at", .datetime)
             .field("deleted_at", .datetime)
