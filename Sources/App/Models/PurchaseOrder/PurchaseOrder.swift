@@ -135,7 +135,7 @@ final class PurchaseOrder: Model, Content {
          customerContactInformation: ContactInformation,
          customerBusinessAddress: BusinessAddress,
          status: PurchaseOrderStatus = .pending,
-         currency: String,
+         currency: String = "THB",
          productAndServiceAreVatExcluded: Bool,
          vatIncluded: Bool = false,
          taxWithholdingIncluded: Bool = false,
@@ -192,7 +192,7 @@ final class PurchaseOrder: Model, Content {
         self.createdAt = createdAt ?? .init()
         self.updatedAt = updatedAt
         self.deletedAt = deletedAt
-        
+
         self.creatorId = creatorId
         self.documentVersion = documentVersion
         self.previousVersions = previousVersions
@@ -294,8 +294,214 @@ extension PurchaseOrder {
     
 }
 
+extension PurchaseOrder {
+    struct Create: Content, Validatable {
+        let productItems: [ProductItem]
+        let serviceItems: [ServiceItem]
+        let orderDate: Date
+        let deliveryDate: Date
+        let paymentTermsDays: Int
+        let supplierId: UUID
+        let supplierContactInformation: ContactInformation
+        let supplierBusinessAddress: BusinessAddress
+        let customerId: UUID
+        let customerContactInformation: ContactInformation
+        let customerBusinessAddress: BusinessAddress
+        let currency: String
+        let productAndServiceAreVatExcluded: Bool
+        let vatIncluded: Bool
+        let taxWithholdingIncluded: Bool
+        let note: String
+        let creatorId: UUID
+        
+        static func validations(_ validations: inout Validations) {
+            validations.add("productItems", as: [ProductItem].self,
+                            required: true)
+            validations.add("serviceItems", as: [ServiceItem].self,
+                            required: true)
+            validations.add("orderDate", as: Date.self,
+                            required: true)
+            validations.add("deliveryDate", as: Date.self,
+                            required: true)
+            validations.add("paymentTermsDays", as: Int.self,
+                            required: true)
+            validations.add("supplierId", as: UUID.self,
+                            required: true)
+            validations.add("supplierContactInformation", as: ContactInformation.self,
+                            required: true)
+            validations.add("supplierBusinessAddress", as: BusinessAddress.self,
+                            required: true)
+            validations.add("customerId", as: UUID.self,
+                            required: true)
+            validations.add("customerContactInformation", as: ContactInformation.self,
+                            required: true)
+            validations.add("customerBusinessAddress", as: BusinessAddress.self,
+                            required: true)
+            validations.add("currency", as: String.self,
+                            required: true)
+            validations.add("productAndServiceAreVatExcluded", as: Bool.self,
+                            required: true)
+            validations.add("vatIncluded", as: Bool.self,
+                            required: true)
+            validations.add("taxWithholdingIncluded", as: Bool.self,
+                            required: true)
+            validations.add("note", as: String.self,
+                            required: false)
+            validations.add("creatorId", as: UUID.self,
+                            required: true)
+        }
+    }
+
+    struct Update: Content, Validatable {
+        let productItems: [ProductItem]?
+        let serviceItems: [ServiceItem]?
+        let orderDate: Date?
+        let deliveryDate: Date?
+        let paymentTermsDays: Int?
+        let supplierId: UUID?
+        let supplierContactInformation: ContactInformation?
+        let supplierBusinessAddress: BusinessAddress?
+        let customerId: UUID?
+        let customerContactInformation: ContactInformation?
+        let customerBusinessAddress: BusinessAddress?
+        let currency: String?
+        let productAndServiceAreVatExcluded: Bool?
+        let vatIncluded: Bool?
+        let taxWithholdingIncluded: Bool?
+        let note: String?
+        
+        static func validations(_ validations: inout Validations) {
+            validations.add("productItems", as: [ProductItem].self,
+                            required: false)
+            validations.add("serviceItems", as: [ServiceItem].self,
+                            required: false)
+            validations.add("orderDate", as: Date.self,
+                            required: false)
+            validations.add("deliveryDate", as: Date.self,
+                            required: false)
+            validations.add("paymentTermsDays", as: Int.self,
+                            required: false)
+            validations.add("supplierId", as: UUID.self,
+                            required: false)
+            validations.add("supplierContactInformation", as: ContactInformation.self,
+                            required: false)
+            validations.add("supplierBusinessAddress", as: BusinessAddress.self,
+                            required: false)
+            validations.add("customerId", as: UUID.self,
+                            required: false)
+            validations.add("customerContactInformation", as: ContactInformation.self,
+                            required: false)
+            validations.add("customerBusinessAddress", as: BusinessAddress.self,
+                            required: false)
+            validations.add("currency", as: String.self,
+                            required: false)
+            validations.add("productAndServiceAreVatExcluded", as: Bool.self,
+                            required: false)
+            validations.add("vatIncluded", as: Bool.self,
+                            required: false)
+            validations.add("taxWithholdingIncluded", as: Bool.self,
+                            required: false)
+            validations.add("note", as: String.self,
+                            required: false)
+        }
+    }
+}
+
 
 /*
+extension Product {
+   
+   struct Create: Content, Validatable {
+       let name: String
+       let price: Double
+       let description: String
+       let unit: String
+       
+       init(name: String,
+            price: Double,
+            description: String,
+            unit: String) {
+           self.name = name
+           self.price = price
+           self.description = description
+           self.unit = unit
+       }
+       
+       init(from decoder: Decoder) throws {
+           let container = try decoder.container(keyedBy: CodingKeys.self)
+           self.name = try container.decode(String.self,
+                                            forKey: .name)
+           self.price = try container.decode(Double.self,
+                                             forKey: .price)
+           self.description = (try? container.decode(String.self,
+                                                   forKey: .description)) ?? ""
+           self.unit = (try? container.decodeIfPresent(String.self,
+                                                       forKey: .unit)) ?? ""
+       }
+       
+       enum CodingKeys: String, CodingKey {
+           case name = "name"
+           case price = "price"
+           case description = "description"
+           case unit = "unit"
+       }
+    
+       static func validations(_ validations: inout Validations) {
+            validations.add("name", as: String.self,
+                            is: .count(1...400),
+                            required: true)
+            // validations.add("description", as: String.self,
+            //                 is: .count(...400),
+            //                 required: false)
+            validations.add("price", as: Double.self,
+                            is: .range(0...),
+                            required: true)
+            validations.add("unit", as: String.self,
+                            is: .count(1...),
+                            required: true)      
+       }
+   }
+   
+   struct Update: Content, Validatable {
+       let name: String?
+       let price: Double?
+       let description: String?
+       let unit: String?
+       
+       init(name: String? = nil,
+            price: Double? = nil,
+            description: String? = nil,
+            unit: String? = nil) {
+           self.name = name
+           self.price = price
+           self.description = description
+           self.unit = unit
+       }
+       
+       enum CodingKeys: String, CodingKey {
+           case name = "name"
+           case price = "price"
+           case description = "des"
+           case unit = "unit"
+       }
+    
+       static func validations(_ validations: inout Validations) {
+           validations.add("name", as: String.self,
+                           is: .count(3...),
+                           required: false)
+           validations.add("price", as: Double.self,
+                           is: .range(0...),
+                           required: false)
+           validations.add("des", as: String.self,
+                           is: .count(3...),
+                           required: false)
+           validations.add("unit", as: String.self,
+                           is: .count(3...),
+                           required: false)
+       }
+   }
+
+}
  struct VatAmount: Content {
  
  let amount: Double // vat amount
