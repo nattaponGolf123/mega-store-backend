@@ -109,7 +109,7 @@ extension Product {
         static var steel: Product {
             return Product(name: "Steel",
              description: "Steel Description",
-              unit: "Kg",
+              unit: "kg",
                sellingPrice: 100.11,
                 categoryId: nil,
                  manufacturer: "Steel Manufacturer",
@@ -120,8 +120,8 @@ extension Product {
 
 extension Product {
   
-  static var units: [String] {
-    return ["Peice", "Kg", "Litre", "Gram", "Meter", "Centimeter", "Inch", "Foot", "Yard"]
+  static var units: [String] {    
+    return ["peice", "kg", "litre", "gram", "meter", "centimeter", "inch", "foot", "yard"]
   }
 
 }

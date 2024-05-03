@@ -26,7 +26,7 @@ struct UniqueVariantId {
     }
     
     private func generateRandomString() -> String {
-        let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         return String((0..<5).map { _ in letters.randomElement()! })
     }
 }
@@ -114,6 +114,36 @@ final class ProductVariant:Model, Content {
         self.deletedAt = deletedAt
     }
     
+    //encode
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(variantId, forKey: .variantId)
+        try container.encode(name, forKey: .name)
+        try container.encode(sku, forKey: .sku)
+        try container.encode(sellingPrice, forKey: .sellingPrice)
+        try container.encode(additionalDescription, forKey: .additionalDescription)
+        try container.encode(image, forKey: .image)
+        try container.encode(color, forKey: .color)
+        try container.encode(barcode, forKey: .barcode)
+        try container.encode(dimensions, forKey: .dimensions)
+    }
+
+    //decode
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        variantId = try container.decode(String.self, forKey: .variantId)
+        name = try container.decode(String.self, forKey: .name)
+        sku = try container.decode(String.self, forKey: .sku)
+        sellingPrice = try container.decode(Double.self, forKey: .sellingPrice)
+        additionalDescription = try container.decode(String.self, forKey: .additionalDescription)
+        image = try container.decode(String.self, forKey: .image)
+        color = try container.decode(String.self, forKey: .color)
+        barcode = try container.decode(String.self, forKey: .barcode)
+        dimensions = try container.decode(ProductDimension.self, forKey: .dimensions)
+    }
+
     enum CodingKeys: String, CodingKey {
         case id
         case variantId = "variant_id"
