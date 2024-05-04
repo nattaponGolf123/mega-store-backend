@@ -35,6 +35,9 @@ final class Customer: Model, Content {
     
     @Field(key: "business_address")
     var businessAddress: [BusinessAddress]
+
+    @Field(key: "shipping_address")
+    var shippingAddress: [ShippingAddress]
     
     @Field(key: "payment_terms_days")
     var paymentTermsDays: Int?
@@ -67,6 +70,7 @@ final class Customer: Model, Content {
          legalStatus: BusinessType,
          website: String,
          businessAddress: [BusinessAddress],
+         shippingAddress: [ShippingAddress],
          paymentTermsDays: Int?,
          note: String) {
         self.id = id ?? UUID()
@@ -77,6 +81,7 @@ final class Customer: Model, Content {
         self.legalStatus = legalStatus
         self.website = website
         self.businessAddress = businessAddress
+        self.shippingAddress = shippingAddress
         self.paymentTermsDays = paymentTermsDays
         self.note = note
     }
@@ -104,6 +109,7 @@ extension Customer {
                          legalStatus: .individual,
                          website: "",
                          businessAddress: businessAddress,
+                         shippingAddress: [],
                          paymentTermsDays: 30,
                          note: "This is a note")
         }
