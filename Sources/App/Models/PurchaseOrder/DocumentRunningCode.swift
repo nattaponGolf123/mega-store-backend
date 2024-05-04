@@ -8,15 +8,15 @@
 import Foundation
 
 @propertyWrapper
-struct RunningNumber {
+struct DocumentRunningCode {
     let prefix: String
     let year: Int
-    let currentValue: Int
+    let value: Int
     
     var wrappedValue: String {
         get {
             let formattedYear = String(format: "%04d", year)
-            let formattedNumber = String(format: "%05d", currentValue)
+            let formattedNumber = String(format: "%05d", value)
             return "\(prefix)-\(formattedYear)-\(formattedNumber)"
         }
         mutating set {
@@ -28,11 +28,11 @@ struct RunningNumber {
     
     init(prefix: String,
          year: Date = .init(),
-         initialValue: Int = 1) {
+         runningNumber: Int = 1) {
         self.prefix = prefix
         self.year = Calendar.current.component(.year,
                                                from: year)
-        self.currentValue = initialValue
+        self.value = runningNumber
     }
 }
 
@@ -45,3 +45,29 @@ struct RunningNumber {
 //
 //var order = PurchaseOrder()
 //print(order.runningNumber) // Output: PO-2024-00001
+
+/*
+@propertyWrapper
+struct RunningCode {
+    private var value: Int
+    private let prefix: String
+
+    init(prefix: String,
+         runningNumber: Int = 1) {
+        self.prefix = prefix
+        self.value = prefix + String(format: "%05d", runningNumber)        
+    }
+    
+    var wrappedValue: String {
+        get {             
+            let formattedNumber = String(format: "%05d", value)
+            return prefix + formattedNumber
+         }
+        set {
+            // You can handle setting the value if needed
+            // For simplicity, we don't support setting the value explicitly in this example
+            // You may need to implement this based on your use case
+        }
+    }    
+}
+*/

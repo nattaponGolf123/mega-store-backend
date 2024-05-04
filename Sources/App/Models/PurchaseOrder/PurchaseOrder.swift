@@ -18,8 +18,8 @@ final class PurchaseOrder: Model, Content {
     @ID(key: .id)
     var id: UUID?
     
-    @Field(key: "running_number")
-    var runningNumber: String
+    @Field(key: "code")
+    var code: String
     
     @Field(key: "revision_number")
     var revisionNumber: Int
@@ -120,7 +120,7 @@ final class PurchaseOrder: Model, Content {
     init() { }
     
     init(id: UUID? = nil,
-         lastedNumber: Int = 1,
+         runningNumber: Int = 1,
          revisionNumber: Int = 0,
          isLastedVersion: Bool = true,
          productItems: [ProductItem],
@@ -145,15 +145,10 @@ final class PurchaseOrder: Model, Content {
          deletedAt: Date? = nil,
          creatorId: UUID,
          documentVersion: String = "1.0",
-         previousVersions: [PurchaseOrder] = []) {
-        
-        @RunningNumber(prefix: "PO", 
-                       year: Date(),
-                       initialValue: lastedNumber)
-        var _runningNumber: String
+         previousVersions: [PurchaseOrder] = []) {        
         
         self.id = id ?? .init()
-        self.runningNumber = _runningNumber
+        self.code = PurchaseOrderCode(number: runningNumber).code
         self.revisionNumber = revisionNumber
         self.isLastedVersion = isLastedVersion
         self.productItems = productItems

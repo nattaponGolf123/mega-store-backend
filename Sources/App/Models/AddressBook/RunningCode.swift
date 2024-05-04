@@ -3,31 +3,25 @@ import Foundation
 // ex. .init(prefix: "C") : "C00001"
 @propertyWrapper
 struct RunningCode {
-    private var value: String
+    private var value: Int
     private let prefix: String
-    
+
     init(prefix: String,
          runningNumber: Int = 1) {
         self.prefix = prefix
-        self.value = prefix + String(format: "%05d", runningNumber)        
+        self.value = runningNumber
     }
     
     var wrappedValue: String {
-        get { value }
+        get {             
+            let formattedNumber = String(format: "%05d", value)
+            return prefix + formattedNumber
+         }
         set {
-            if isValidCustomerCode(newValue) {
-                value = newValue
-            } else {
-                print("Invalid customer code format")
-            }
+            // You can handle setting the value if needed
+            // For simplicity, we don't support setting the value explicitly in this example
+            // You may need to implement this based on your use case
         }
-    }
-    
-    private func isValidCustomerCode(_ code: String) -> Bool {
-        let pattern = "\(prefix)[0-9]{5}"
-        let regex = try! NSRegularExpression(pattern: pattern)
-        let range = NSRange(location: 0, length: code.utf16.count)
-        return regex.firstMatch(in: code, options: [], range: range) != nil
-    }
+    }    
 }
 
