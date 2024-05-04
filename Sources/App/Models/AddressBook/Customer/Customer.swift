@@ -15,6 +15,9 @@ final class Customer: Model, Content {
     @ID(key: .id)
     var id: UUID?
     
+    @Field(key: "code")
+    var code: String
+
     @Field(key: "name")
     var name: String
     
@@ -63,6 +66,7 @@ final class Customer: Model, Content {
     init() { }
     
     init(id: UUID? = nil,
+         number: Int,
          name: String,
          vatRegistered: Bool,
          contactInformation: ContactInformation,
@@ -73,7 +77,9 @@ final class Customer: Model, Content {
          shippingAddress: [ShippingAddress],
          paymentTermsDays: Int?,
          note: String) {
+
         self.id = id ?? UUID()
+        self.code = CustomerCode(number: number).code
         self.name = name
         self.vatRegistered = vatRegistered
         self.contactInformation = contactInformation
@@ -86,6 +92,10 @@ final class Customer: Model, Content {
         self.note = note
     }
     
+}
+
+extension Customer {
+   
 }
 
 extension Customer {
@@ -102,7 +112,8 @@ extension Customer {
                                                    city: "",
                                                    province: "",
                                                    postalCode: "12345")]
-            return .init(name: "John Doe",
+            return .init(number: 1,
+                         name: "John Doe",
                          vatRegistered: false,
                          contactInformation: contactInformation,
                          taxNumber: "1234567890",

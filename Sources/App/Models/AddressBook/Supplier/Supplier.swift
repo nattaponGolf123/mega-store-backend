@@ -78,11 +78,8 @@ final class Supplier: Model, Content {
          paymentTermsDays: Int?,
          note: String) {
 
-        @SupplierCode(value: number)
-        var _code: String
-
         self.id = id ?? UUID()
-        self.code = _code
+        self.code = SupplierCode(number: number).code
         self.name = name
         self.vatRegistered = vatRegistered
         self.contactInformation = contactInformation
