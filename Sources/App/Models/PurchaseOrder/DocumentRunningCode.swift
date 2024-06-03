@@ -11,13 +11,15 @@ import Foundation
 struct DocumentRunningCode {
     let prefix: String
     let year: Int
+    let month: Int
     let value: Int
     
     var wrappedValue: String {
         get {
-            let formattedYear = String(format: "%04d", year)
-            let formattedNumber = String(format: "%05d", value)
-            return "\(prefix)-\(formattedYear)-\(formattedNumber)"
+            let formattedYear = String(format: "%02d", year % 100) // Get the last two digits of the year
+            let formattedMonth = String(format: "%02d", month)
+            let formattedNumber = String(format: "%04d", value)
+            return "\(prefix)-\(formattedYear)\(formattedMonth)-\(formattedNumber)"
         }
         mutating set {
             // You can handle setting the value if needed
@@ -28,14 +30,30 @@ struct DocumentRunningCode {
     
     init(prefix: String,
          year: Date = .init(),
-         runningNumber: Int = 1) {
+         runningNumber: Int = 1,
+         calendarIdentifier: Calendar.Identifier) {
         self.prefix = prefix
-        self.year = Calendar.current.component(.year,
-                                               from: year)
-        self.value = runningNumber
+        switch calendarIdentifier {
+            case .buddhist:
+                let calendar = Calendar(identifier: calendarIdentifier)
+                self.year = calendar.component(.year, from: year)
+                self.month = calendar.component(.month, from: year)
+                self.value = runningNumber
+            case .gregorian:
+                let calendar = Calendar(identifier: calendarIdentifier)
+                self.year = calendar.component(.year, from: year) + 543 // adjustment
+                self.month = calendar.component(.month, from: year)
+                self.value = runningNumber
+            default:
+                let calendar = Calendar(identifier: calendarIdentifier)
+                self.year = calendar.component(.year, from: year)
+                self.month = calendar.component(.month, from: year)
+                self.value = runningNumber
+        }        
     }
 }
 
+//DocumentRunningCode.year = Date()
 
 // Example usage
 //struct PurchaseOrder {

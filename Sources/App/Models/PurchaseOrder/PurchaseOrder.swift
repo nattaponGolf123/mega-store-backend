@@ -2,14 +2,14 @@ import Foundation
 import Vapor
 import Fluent
 
-// status flow : pending -> approved -> cancelled
+// status flow : pending -> approved -> voided
 // status flow : pending -> rejected
-// status flow : pending -> cancelled
+// status flow : pending -> voided
 enum PurchaseOrderStatus: String, Codable {
     case pending
     case approved
     case rejected
-    case cancelled
+    case voided
 }
 
 final class PurchaseOrder: Model, Content {
@@ -98,10 +98,10 @@ final class PurchaseOrder: Model, Content {
                format: .iso8601)
     var approvedAt: Date?
     
-    @Timestamp(key: "cancelled_at",
+    @Timestamp(key: "voided_at",
                on: .create,
                format: .iso8601)
-    var cancelledAt: Date?
+    var voidedAt: Date?
     
     @Timestamp(key: "rejected_at",
                on: .create,
@@ -196,9 +196,9 @@ final class PurchaseOrder: Model, Content {
   func ableUpdateStatus() -> [PurchaseOrderStatus] {
         switch status {
         case .pending:
-            return [.approved, .rejected, .cancelled]
+            return [.approved, .rejected, .voided]
         case .approved:
-            return [.cancelled]
+            return [.voided]
         default:
             return []
         }
@@ -214,18 +214,18 @@ final class PurchaseOrder: Model, Content {
             case .rejected:
                 self.status = newStatus
                 self.rejectedAt = .init()
-            case .cancelled:
+            case .voided:
                 self.status = newStatus
-                self.cancelledAt = .init()
+                self.voidedAt = .init()
             default:
                 break
             }
 
         case .approved:
             switch newStatus {
-            case .cancelled:
+            case .voided:
                 self.status = newStatus
-                self.cancelledAt = .init()
+                self.voidedAt = .init()
             default:
                 break
             }
