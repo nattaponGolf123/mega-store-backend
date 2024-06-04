@@ -75,7 +75,7 @@ final class PurchaseOrder: Model, Content {
     @Field(key: "currency")
     var currency: String
     
-    @Field(key: "note")
+    @Field(key: "internal_note")
     var note: String
     
     @Timestamp(key: "created_at",
@@ -139,7 +139,7 @@ final class PurchaseOrder: Model, Content {
          productAndServiceAreVatExcluded: Bool,
          vatIncluded: Bool = false,
          taxWithholdingIncluded: Bool = false,
-         note: String = "",
+         internalNote: String = "",
          createdAt: Date? = nil,
          updatedAt: Date? = nil,
          deletedAt: Date? = nil,
@@ -306,7 +306,7 @@ extension PurchaseOrder {
         let productAndServiceAreVatExcluded: Bool
         let vatIncluded: Bool
         let taxWithholdingIncluded: Bool
-        let note: String
+        let internalNote: String
         let creatorId: UUID
         
         static func validations(_ validations: inout Validations) {
@@ -340,7 +340,7 @@ extension PurchaseOrder {
                             required: true)
             validations.add("taxWithholdingIncluded", as: Bool.self,
                             required: true)
-            validations.add("note", as: String.self,
+            validations.add("internalNote", as: String.self,
                             required: false)
             validations.add("creatorId", as: UUID.self,
                             required: true)

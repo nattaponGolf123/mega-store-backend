@@ -2,6 +2,23 @@ import Foundation
 import Vapor
 import Fluent
 
+protocol ListItemProtocol {
+    var id: UUID? { get }
+    var kind: ListItemKind { get }
+    var name: String { get }
+    var description: String { get }
+    var quantity: Double { get }
+    var price: Double { get }
+    var totalPrice: Double { get }
+    var unit: String { get }
+    var remark: String { get }
+}
+
+enum ListItemKind: String, Codable {
+    case product
+    case service
+}
+
 final class ProductItem: Model, Content {
     static let schema = "ProductItems"
     
