@@ -3,24 +3,24 @@ import Vapor
 import Fluent
 import FluentMongoDriver
 
-protocol SupplierGroupRepositoryProtocol {
-    func fetchAll(showDeleted: Bool, on db: Database) async throws -> [SupplierGroup]
-    func create(content: SupplierGroup.Create, on db: Database) async throws -> SupplierGroup
-    func find(id: UUID, on db: Database) async throws -> SupplierGroup
-    func find(name: String, on db: Database) async throws -> SupplierGroup
-    func update(id: UUID, with content: SupplierGroup.Update, on db: Database) async throws -> SupplierGroup
-    func delete(id: UUID, on db: Database) async throws -> SupplierGroup
-    func search(name: String, on db: Database) async throws -> [SupplierGroup]
+protocol CustomerGroupRepositoryProtocol {
+    func fetchAll(showDeleted: Bool, on db: Database) async throws -> [CustomerGroup]
+    func create(content: CustomerGroup.Create, on db: Database) async throws -> CustomerGroup
+    func find(id: UUID, on db: Database) async throws -> CustomerGroup
+    func find(name: String, on db: Database) async throws -> CustomerGroup
+    func update(id: UUID, with content: CustomerGroup.Update, on db: Database) async throws -> CustomerGroup
+    func delete(id: UUID, on db: Database) async throws -> CustomerGroup
+    func search(name: String, on db: Database) async throws -> [CustomerGroup]
 }
 
-class SupplierGroupRepository: SupplierGroupRepositoryProtocol {
+class CustomerGroupRepository: CustomerGroupRepositoryProtocol {
      
-    func fetchAll(showDeleted: Bool, on db: Database) async throws -> [SupplierGroup] {
+    func fetchAll(showDeleted: Bool, on db: Database) async throws -> [CustomerGroup] {
         do {
             if showDeleted {
-                return try await SupplierGroup.query(on: db).withDeleted().all()
+                return try await CustomerGroup.query(on: db).withDeleted().all()
             } else {
-                return try await SupplierGroup.query(on: db).filter(\.$deletedAt == nil).all()
+                return try await CustomerGroup.query(on: db).filter(\.$deletedAt == nil).all()
             }
         } catch {
             // Handle all other errors
@@ -28,10 +28,10 @@ class SupplierGroupRepository: SupplierGroupRepositoryProtocol {
         }
     }
 
-    func create(content: SupplierGroup.Create, on db: Database) async throws -> SupplierGroup {
+    func create(content: CustomerGroup.Create, on db: Database) async throws -> CustomerGroup {
         do {
-            // Initialize the SupplierGroup from the validated content
-            let newGroup = SupplierGroup(name: content.name, description: content.description)
+            // Initialize the CustomerGroup from the validated content
+            let newGroup = CustomerGroup(name: content.name, description: content.description)
     
             // Attempt to save the new group to the database
             try await newGroup.save(on: db)
@@ -46,9 +46,9 @@ class SupplierGroupRepository: SupplierGroupRepositoryProtocol {
         }
     }
 
-    func find(id: UUID, on db: Database) async throws -> SupplierGroup {
+    func find(id: UUID, on db: Database) async throws -> CustomerGroup {
         do {
-            guard let group = try await SupplierGroup.query(on: db).filter(\.$id == id).first() else { throw DefaultError.notFound }
+            guard let group = try await CustomerGroup.query(on: db).filter(\.$id == id).first() else { throw DefaultError.notFound }
             
             return group
         } catch {
@@ -57,9 +57,9 @@ class SupplierGroupRepository: SupplierGroupRepositoryProtocol {
         }
     }
     
-    func find(name: String, on db: Database) async throws -> SupplierGroup {
+    func find(name: String, on db: Database) async throws -> CustomerGroup {
         do {
-            guard let group = try await SupplierGroup.query(on: db).filter(\.$name == name).first() else { throw DefaultError.notFound }
+            guard let group = try await CustomerGroup.query(on: db).filter(\.$name == name).first() else { throw DefaultError.notFound }
             
             return group
         } catch let error as DefaultError {
@@ -70,7 +70,7 @@ class SupplierGroupRepository: SupplierGroupRepositoryProtocol {
         }
     }
 
-    func update(id: UUID, with content: SupplierGroup.Update, on db: Database) async throws -> SupplierGroup {
+    func update(id: UUID, with content: CustomerGroup.Update, on db: Database) async throws -> CustomerGroup {
         do {
             
             // Update the supplier group in the database
@@ -91,9 +91,9 @@ class SupplierGroupRepository: SupplierGroupRepositoryProtocol {
         }
     }
 
-    func delete(id: UUID, on db: Database) async throws -> SupplierGroup {
+    func delete(id: UUID, on db: Database) async throws -> CustomerGroup {
         do {
-            guard let group = try await SupplierGroup.query(on: db).filter(\.$id == id).first() else { throw DefaultError.notFound }
+            guard let group = try await CustomerGroup.query(on: db).filter(\.$id == id).first() else { throw DefaultError.notFound }
             
             try await group.delete(on: db).get()
             
@@ -106,9 +106,9 @@ class SupplierGroupRepository: SupplierGroupRepositoryProtocol {
         }
     }
 
-    func search(name: String, on db: Database) async throws -> [SupplierGroup] {
+    func search(name: String, on db: Database) async throws -> [CustomerGroup] {
         do {
-            return try await SupplierGroup.query(on: db).filter(\.$name ~~ name).all()
+            return try await CustomerGroup.query(on: db).filter(\.$name ~~ name).all()
         } catch {
             // Handle all other errors
             throw DefaultError.error(message: error.localizedDescription)
@@ -116,11 +116,11 @@ class SupplierGroupRepository: SupplierGroupRepositoryProtocol {
     }
 }
 
-extension SupplierGroupRepository {
+extension CustomerGroupRepository {
     
     // Helper function to update supplier group fields in the database
-    static func updateFieldsBuilder(uuid: UUID, content: SupplierGroup.Update, db: Database) -> QueryBuilder<SupplierGroup> {
-        let updateBuilder = SupplierGroup.query(on: db).filter(\.$id == uuid)
+    static func updateFieldsBuilder(uuid: UUID, content: CustomerGroup.Update, db: Database) -> QueryBuilder<CustomerGroup> {
+        let updateBuilder = CustomerGroup.query(on: db).filter(\.$id == uuid)
         
         if let name = content.name {
             updateBuilder.set(\.$name, to: name)
@@ -133,7 +133,7 @@ extension SupplierGroupRepository {
         return updateBuilder
     }
     
-    static func getByIDBuilder(uuid: UUID, db: Database) -> QueryBuilder<SupplierGroup> {
-        return SupplierGroup.query(on: db).filter(\.$id == uuid)
+    static func getByIDBuilder(uuid: UUID, db: Database) -> QueryBuilder<CustomerGroup> {
+        return CustomerGroup.query(on: db).filter(\.$id == uuid)
     }
 }

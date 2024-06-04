@@ -2,20 +2,20 @@ import Foundation
 import Fluent
 import Vapor
 
-class SupplierGroupController: RouteCollection {
+class CustomerGroupController: RouteCollection {
     
-    private(set) var repository: SupplierGroupRepositoryProtocol
-    private(set) var validator: SupplierGroupValidatorProtocol
+    private(set) var repository: CustomerGroupRepositoryProtocol
+    private(set) var validator: CustomerGroupValidatorProtocol
     
-    init(repository: SupplierGroupRepositoryProtocol = SupplierGroupRepository(),
-         validator: SupplierGroupValidatorProtocol = SupplierGroupValidator()) {
+    init(repository: CustomerGroupRepositoryProtocol = CustomerGroupRepository(),
+         validator: CustomerGroupValidatorProtocol = CustomerGroupValidator()) {
         self.repository = repository
         self.validator = validator
     }
     
     func boot(routes: RoutesBuilder) throws {
         
-        let groups = routes.grouped("supplier_groups")
+        let groups = routes.grouped("customer_groups")
         groups.get(use: all)
         groups.post(use: create)
         
@@ -30,29 +30,29 @@ class SupplierGroupController: RouteCollection {
         }
     }
     
-    // GET /supplier_groups?show_deleted=true
-    func all(req: Request) async throws -> [SupplierGroup] {
+    // GET /customer_groups?show_deleted=true
+    func all(req: Request) async throws -> [CustomerGroup] {
         let showDeleted = req.query["show_deleted"] == "true"
         
         return try await repository.fetchAll(showDeleted: showDeleted, on: req.db)
     }
     
-    // POST /supplier_groups
-    func create(req: Request) async throws -> SupplierGroup {
+    // POST /customer_groups
+    func create(req: Request) async throws -> CustomerGroup {
         let content = try validator.validateCreate(req)
         
         return try await repository.create(content: content, on: req.db)
     }
     
-    // GET /supplier_groups/:id
-    func getByID(req: Request) async throws -> SupplierGroup {
+    // GET /customer_groups/:id
+    func getByID(req: Request) async throws -> CustomerGroup {
         let uuid = try validator.validateID(req)
         
         return try await repository.find(id: uuid, on: req.db)
     }
     
-    // PUT /supplier_groups/:id
-    func update(req: Request) async throws -> SupplierGroup {
+    // PUT /customer_groups/:id
+    func update(req: Request) async throws -> CustomerGroup {
         let (uuid, content) = try validator.validateUpdate(req)
         
         do {
@@ -80,15 +80,15 @@ class SupplierGroupController: RouteCollection {
         }
     }
 
-    // DELETE /supplier_groups/:id
-    func delete(req: Request) async throws -> SupplierGroup {
+    // DELETE /customer_groups/:id
+    func delete(req: Request) async throws -> CustomerGroup {
         let uuid = try validator.validateID(req)
         
         return try await repository.delete(id: uuid, on: req.db)
     }
     
-    // GET /supplier_groups/search
-    func search(req: Request) async throws -> [SupplierGroup] {
+    // GET /customer_groups/search
+    func search(req: Request) async throws -> [CustomerGroup] {
         let q = try validator.validateSearchQuery(req)
         
         return try await repository.search(name: q, on: req.db)
