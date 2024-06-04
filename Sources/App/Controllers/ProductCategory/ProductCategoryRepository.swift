@@ -26,7 +26,7 @@ protocol ProductCategoryRepositoryProtocol {
     func search(name: String, on db: Database) async throws -> [ProductCategory]
 }
 
-class FluentProductCategoryRepository: ProductCategoryRepositoryProtocol {
+class ProductCategoryRepository: ProductCategoryRepositoryProtocol {
      
     func fetchAll(showDeleted: Bool,
                   on db: Database) async throws -> [ProductCategory] {
@@ -148,7 +148,7 @@ class FluentProductCategoryRepository: ProductCategoryRepositoryProtocol {
     }
 }
 
-extension FluentProductCategoryRepository {
+extension ProductCategoryRepository {
     
     // Helper function to update product fields in the database
     static func updateFieldsBuilder(uuid: UUID,

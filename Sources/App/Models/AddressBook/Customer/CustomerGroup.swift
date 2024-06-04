@@ -19,7 +19,7 @@ final class CustomerGroup: Model, Content {
     var name: String
     
     @Field(key: "description")
-    var description: String
+    var description: String?
     
     @Timestamp(key: "created_at",
                on: .create,
@@ -40,7 +40,7 @@ final class CustomerGroup: Model, Content {
     
     init(id: UUID? = nil,
          name: String,
-         description: String,
+         description: String?,
          createdAt: Date? = nil,
          updatedAt: Date? = nil,
          deletedAt: Date? = nil) {
