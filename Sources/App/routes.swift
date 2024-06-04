@@ -41,6 +41,7 @@ func routes(_ app: Application) throws {
     try protected.register(collection: UserController())
     try protected.register(collection: ProductCategoryController())
     try protected.register(collection: ServiceCategoryController())
+    try protected.register(collection: SupplierGroupController())
     
     //poc
     try protected.register(collection: ProductController())
