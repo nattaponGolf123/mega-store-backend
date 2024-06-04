@@ -14,7 +14,7 @@ class ProductCategoryController: RouteCollection {
     private(set) var repository: ProductCategoryRepositoryProtocol
     private(set) var validator: ProductCategoryValidatorProtocol
     
-    init(repository: ProductCategoryRepositoryProtocol = FluentProductCategoryRepository(),
+    init(repository: ProductCategoryRepositoryProtocol = ProductCategoryRepository(),
          validator: ProductCategoryValidatorProtocol = ProductCategoryValidator()) {
         self.repository = repository
         self.validator = validator
