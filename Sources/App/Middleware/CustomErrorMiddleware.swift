@@ -34,6 +34,7 @@ final class ErrorHandlerMiddleware: AsyncMiddleware {
             try response.content.encode(errorResponse)
             return response
         } catch {
+            print("error: \(error)")            
             return try Response.internalError()
         }
     }

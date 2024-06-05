@@ -106,6 +106,54 @@ final class MyBusinese: Model, Content {
 }
 
 extension MyBusinese {
+    struct Create: Content, Validatable {
+        let name: String
+        let vatRegistered: Bool
+        let contactInformation: ContactInformation
+        let taxNumber: String
+        let legalStatus: BusinessType
+        let website: String
+        let businessAddress: [BusinessAddress]
+        let shippingAddress: [ShippingAddress]
+        let logo: String?
+        let stampLogo: String?
+        let authorizedSignSignature: String?
+        let note: String
+        
+        static func validations(_ validations: inout Validations) {
+            validations.add("name", as: String.self,
+                            is: .count(3...200))
+            validations.add("taxNumber", as: String.self,
+                            is: .count(13...13))
+        }
+    }
+
+    struct Update: Content, Validatable {
+        let name: String?
+        let vatRegistered: Bool?
+        let contactInformation: ContactInformation?
+        let taxNumber: String?
+        let legalStatus: BusinessType?
+        let website: String?
+        let businessAddress: [BusinessAddress]?
+        let shippingAddress: [ShippingAddress]?
+        let logo: String?
+        let stampLogo: String?
+        let authorizedSignSignature: String?
+        let note: String?
+        
+        static func validations(_ validations: inout Validations) {
+            validations.add("name", as: String.self,
+                            is: .count(3...200))
+            validations.add("taxNumber", as: String.self,
+                            is: .count(13...13))
+        }
+    }
+    
+}
+
+
+extension MyBusinese {
     struct Stub {
         static var myCompany: MyBusinese {
             MyBusinese(id: UUID(),
@@ -140,6 +188,61 @@ extension MyBusinese {
         }
     }
 }
+
+/*
+
+extension CustomerGroup {
+    struct Create: Content, Validatable {
+        let name: String
+        let description: String?
+        
+        init(name: String,
+             description: String? = nil) {
+            self.name = name
+            self.description = description
+        }
+        
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            self.name = try container.decode(String.self,
+                                             forKey: .name)
+            self.description = try? container.decode(String.self,
+                                                     forKey: .description)
+        }
+        
+        enum CodingKeys: String, CodingKey {
+            case name = "name"
+            case description = "description"
+        }
+        
+        static func validations(_ validations: inout Validations) {
+            validations.add("name", as: String.self,
+                            is: .count(3...200))
+        }
+    }
+    
+    struct Update: Content, Validatable {
+        let name: String?
+        let description: String?
+        
+        init(name: String? = nil,
+             description: String? = nil) {
+            self.name = name
+            self.description = description
+        }
+        
+        enum CodingKeys: String, CodingKey {
+            case name = "name"
+            case description = "description"
+        }
+        
+        static func validations(_ validations: inout Validations) {
+            validations.add("name", as: String.self,
+                            is: .count(3...200))
+        }
+    }
+}
+*/
 
 /*
  {
