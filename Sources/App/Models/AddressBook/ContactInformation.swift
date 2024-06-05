@@ -18,12 +18,12 @@ struct ContactInformation: Content {
         //decode
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.contactPerson = try container.decode(String.self,
-                                                    forKey: .contactPerson)
-            self.phoneNumber = try container.decode(String.self,
-                                                   forKey: .phoneNumber)
-            self.email = try container.decode(String.self,
-                                             forKey: .email)
+            self.contactPerson = (try? container.decode(String.self,
+                                                    forKey: .contactPerson)) ?? ""
+            self.phoneNumber = (try? container.decode(String.self,
+                                                   forKey: .phoneNumber)) ?? ""
+            self.email = (try? container.decode(String.self,
+                                             forKey: .email)) ?? ""
         }
 
         //encode

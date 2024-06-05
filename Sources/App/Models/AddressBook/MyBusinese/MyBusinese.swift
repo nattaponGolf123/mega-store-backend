@@ -10,10 +10,10 @@ import Vapor
 import Fluent
 
 enum BusinessType: String, Codable {
-    case companyLimited
-    case publicCompanyLimited
-    case limitedPartnership
-    case individual
+    case companyLimited = "COMPANY_LIMITED"
+    case publicCompanyLimited = "PUBLIC_COMPANY_LIMITED"
+    case limitedPartnership = "LIMITED_PARTNERSHIP"
+    case individual = "INDIVIDUAL"
 }
 
 final class MyBusinese: Model, Content {
@@ -175,7 +175,7 @@ extension MyBusinese {
                                                          phoneNumber: "123-456-7890",
                                                          email: "",
                                                          fax: "")],
-                       shippingAddress: [.init(address: "1234 Industrial Way",
+                       shippingAddress: [ShippingAddress(address: "1234 Industrial Way",
                                                branch: "Business City",
                                                subDistrict: "Business City",
                                                city: "Business City",

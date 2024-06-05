@@ -15,8 +15,32 @@ struct CustomerGroupMigration: AsyncMigration {
         
         // new mocks
         try await CustomerGroup.Stub.retail.save(on: database)
+
+        // MyBusinese
+        try await MyBusineseSchema.createBuilder(database: database).create()
+         // new mocks
+        try await MyBusinese.Stub.myCompany.save(on: database)
     }
     func revert(on database: Database) async throws {
         try await database.schema(CustomerGroupSchema.schema).delete()
+
+        // MyBusinese
+        try await database.schema(MyBusineseSchema.schema).delete()
     }
 }
+
+/*
+struct MyBusineseMigration: AsyncMigration {
+
+    func prepare(on database: Database) async throws {
+        try await MyBusineseSchema.createBuilder(database: database).create()
+        
+        // new mocks
+        try await MyBusinese.Stub.myCompany.save(on: database)
+    }
+
+    func revert(on database: Database) async throws {
+        try await database.schema(MyBusineseSchema.schema).delete()
+    }
+}
+*/

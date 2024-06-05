@@ -6,6 +6,10 @@ import FluentMongoDriver
 
 // configures your application
 public func configure(_ app: Application) async throws {
+
+     // Other configuration code...
+     // call cli 'vapor list-migrations'
+    //app.commands.use(ListMigrationsCommand(), as: "list-migrations")
         
     switch app.environment {
     case .production:
@@ -113,3 +117,22 @@ private func configPwd(_ app: Application) {
         break
     }
 }
+
+
+// struct ListMigrationsCommand: Command {
+//     struct Signature: CommandSignature {}
+
+//     var help: String {
+//         "Lists all registered migrations"
+//     }
+
+//     func run(using context: CommandContext, signature: Signature) throws {
+//         let migrations = context.application.migrations.storage.migrations
+//         for (key, value) in migrations {
+//             context.console.print("Migration for database \(key):")
+//             for migration in value {
+//                 context.console.print(" - \(migration.key)")
+//             }
+//         }
+//     }
+// }

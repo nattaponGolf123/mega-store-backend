@@ -42,26 +42,27 @@ struct BusinessAddress: Content {
     //decode
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.address = try container.decode(String.self,
-                                            forKey: .address)
-        self.branch = try container.decode(String.self,
-                                           forKey: .branch)
-        self.subDistrict = try container.decode(String.self,
-                                               forKey: .subDistrict)
-        self.city = try container.decode(String.self,
-                                         forKey: .city)
-        self.province = try container.decode(String.self,
-                                             forKey: .province)
-        self.postalCode = try container.decode(String.self,
-                                               forKey: .postalCode)
-        self.country = try container.decode(String.self,
-                                            forKey: .country)
-        self.phoneNumber = try container.decode(String.self,
-                                                forKey: .phoneNumber)
-        self.email = try container.decode(String.self,
-                                          forKey: .email)
-        self.fax = try container.decode(String.self,
-                                        forKey: .fax)
+        self.address = (try? container.decode(String.self,
+                                            forKey: .address)) ?? ""
+        self.branch = (try? container.decode(String.self,
+                                           forKey: .branch)) ?? ""
+        self.subDistrict = (try? container.decode(String.self,
+                                               forKey: .subDistrict)) ?? ""
+        self.city = (try? container.decode(String.self,
+                                         forKey: .city)) ?? ""
+        self.province = (try? container.decode(String.self,
+                                             forKey: .province)) ?? ""
+        self.postalCode = (try? container.decode(String.self,
+                                               forKey: .postalCode)) ?? ""
+        self.country = (try? container.decode(String.self,
+                                            forKey: .country)) ?? ""
+        self.phoneNumber = (try? container.decode(String.self,
+                                                forKey: .phoneNumber)) ?? ""
+        self.email = (try? container.decode(String.self,
+                                            forKey: .email)) ?? ""
+        self.fax = (try? container.decode(String.self,
+                                            forKey: .fax)) ?? ""                                            
+
     }
     
     //encode
