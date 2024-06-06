@@ -7,6 +7,7 @@ protocol ContactValidatorProtocol {
     func validateUpdateBussineseAddress(_ req: Request) throws -> ContactValidator.ValidateBusineseAdressResponse
     func validateUpdateShippingAddress(_ req: Request) throws -> ContactValidator.ValidateShippingAddressResponse
     func validateID(_ req: Request) throws -> UUID
+    func validateSearchQuery(_ req: Request) throws -> String
 }
 
 class ContactValidator: ContactValidatorProtocol {
@@ -87,6 +88,15 @@ class ContactValidator: ContactValidatorProtocol {
     func validateID(_ req: Request) throws -> UUID {
         guard let id = req.parameters.get("id"), let uuid = UUID(id) else { throw DefaultError.invalidInput }
         return uuid
+    }
+
+    func validateSearchQuery(_ req: Request) throws -> String {
+        guard 
+            let search = req.query[String.self, at: "q"],
+            !search.isEmpty
+            else { throw DefaultError.invalidInput }
+        
+        return search
     }
 }
 

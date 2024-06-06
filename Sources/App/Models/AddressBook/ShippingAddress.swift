@@ -19,7 +19,7 @@ struct ShippingAddress: Codable {
          city: String = "",
          province: String = "",
          country: String = "THA",
-         postalCode: String = "",
+         postalCode: String = "00000",
          phone: String = "") {
         self.id = id
         self.address = address

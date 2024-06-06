@@ -24,7 +24,7 @@ final class Contact: Model, Content {
     @Field(key: "code")
     var code: String
     
-    @Field(key: "kind")
+    @Enum(key: "kind")
     var kind: ContactKind
     
     @Field(key: "group_id")

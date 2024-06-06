@@ -9,12 +9,12 @@ struct RunningCode {
     init(prefix: String,
          runningNumber: Int = 1) {
         self.prefix = prefix
-        self.value = runningNumber
+        self.value = max(runningNumber,1)
     }
     
     var wrappedValue: String {
         get {             
-            let formattedNumber = String(format: "%05d", value)
+            let formattedNumber = Self.formatNumber(value)
             return prefix + formattedNumber
          }
         set {
@@ -23,5 +23,18 @@ struct RunningCode {
             // You may need to implement this based on your use case
         }
     }    
+    
+    static func formatNumber(_ number: Int) -> String {
+        // Convert the number to a string
+        let numberString = String(number)
+        
+        // Define the desired length for the number part
+        let desiredLength = 5
+        
+        // Pad the number string with leading zeros
+        let paddedNumberString = String(repeating: "0", count: max(0, desiredLength - numberString.count)) + numberString        
+        
+        return paddedNumberString
+    }
 }
 

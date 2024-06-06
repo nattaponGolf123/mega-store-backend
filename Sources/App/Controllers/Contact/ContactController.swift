@@ -16,7 +16,7 @@ class ContactController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
         let contacts = routes.grouped("contacts")
         contacts.get(use: all)
-        // contacts.post(use: create)
+        contacts.post(use: create)
         
         contacts.group(":id") { withID in
             withID.get(use: getByID)
@@ -33,15 +33,20 @@ class ContactController: RouteCollection {
             }
             
         }
+
+         contacts.group("search") { _search in
+            _search.get(use: search)
+        }
         
     }
     
-    // GET /contacts
-    func all(req: Request) async throws -> [Contact] {
-        return try await repository.fetchAll(on: req.db)
+    // GET /contacts?show_deleted=true&page=1&per_page=10
+    func all(req: Request) async throws -> PaginatedResponse<Contact> {
+        let reqContent = try req.query.decode(ContactRepository.Fetch.self)
+        return try await repository.fetchAll(req: reqContent, on: req.db)
     }
 
-    // POST /contacts  
+    // POST /contacts
    func create(req: Request) async throws -> Contact {
        let content = try validator.validateCreate(req)
        return try await repository.create(with: content, on: req.db)
@@ -81,6 +86,14 @@ class ContactController: RouteCollection {
        let uuid = try validator.validateID(req)
        return try await repository.delete(id: uuid, on: req.db)
    }
+
+   // GET /contacts/search?q=xxx&page=1&per_page=10
+     func search(req: Request) async throws -> PaginatedResponse<Contact> {
+        let _ = try validator.validateSearchQuery(req)
+        let reqContent = try req.query.decode(ContactRepository.Search.self)
+        
+        return try await repository.search(req: reqContent, on: req.db)        
+    }
 }
 
 /*

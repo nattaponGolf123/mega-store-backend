@@ -28,7 +28,7 @@ struct BusinessAddress: Content {
          subDistrict: String = "",
          city: String = "",
          province: String = "",
-         postalCode: String = "",
+         postalCode: String = "00000",
          country: String = "THA",
          phone: String = "",
          email: String = "",

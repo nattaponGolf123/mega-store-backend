@@ -10,6 +10,7 @@ import Vapor
 
 enum CommonError {
     case duplicateName
+    case duplicateTaxNumber
 }
 
 extension CommonError: AbortError {
@@ -18,12 +19,16 @@ extension CommonError: AbortError {
         switch self {
         case .duplicateName:
             return "Duplicate name"
+        case .duplicateTaxNumber:
+            return "Duplicate tax number"
         }
     }
     
     var status: HTTPStatus {
         switch self {
         case .duplicateName:
+            return .badRequest
+        case .duplicateTaxNumber:
             return .badRequest
         }
     }
@@ -37,6 +42,8 @@ extension CommonError: ErrorMessageProtocol {
         switch self {
         case .duplicateName:
             return "DUPLICATE_NAME"
+        case .duplicateTaxNumber:
+            return "DUPLICATE_TAX_NUMBER"
         }
     }
     
@@ -54,6 +61,8 @@ extension CommonError: Content {
         switch code {
         case "DUPLICATE_NAME":
             self = .duplicateName
+        case "DUPLICATE_TAX_NUMBER":
+            self = .duplicateTaxNumber
         default:
             self = .duplicateName
         }
@@ -66,6 +75,9 @@ extension CommonError: Content {
         case .duplicateName:
             try container.encode("DUPLICATE_NAME", forKey: .code)
             try container.encode("Duplicate name", forKey: .message)
+        case .duplicateTaxNumber:
+            try container.encode("DUPLICATE_TAX_NUMBER", forKey: .code)
+            try container.encode("Duplicate tax number", forKey: .message)
         }
     }
     
