@@ -7,7 +7,7 @@ struct ContactInformation: Content {
         var phoneNumber: String        
         var email: String
 
-        init(contactPerson: String,
+        init(contactPerson: String = "",
              phoneNumber: String = "",
              email: String = "") {
             self.contactPerson = contactPerson

@@ -107,7 +107,6 @@ extension Customer {
                                                         phoneNumber: "1234567890",
                                                         email: "")
             let businessAddress = [BusinessAddress(address: "123/456",
-                                                   branch: "",
                                                    subDistrict: "",
                                                    city: "",
                                                    province: "",
@@ -118,7 +117,7 @@ extension Customer {
                          contactInformation: contactInformation,
                          taxNumber: "1234567890",
                          legalStatus: .individual,
-                         website: "",
+                         website: "", 
                          businessAddress: businessAddress,
                          shippingAddress: [],
                          paymentTermsDays: 30,

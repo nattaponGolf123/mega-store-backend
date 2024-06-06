@@ -7,7 +7,7 @@ class MyBusineseController: RouteCollection {
     private(set) var repository: MyBusineseRepositoryProtocol
     private(set) var validator: MyBusineseValidatorProtocol
     
-    init(repository: MyBusineseRepositoryProtocol = FluentMyBusineseRepository(),
+    init(repository: MyBusineseRepositoryProtocol = MyBusineseRepository(),
          validator: MyBusineseValidatorProtocol = MyBusineseValidator()) {
         self.repository = repository
         self.validator = validator
@@ -31,7 +31,7 @@ class MyBusineseController: RouteCollection {
     
     func create(req: Request) async throws -> MyBusinese {
         let content = try validator.validateCreate(req)
-        return try await repository.create(id: UUID(), with: content, on: req.db)
+        return try await repository.create(with: content, on: req.db)
     }
     
     func getByID(req: Request) async throws -> MyBusinese {

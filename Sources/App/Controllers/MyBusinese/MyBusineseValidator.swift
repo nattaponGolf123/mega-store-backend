@@ -2,15 +2,17 @@ import Foundation
 import Vapor
 
 protocol MyBusineseValidatorProtocol {
-    func validateCreate(_ req: Request) throws -> MyBusinese.Create
-    func validateUpdate(_ req: Request) throws -> (uuid: UUID, content: MyBusinese.Update)
+    func validateCreate(_ req: Request) throws -> MyBusineseRepository.Create
+    func validateUpdate(_ req: Request) throws -> (uuid: UUID, content: MyBusineseRepository.Update)
     func validateID(_ req: Request) throws -> UUID
 }
 
 class MyBusineseValidator: MyBusineseValidatorProtocol {
+    typealias CreateContent = MyBusineseRepository.Create
+    typealias UpdateContent = MyBusineseRepository.Update
     
-    func validateCreate(_ req: Request) throws -> MyBusinese.Create {
-        typealias CreateContent = MyBusinese.Create
+    func validateCreate(_ req: Request) throws -> CreateContent {
+        
         do {
             let content = try req.content.decode(CreateContent.self)
             try CreateContent.validate(content: req)
@@ -23,8 +25,8 @@ class MyBusineseValidator: MyBusineseValidatorProtocol {
         }
     }
 
-    func validateUpdate(_ req: Request) throws -> (uuid: UUID, content: MyBusinese.Update) {
-        typealias UpdateContent = MyBusinese.Update
+    func validateUpdate(_ req: Request) throws -> (uuid: UUID, content: UpdateContent) {
+        
         do {
             let content = try req.content.decode(UpdateContent.self)
             try UpdateContent.validate(content: req)
