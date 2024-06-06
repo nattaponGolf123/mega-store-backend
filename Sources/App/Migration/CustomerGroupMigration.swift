@@ -11,36 +11,27 @@ import Vapor
 
 struct CustomerGroupMigration: AsyncMigration {
     func prepare(on database: Database) async throws {
+                
+        // CustomerGroup
         try await CustomerGroupSchema.createBuilder(database: database).create()
-        
-        // new mocks
         try await CustomerGroup.Stub.retail.save(on: database)
 
         // MyBusinese
         try await MyBusineseSchema.createBuilder(database: database).create()
-         // new mocks
         try await MyBusinese.Stub.myCompany.save(on: database)
+
+        // Contact
+        try await ContactSchema.createBuilder(database: database).create()
+        try await Contact.Stub.customer.save(on: database)
     }
     func revert(on database: Database) async throws {
+        // CustomerGroup
         try await database.schema(CustomerGroupSchema.schema).delete()
 
         // MyBusinese
         try await database.schema(MyBusineseSchema.schema).delete()
+
+        // Contact
+        try await database.schema(ContactSchema.schema).delete()
     }
 }
-
-/*
-struct MyBusineseMigration: AsyncMigration {
-
-    func prepare(on database: Database) async throws {
-        try await MyBusineseSchema.createBuilder(database: database).create()
-        
-        // new mocks
-        try await MyBusinese.Stub.myCompany.save(on: database)
-    }
-
-    func revert(on database: Database) async throws {
-        try await database.schema(MyBusineseSchema.schema).delete()
-    }
-}
-*/
