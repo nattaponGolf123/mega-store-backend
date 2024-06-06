@@ -32,6 +32,8 @@ class ContactController: RouteCollection {
                 shippingAddress.grouped(":address_id").put(use: updateShippingAddress)
             }
             
+            //DELETE /contacts/:id
+            withID.delete(use: delete)
         }
 
          contacts.group("search") { _search in

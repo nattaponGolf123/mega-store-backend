@@ -86,11 +86,7 @@ class ContactRepository: ContactRepositoryProtocol {
     
     func update(id: UUID, with content: ContactRepository.Update, on db: Database) async throws -> Contact {
         guard let contact = try await Contact.find(id, on: db) else { throw DefaultError.notFound }
-        if let name = content.name {
-            guard
-                try await Contact.query(on: db).filter(\.$name == name).count() == 0
-            else { throw CommonError.duplicateName }
-            
+        if let name = content.name {                        
             contact.name = name
         }
         
@@ -102,7 +98,11 @@ class ContactRepository: ContactRepositoryProtocol {
             contact.contactInformation = contactInformation
         }
         
-        if let taxNumber = content.taxNumber {
+        if let taxNumber = content.taxNumber {            
+            guard
+                try await Contact.query(on: db).filter(\.$taxNumber == taxNumber).count() == 0
+            else { throw CommonError.duplicateTaxNumber }
+
             contact.taxNumber = taxNumber
         }
         
