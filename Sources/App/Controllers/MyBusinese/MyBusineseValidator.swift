@@ -4,8 +4,8 @@ import Vapor
 protocol MyBusineseValidatorProtocol {
     func validateCreate(_ req: Request) throws -> MyBusineseRepository.Create
     func validateUpdate(_ req: Request) throws -> (uuid: UUID, content: MyBusineseRepository.Update)
-    func validateUpdateBussineseAddress(_ req: Request) throws -> (uuid: UUID, content: MyBusineseRepository.UpdateBussineseAddress)
-    func validateUpdateShippingAddress(_ req: Request) throws -> (uuid: UUID, content: MyBusineseRepository.UpdateShippingAddress)
+    func validateUpdateBussineseAddress(_ req: Request) throws -> MyBusineseValidator.ValidateBusineseAdressResponse
+    func validateUpdateShippingAddress(_ req: Request) throws -> MyBusineseValidator.ValidateShippingAddressResponse
     func validateID(_ req: Request) throws -> UUID
 }
 
@@ -42,13 +42,19 @@ class MyBusineseValidator: MyBusineseValidatorProtocol {
         }
     }
 
-    func validateUpdateBussineseAddress(_ req: Request) throws -> (uuid: UUID, content: MyBusineseRepository.UpdateBussineseAddress) {
+    func validateUpdateBussineseAddress(_ req: Request) throws -> ValidateBusineseAdressResponse {
         
         do {
             let content = try req.content.decode(MyBusineseRepository.UpdateBussineseAddress.self)
             try MyBusineseRepository.UpdateBussineseAddress.validate(content: req)
-            guard let id = req.parameters.get("id", as: UUID.self) else { throw DefaultError.invalidInput }
-            return (id, content)
+            guard 
+                let id = req.parameters.get("id", as: UUID.self),
+                let addressID: UUID = req.parameters.get("address_id", as: UUID.self)
+                else { throw DefaultError.invalidInput }
+
+            return .init(id: id,
+                         addressID: addressID,
+                        content: content)
         } catch let error as ValidationsError {
             let errors = InputError.parse(failures: error.failures)
             throw InputValidateError.inputValidateFailed(errors: errors)
@@ -57,13 +63,19 @@ class MyBusineseValidator: MyBusineseValidatorProtocol {
         }
     }
 
-    func validateUpdateShippingAddress(_ req: Request) throws -> (uuid: UUID, content: MyBusineseRepository.UpdateShippingAddress) {
+    func validateUpdateShippingAddress(_ req: Request) throws -> ValidateShippingAddressResponse {
         
         do {
             let content = try req.content.decode(MyBusineseRepository.UpdateShippingAddress.self)
             try MyBusineseRepository.UpdateShippingAddress.validate(content: req)
-            guard let id = req.parameters.get("id", as: UUID.self) else { throw DefaultError.invalidInput }
-            return (id, content)
+            guard 
+                let id = req.parameters.get("id", as: UUID.self),
+                let addressID: UUID = req.parameters.get("address_id", as: UUID.self)
+             else { throw DefaultError.invalidInput }
+
+            return .init(id: id,
+                         addressID: addressID,
+                         content: content)
         } catch let error as ValidationsError {
             let errors = InputError.parse(failures: error.failures)
             throw InputValidateError.inputValidateFailed(errors: errors)
@@ -75,6 +87,21 @@ class MyBusineseValidator: MyBusineseValidatorProtocol {
     func validateID(_ req: Request) throws -> UUID {
         guard let id = req.parameters.get("id"), let uuid = UUID(id) else { throw DefaultError.invalidInput }
         return uuid
+    }
+}
+
+extension MyBusineseValidator {
+    
+    struct ValidateBusineseAdressResponse {
+        let id: UUID
+        let addressID: UUID
+        let content: MyBusineseRepository.UpdateBussineseAddress
+    }
+
+    struct ValidateShippingAddressResponse {
+        let id: UUID
+        let addressID: UUID
+        let content: MyBusineseRepository.UpdateShippingAddress    
     }
 }
 

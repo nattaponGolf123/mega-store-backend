@@ -9,8 +9,8 @@ protocol MyBusineseRepositoryProtocol {
     func find(id: UUID, on db: Database) async throws -> MyBusinese
     func update(id: UUID, with content: MyBusineseRepository.Update, on db: Database) async throws -> MyBusinese
     //func delete(id: UUID, on db: Database) async throws -> MyBusinese
-    func updateBussineseAddress(id: UUID, with content: MyBusineseRepository.UpdateBussineseAddress, on db: Database) async throws -> MyBusinese
-    func updateShippingAddress(id: UUID, with content: MyBusineseRepository.UpdateShippingAddress, on db: Database) async throws -> MyBusinese
+    func updateBussineseAddress(id: UUID, addressID: UUID, with content: MyBusineseRepository.UpdateBussineseAddress, on db: Database) async throws -> MyBusinese
+    func updateShippingAddress(id: UUID, addressID: UUID, with content: MyBusineseRepository.UpdateShippingAddress, on db: Database) async throws -> MyBusinese
 }
 
 class MyBusineseRepository: MyBusineseRepositoryProtocol {
@@ -93,10 +93,10 @@ class MyBusineseRepository: MyBusineseRepositoryProtocol {
         return businese
     }
 
-    func updateBussineseAddress(id: UUID, with content: MyBusineseRepository.UpdateBussineseAddress, on db: Database) async throws -> MyBusinese {
+    func updateBussineseAddress(id: UUID, addressID: UUID , with content: MyBusineseRepository.UpdateBussineseAddress, on db: Database) async throws -> MyBusinese {
         guard 
             let myBusinese = try await MyBusinese.find(id, on: db),
-            var addr = myBusinese.businessAddress.first(where: { $0.id == id })
+            var addr = myBusinese.businessAddress.first(where: { $0.id == addressID })
         else { throw DefaultError.notFound }
         
         if let address = content.address {
@@ -148,10 +148,10 @@ class MyBusineseRepository: MyBusineseRepositoryProtocol {
         return myBusinese
     }
 
-    func updateShippingAddress(id: UUID, with content: MyBusineseRepository.UpdateShippingAddress, on db: Database) async throws -> MyBusinese {
+    func updateShippingAddress(id: UUID, addressID: UUID, with content: MyBusineseRepository.UpdateShippingAddress, on db: Database) async throws -> MyBusinese {
         guard 
             let myBusinese = try await MyBusinese.find(id, on: db),
-            var addr = myBusinese.shippingAddress.first(where: { $0.id == id })
+            var addr = myBusinese.shippingAddress.first(where: { $0.id == addressID })
         else { throw DefaultError.notFound }
         
         if let address = content.address {
@@ -197,6 +197,7 @@ class MyBusineseRepository: MyBusineseRepositoryProtocol {
 
 
 extension MyBusineseRepository {
+
     struct Create: Content, Validatable {
         let name: String
         let vatRegistered: Bool
