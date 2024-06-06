@@ -36,6 +36,7 @@ class MyBusineseController: RouteCollection {
         
     }
     
+    // GET /my_busineses
     func all(req: Request) async throws -> [MyBusinese] {
         return try await repository.fetchAll(on: req.db)
     }
@@ -44,17 +45,20 @@ class MyBusineseController: RouteCollection {
     //     let content = try validator.validateCreate(req)
     //     return try await repository.create(with: content, on: req.db)
     // }
-    
+
+     // GET /my_busineses:id
     func getByID(req: Request) async throws -> MyBusinese {
         let uuid = try validator.validateID(req)
         return try await repository.find(id: uuid, on: req.db)
     }
     
+    // PUT /my_busineses/:id
     func update(req: Request) async throws -> MyBusinese {
         let (uuid, content) = try validator.validateUpdate(req)
         return try await repository.update(id: uuid, with: content, on: req.db)
     }
     
+    // PUT /my_busineses/:id/businese_address/:address_id
     func updateBussineseAddress(req: Request) async throws -> MyBusinese {
         let result = try validator.validateUpdateBussineseAddress(req)
         return try await repository.updateBussineseAddress(id: result.id,
@@ -63,6 +67,7 @@ class MyBusineseController: RouteCollection {
                                                            on: req.db)
     }
     
+    // PUT /my_busineses/:id/shipping_address/:address_id
     func updateShippingAddress(req: Request) async throws -> MyBusinese {
         let result = try validator.validateUpdateShippingAddress(req)
         return try await repository.updateShippingAddress(id: result.id,

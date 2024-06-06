@@ -41,12 +41,13 @@ func routes(_ app: Application) throws {
     try protected.register(collection: UserController())
     try protected.register(collection: ProductCategoryController())
     try protected.register(collection: ServiceCategoryController())
-    try protected.register(collection: SupplierGroupController())
-    try protected.register(collection: CustomerGroupController())
+    //try protected.register(collection: SupplierGroupController())
+    //try protected.register(collection: CustomerGroupController())
     try protected.register(collection: MyBusineseController())
+    try protected.register(collection: ContactGroupController())
     
     //poc
-    try protected.register(collection: ProductController())
+    //try protected.register(collection: ProductController())
         
     // init stub datasource
 //    try LocalDatastore.shared.save(fileName: "products",

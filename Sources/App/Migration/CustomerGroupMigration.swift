@@ -23,6 +23,11 @@ struct CustomerGroupMigration: AsyncMigration {
         // Contact
         try await ContactSchema.createBuilder(database: database).create()
         try await Contact.Stub.customer.save(on: database)
+
+        // Contact group
+        try await ContactGroupSchema.createBuilder(database: database).create()
+        try await ContactGroup.Stub.localCustomer.save(on: database)
+        try await ContactGroup.Stub.internationalCustomer.save(on: database)
     }
     func revert(on database: Database) async throws {
         // CustomerGroup
@@ -33,5 +38,8 @@ struct CustomerGroupMigration: AsyncMigration {
 
         // Contact
         try await database.schema(ContactSchema.schema).delete()
+
+        // Contact group
+        try await database.schema(ContactGroupSchema.schema).delete()
     }
 }

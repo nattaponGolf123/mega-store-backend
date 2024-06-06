@@ -55,79 +55,29 @@ final class ContactGroup: Model, Content {
 }
 
 extension ContactGroup {
-    struct Create: Content, Validatable {
-        let name: String
-        let description: String?
-        
-        init(name: String,
-             description: String? = nil) {
-            self.name = name
-            self.description = description
-        }
-        
-        init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.name = try container.decode(String.self,
-                                             forKey: .name)
-            self.description = try? container.decode(String.self,
-                                                    forKey: .description)
-        }
-        
-        enum CodingKeys: String, CodingKey {
-            case name = "name"
-            case description = "description"
-        }
-                
-        static func validations(_ validations: inout Validations) {
-            validations.add("name", as: String.self,
-                            is: .count(3...200))
-        }
-    }
-
-    struct Update: Content, Validatable {
-        let name: String?
-        let description: String?
-        
-        init(name: String? = nil,
-            description: String? = nil) {
-            self.name = name
-            self.description = description
-        }
-        
-        enum CodingKeys: String, CodingKey {
-            case name = "name"
-            case description = "description"
-        }
-        
-        static func validations(_ validations: inout Validations) {
-            validations.add("name", as: String.self,
-                            is: .count(3...200))
-        }
-    }
-}
-
-extension ContactGroup {
     struct Stub {
+
+        static var localCustomer: ContactGroup {
+            .init(name: "Local Customer",
+                  description: "Local Customer Description")
+        }
+
+        static var internationalCustomer: ContactGroup {
+            .init(name: "International Customer",
+                  description: "International Customer Description")
+        }
         
-        static var group: [ContactGroup] {
+        static var groups: [ContactGroup] {
             [
                 .init(name: "Contact Group 1",
                       description: "Contact Group 1 Description"),
                 .init(name: "Contact Group 2",
-                      description: "Contact Group 2 Description"),
+                     description: "Contact Group 2 Description"),
                 .init(name: "Contact Group 3",
-                      description: "Contact Group 3 Description"),
-                .init(name: "Contact Group 4",
-                      description: "Contact Group 4 Description"),
-                .init(name: "Contact Group 5",
-                      description: "Contact Group 5 Description"),
+                        description: "Contact Group 3 Description"),
             ]
         }
-        
-        static var ContactGroup1: ContactGroup {
-            .init(name: "Contact Group 1",
-                  description: "Contact Group 1 Description")
-        }
+
     }
 
 }
