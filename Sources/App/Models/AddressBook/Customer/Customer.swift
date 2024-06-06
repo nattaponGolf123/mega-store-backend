@@ -117,7 +117,7 @@ extension Customer {
                          contactInformation: contactInformation,
                          taxNumber: "1234567890",
                          legalStatus: .individual,
-                         website: "", 
+                         website: "",
                          businessAddress: businessAddress,
                          shippingAddress: [],
                          paymentTermsDays: 30,

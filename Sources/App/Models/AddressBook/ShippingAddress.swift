@@ -2,16 +2,16 @@ import Foundation
 
 struct ShippingAddress: Codable {
     let id: UUID
-    let address: String
-    let subDistrict: String
-    let city: String
-    let province: String
-    let country: String
+    var address: String
+    var subDistrict: String
+    var city: String
+    var province: String
+    var country: String
 
     @ThailandPostCode
     var postalCode: String
 
-    let phone: String    
+    var phone: String    
 
     init(id: UUID = .init(),
          address: String = "",

@@ -5,10 +5,12 @@ import FluentMongoDriver
 
 protocol MyBusineseRepositoryProtocol {
     func fetchAll(on db: Database) async throws -> [MyBusinese]
-    func create(with content: MyBusineseRepository.Create, on db: Database) async throws -> MyBusinese
+    //func create(with content: MyBusineseRepository.Create, on db: Database) async throws -> MyBusinese
     func find(id: UUID, on db: Database) async throws -> MyBusinese
     func update(id: UUID, with content: MyBusineseRepository.Update, on db: Database) async throws -> MyBusinese
-    func delete(id: UUID, on db: Database) async throws -> MyBusinese
+    //func delete(id: UUID, on db: Database) async throws -> MyBusinese
+    func updateBussineseAddress(id: UUID, with content: MyBusineseRepository.UpdateBussineseAddress, on db: Database) async throws -> MyBusinese
+    func updateShippingAddress(id: UUID, with content: MyBusineseRepository.UpdateShippingAddress, on db: Database) async throws -> MyBusinese
 }
 
 class MyBusineseRepository: MyBusineseRepositoryProtocol {
@@ -18,23 +20,23 @@ class MyBusineseRepository: MyBusineseRepositoryProtocol {
         return debug
     }
 
-    func create(with content: MyBusineseRepository.Create, on db: Database) async throws -> MyBusinese {
-        let newBusinese = MyBusinese(name: content.name,
-                                    vatRegistered: content.vatRegistered, 
-                                    contactInformation: content.contactInformation ?? .init(),
-                                    taxNumber: content.taxNumber,
-                                    legalStatus: content.legalStatus,
-                                    website: content.website ?? "",
-                                    businessAddress: [.init()],
-                                    shippingAddress: [.init()],
-                                    logo: nil,
-                                    stampLogo: nil,
-                                    authorizedSignSignature: nil,
-                                    note: content.note ?? "")
+    // func create(with content: MyBusineseRepository.Create, on db: Database) async throws -> MyBusinese {
+    //     let newBusinese = MyBusinese(name: content.name,
+    //                                 vatRegistered: content.vatRegistered, 
+    //                                 contactInformation: content.contactInformation ?? .init(),
+    //                                 taxNumber: content.taxNumber,
+    //                                 legalStatus: content.legalStatus,
+    //                                 website: content.website ?? "",
+    //                                 businessAddress: [.init()],
+    //                                 shippingAddress: [.init()],
+    //                                 logo: nil,
+    //                                 stampLogo: nil,
+    //                                 authorizedSignSignature: nil,
+    //                                 note: content.note ?? "")
               
-        try await newBusinese.save(on: db)
-        return newBusinese
-    }
+    //     try await newBusinese.save(on: db)
+    //     return newBusinese
+    // }
 
     func find(id: UUID, on db: Database) async throws -> MyBusinese {
         guard let businese = try await MyBusinese.find(id, on: db) else { throw DefaultError.notFound }
@@ -91,11 +93,106 @@ class MyBusineseRepository: MyBusineseRepositoryProtocol {
         return businese
     }
 
-    func delete(id: UUID, on db: Database) async throws -> MyBusinese {
-        guard let businese = try await MyBusinese.find(id, on: db) else { throw DefaultError.notFound }
-        try await businese.delete(on: db)
-        return businese
+    func updateBussineseAddress(id: UUID, with content: MyBusineseRepository.UpdateBussineseAddress, on db: Database) async throws -> MyBusinese {
+        guard 
+            let myBusinese = try await MyBusinese.find(id, on: db),
+            var addr = myBusinese.businessAddress.first(where: { $0.id == id })
+        else { throw DefaultError.notFound }
+        
+        if let address = content.address {
+            addr.address = address
+        }
+
+        if let branch = content.branch {
+            addr.branch = branch
+        }
+
+        if let branchCode = content.branchCode {
+            addr.branchCode = branchCode
+        }
+
+        if let subDistrict = content.subDistrict {
+            addr.subDistrict = subDistrict
+        }
+
+        if let city = content.city {
+            addr.city = city
+        }
+
+        if let province = content.province {
+            addr.province = province
+        }
+
+        if let postalCode = content.postalCode {
+            addr.postalCode = postalCode
+        }
+
+        if let country = content.country {
+            addr.country = country
+        }
+
+        if let phone = content.phone {
+            addr.phone = phone
+        }
+
+        if let email = content.email {
+            addr.email = email
+        }
+
+        if let fax = content.fax {
+            addr.fax = fax
+        }
+        myBusinese.businessAddress = [addr]
+
+        try await myBusinese.save(on: db)
+        return myBusinese
     }
+
+    func updateShippingAddress(id: UUID, with content: MyBusineseRepository.UpdateShippingAddress, on db: Database) async throws -> MyBusinese {
+        guard 
+            let myBusinese = try await MyBusinese.find(id, on: db),
+            var addr = myBusinese.shippingAddress.first(where: { $0.id == id })
+        else { throw DefaultError.notFound }
+        
+        if let address = content.address {
+            addr.address = address
+        }
+
+        if let subDistrict = content.subDistrict {
+            addr.subDistrict = subDistrict
+        }
+
+        if let city = content.city {
+            addr.city = city
+        }
+
+        if let province = content.province {
+            addr.province = province
+        }
+
+        if let postalCode = content.postalCode {
+            addr.postalCode = postalCode
+        }
+
+        if let country = content.country {
+            addr.country = country
+        }
+
+        if let phone = content.phone {
+            addr.phone = phone
+        }
+
+        myBusinese.shippingAddress = [addr]
+
+        try await myBusinese.save(on: db)
+        return myBusinese
+    }
+
+    // func delete(id: UUID, on db: Database) async throws -> MyBusinese {
+    //     guard let businese = try await MyBusinese.find(id, on: db) else { throw DefaultError.notFound }
+    //     try await businese.delete(on: db)
+    //     return businese
+    // }
 }
 
 
@@ -140,6 +237,15 @@ extension MyBusineseRepository {
         let note: String?
         
         static func validations(_ validations: inout Validations) {
+//            if let name {
+//                validations.add("name", as: String.self,
+//                                is: .count(3...200))
+//            }
+//
+//            if let taxNumber {
+//                validations.add("tax_number", as: String.self,
+//                                is: .count(13...13))
+//            }
         //     validations.add("name", as: String.self,
         //                     is: .count(3...200))
         //     validations.add("taxNumber", as: String.self,
@@ -159,11 +265,16 @@ extension MyBusineseRepository {
         //@ThailandPostCode
         let postalCode: String?
 
-        let phoneNumber: String?
+        let phone: String?
         let email: String?
         let fax: String?
         
         static func validations(_ validations: inout Validations) {
+//            if let postalCode {
+//                validations.add("postal_code", as: String.self,
+//                                is: .count(5...5))
+//            }
+
         //     validations.add("address", as: String.self,
         //                     is: .count(1...200))
         //     validations.add("postalCode", as: String.self,
@@ -179,7 +290,7 @@ extension MyBusineseRepository {
             case province
             case postalCode = "postal_code"
             case country
-            case phoneNumber = "phone_number"
+            case phone 
             case email
             case fax
         }
@@ -195,11 +306,19 @@ extension MyBusineseRepository {
         //@ThailandPostCode
         let postalCode: String?
 
-        let phoneNumber: String?
-        let email: String?
-        let fax: String?
+        let phone: String?
         
         static func validations(_ validations: inout Validations) {
+//            if let postalCode {
+//                validations.add("postal_code", as: String.self,
+//                                is: .count(5...5))
+//            }
+//
+//            if let address {
+//                validations.add("address", as: String.self,
+//                                is: .count(1...200))
+//            }
+
         //     validations.add("address", as: String.self,
         //                     is: .count(1...200))
         //     validations.add("postalCode", as: String.self,
@@ -213,14 +332,9 @@ extension MyBusineseRepository {
             case province
             case postalCode = "postal_code"
             case country
-            case phoneNumber = "phone_number"
-            case email
-            case fax
+            case phone
         }
     }
-
-    
-    
 }
 
 /*
