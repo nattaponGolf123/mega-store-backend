@@ -27,6 +27,9 @@ final class Contact: Model, Content {
     @Field(key: "kind")
     var kind: ContactKind
     
+    @Field(key: "group_id")
+    var groupId: UUID?
+    
     @Field(key: "name")
     var name: String
     
@@ -77,6 +80,7 @@ final class Contact: Model, Content {
     init(id: UUID? = nil,
          number: Int = 1,
          name: String = "",
+         groupId: UUID? = nil,
          kind: ContactKind = .both,
          vatRegistered: Bool = false,
          contactInformation: ContactInformation = .init(),
@@ -90,6 +94,7 @@ final class Contact: Model, Content {
         
         self.id = id ?? UUID()
         self.code = ContactCode(number: number).code
+        self.groupId = groupId
         self.name = name
         self.vatRegistered = vatRegistered
         self.contactInformation = contactInformation
@@ -197,6 +202,52 @@ extension Contact {
     }
 }
 
+/*
+final class ContactGroup: Model, Content {
+    static let schema = "ContactGroups"
+    
+    @ID(key: .id)
+    var id: UUID?
+
+    @Field(key: "name")
+    var name: String
+
+    @Field(key: "description")
+    var description: String?
+
+    @Timestamp(key: "created_at",
+               on: .create,
+               format: .iso8601)
+    var createdAt: Date?
+
+    @Timestamp(key: "updated_at",
+               on: .update,
+               format: .iso8601)
+    var updatedAt: Date?
+
+    @Timestamp(key: "deleted_at",
+               on: .delete,
+               format: .iso8601)
+    var deletedAt: Date?
+
+    init() { }
+
+    init(id: UUID? = nil,
+         name: String,
+         description: String?,
+         createdAt: Date? = nil,
+         updatedAt: Date? = nil,
+         deletedAt: Date? = nil) {
+        self.id = id ?? UUID()
+        self.name = name
+        self.description = description
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
+    }
+    
+}
+*/
 /*
  {
  "id": "SUP12345", // UUID
