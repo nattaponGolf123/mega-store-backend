@@ -4,24 +4,46 @@ import Fluent
 import FluentMongoDriver
 
 protocol ContactGroupRepositoryProtocol {
-    func fetchAll(showDeleted: Bool, on db: Database) async throws -> [ContactGroup]
+    func fetchAll(req: ContactGroupRepository.Fetch,
+                  on db: Database) async throws -> PaginatedResponse<ContactGroup>
     func create(content: ContactGroupRepository.Create, on db: Database) async throws -> ContactGroup
     func find(id: UUID, on db: Database) async throws -> ContactGroup
     func find(name: String, on db: Database) async throws -> ContactGroup
     func update(id: UUID, with content: ContactGroupRepository.Update, on db: Database) async throws -> ContactGroup
     func delete(id: UUID, on db: Database) async throws -> ContactGroup
-    func search(name: String, on db: Database) async throws -> [ContactGroup]
+    func search(req: ContactGroupRepository.Search, on db: Database) async throws -> PaginatedResponse<ContactGroup>
 }
 
 class ContactGroupRepository: ContactGroupRepositoryProtocol {
      
-    func fetchAll(showDeleted: Bool, on db: Database) async throws -> [ContactGroup] {
-        do {
-            if showDeleted {
-                return try await ContactGroup.query(on: db).withDeleted().all()
-            } else {
-                return try await ContactGroup.query(on: db).filter(\.$deletedAt == nil).all()
-            }
+    func fetchAll(req: ContactGroupRepository.Fetch,
+                  on db: Database) async throws -> PaginatedResponse<ContactGroup> {
+    do {
+        let page = req.page
+        let perPage = req.perPage
+
+        guard 
+            page > 0,
+            perPage > 0
+        else { throw DefaultError.invalidInput }
+        
+        let query = ContactGroup.query(on: db)
+        
+        if req.showDeleted {
+            query.withDeleted()
+        } else {
+            query.filter(\.$deletedAt == nil)
+        }
+        
+        let total = try await query.count()
+        let items = try await query.range((page - 1) * perPage..<(page * perPage)).all()
+        
+        let response = PaginatedResponse(page: page,
+                          perPage: perPage,
+                          total: total,
+                        items: items)
+        
+            return response
         } catch {
             // Handle all other errors
             throw DefaultError.error(message: error.localizedDescription)
@@ -106,17 +128,37 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
         }
     }
 
-    func search(name: String, on db: Database) async throws -> [ContactGroup] {
-        do {
+    func search(req: ContactGroupRepository.Search, on db: Database) async throws -> PaginatedResponse<ContactGroup> {
+    do {
+        let perPage = req.perPage
+        let page = req.page
+        let name = req.name
+
+        guard 
+            name.count > 0,
+            perPage > 0,
+            page > 0
+        else { throw DefaultError.invalidInput }               
+
         let regexPattern = "(?i)\(name)"  // (?i) makes the regex case-insensitive
-        return try await ContactGroup.query(on: db)
-            .filter(\.$name =~ regexPattern)
-            .all()
-        } catch {
-         // Handle all other errors
-         throw DefaultError.error(message: error.localizedDescription)
-      }
+        let query = ContactGroup.query(on: db).filter(\.$name =~ regexPattern)
+        
+        
+        let total = try await query.count()
+        let items = try await query.range((page - 1) * perPage..<(page * perPage)).all()
+        
+        
+        let response = PaginatedResponse(page: page,
+                          perPage: perPage,
+                          total: total,
+                        items: items)
+        
+        return response        
+    } catch {
+        // Handle all other errors
+        throw DefaultError.error(message: error.localizedDescription)
     }
+}
 }
 
 extension ContactGroupRepository {
@@ -142,6 +184,75 @@ extension ContactGroupRepository {
 }
 
 extension ContactGroupRepository { 
+
+    struct Fetch: Content {
+        let showDeleted: Bool
+        let page: Int
+        let perPage: Int
+
+        init(showDeleted: Bool = false,
+             page: Int = 1,
+             perPage: Int = 20) {
+            self.showDeleted = showDeleted
+            self.page = page
+            self.perPage = perPage
+        }
+        
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            self.showDeleted = (try? container.decode(Bool.self, forKey: .showDeleted)) ?? false
+            self.page = (try? container.decode(Int.self, forKey: .page)) ?? 1
+            self.perPage = (try? container.decode(Int.self, forKey: .perPage)) ?? 20
+        }
+        
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(showDeleted, forKey: .showDeleted)
+            try container.encode(page, forKey: .page)
+            try container.encode(perPage, forKey: .perPage)
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case showDeleted = "show_deleted"
+            case page = "page"
+            case perPage = "per_page"
+        }
+    }   
+
+    struct Search: Content {
+        let name: String
+        let page: Int
+        let perPage: Int
+
+        init(name: String,
+             page: Int = 1,
+             perPage: Int = 20) {
+            self.name = name
+            self.page = page
+            self.perPage = perPage
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            self.name = try container.decode(String.self, forKey: .name)
+            self.page = (try? container.decode(Int.self, forKey: .page)) ?? 1
+            self.perPage = (try? container.decode(Int.self, forKey: .perPage)) ?? 20
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(name, forKey: .name)
+            try container.encode(page, forKey: .page)
+            try container.encode(perPage, forKey: .perPage)
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case name = "name"
+            case page = "page"
+            case perPage = "per_page"
+        }
+    }
+
     struct Create: Content, Validatable {
         let name: String
         let description: String?

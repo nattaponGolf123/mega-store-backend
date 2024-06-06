@@ -30,11 +30,11 @@ class ContactGroupController: RouteCollection {
         }
     }
     
-    // GET /contact_groups?show_deleted=true
-    func all(req: Request) async throws -> [ContactGroup] {
-        let showDeleted = req.query["show_deleted"] == "true"
-        
-        return try await repository.fetchAll(showDeleted: showDeleted, on: req.db)
+    // GET /contact_groups?show_deleted=true&page=1&per_page=10
+    func all(req: Request) async throws -> PaginatedResponse<ContactGroup> {        
+        let reqContent = try req.query.decode(ContactGroupRepository.Fetch.self)
+
+        return try await repository.fetchAll(req: reqContent, on: req.db)
     }
     
     // POST /contact_groups
@@ -87,23 +87,26 @@ class ContactGroupController: RouteCollection {
         return try await repository.delete(id: uuid, on: req.db)
     }
     
-    // GET /contact_groups/search
-    func search(req: Request) async throws -> [ContactGroup] {
-        let q = try validator.validateSearchQuery(req)
+    // GET /contact_groups/search?q=xxx&page=1&per_page=10
+    func search(req: Request) async throws -> PaginatedResponse<ContactGroup> {
+        let _ = try validator.validateSearchQuery(req)
+        let reqContent = try req.query.decode(ContactGroupRepository.Search.self)
         
-        return try await repository.search(name: q, on: req.db)
+        return try await repository.search(req: reqContent, on: req.db)        
     }
 }
 
 /*
+
 protocol ContactGroupRepositoryProtocol {
-    func fetchAll(showDeleted: Bool, on db: Database) async throws -> [ContactGroup]
+    func fetchAll(req: ContactGroupRepository.Fetch,
+                  on db: Database) async throws -> PaginatedResponse<ContactGroup>
     func create(content: ContactGroupRepository.Create, on db: Database) async throws -> ContactGroup
     func find(id: UUID, on db: Database) async throws -> ContactGroup
     func find(name: String, on db: Database) async throws -> ContactGroup
     func update(id: UUID, with content: ContactGroupRepository.Update, on db: Database) async throws -> ContactGroup
     func delete(id: UUID, on db: Database) async throws -> ContactGroup
-    func search(name: String, on db: Database) async throws -> [ContactGroup]
+    func search(req: ContactGroupRepository.Search, on db: Database) async throws -> PaginatedResponse<ContactGroup>
 }
 */
 
