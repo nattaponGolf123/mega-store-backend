@@ -278,7 +278,7 @@ class ContactRepository: ContactRepositoryProtocol {
 
     //  fetch contact.code which is "C00001" , "C" is prefix and "00001" is number then return max of number
     func fetchLastedCode(on db: Database) async throws -> Int {
-        let query = Contact.query(on: db)
+        let query = Contact.query(on: db).withDeleted()
         query.sort(\.$code, .descending)
         query.limit(1)
 
