@@ -5,10 +5,10 @@ import FluentMongoDriver
 
 protocol ContactRepositoryProtocol {
     func fetchAll(on db: Database) async throws -> [Contact]
-   //func create(with content: ContactRepository.Create, on db: Database) async throws -> Contact
+    func create(with content: ContactRepository.Create, on db: Database) async throws -> Contact
     func find(id: UUID, on db: Database) async throws -> Contact
     func update(id: UUID, with content: ContactRepository.Update, on db: Database) async throws -> Contact
-    //func delete(id: UUID, on db: Database) async throws -> Contact
+    func delete(id: UUID, on db: Database) async throws -> Contact
     func updateBussineseAddress(id: UUID, addressID: UUID, with content: ContactRepository.UpdateBussineseAddress, on db: Database) async throws -> Contact
     func updateShippingAddress(id: UUID, addressID: UUID, with content: ContactRepository.UpdateShippingAddress, on db: Database) async throws -> Contact
 }
@@ -20,65 +20,72 @@ class ContactRepository: ContactRepositoryProtocol {
         return debug
     }
 
-    // func create(with content: ContactRepository.Create, on db: Database) async throws -> Contact {
-    //     let newBusinese = Contact(name: content.name,
-    //                                 vatRegistered: content.vatRegistered, 
-    //                                 contactInformation: content.contactInformation ?? .init(),
-    //                                 taxNumber: content.taxNumber,
-    //                                 legalStatus: content.legalStatus,
-    //                                 website: content.website ?? "",
-    //                                 businessAddress: [.init()],
-    //                                 shippingAddress: [.init()],
-    //                                 logo: nil,
-    //                                 stampLogo: nil,
-    //                                 authorizedSignSignature: nil,
-    //                                 note: content.note ?? "")
+    func create(with content: ContactRepository.Create, on db: Database) async throws -> Contact {
+        let newContact = Contact(name: content.name,
+                                 groupId: content.groupId,
+                                 vatRegistered: content.vatRegistered,
+                                 contactInformation: content.contactInformation ?? .init(),
+                                 taxNumber: content.taxNumber,
+                                 legalStatus: content.legalStatus,
+                                 website: content.website,
+                                 businessAddress: [.init()],
+                                 shippingAddress: [.init()],
+                                 paymentTermsDays: content.paymentTermsDays ?? 30, 
+                                 note: content.note)
               
-    //     try await newBusinese.save(on: db)
-    //     return newBusinese
-    // }
+        try await newContact.save(on: db)
+        return newContact
+    }
 
     func find(id: UUID, on db: Database) async throws -> Contact {
-        guard let businese = try await Contact.find(id, on: db) else { throw DefaultError.notFound }
-        return businese
+        guard let contact = try await Contact.find(id, on: db) else { throw DefaultError.notFound }
+        return contact
     }
 
     func update(id: UUID, with content: ContactRepository.Update, on db: Database) async throws -> Contact {
-        guard let businese = try await Contact.find(id, on: db) else { throw DefaultError.notFound }
+        guard let contact = try await Contact.find(id, on: db) else { throw DefaultError.notFound }
         if let name = content.name {
             guard 
                 try await Contact.query(on: db).filter(\.$name == name).count() == 0
             else { throw CommonError.duplicateName }
             
-            businese.name = name
+            contact.name = name
         }
         
         if let vatRegistered = content.vatRegistered {
-            businese.vatRegistered = vatRegistered
+            contact.vatRegistered = vatRegistered
         }
         
         if let contactInformation = content.contactInformation {
-            businese.contactInformation = contactInformation
+            contact.contactInformation = contactInformation
         }
 
         if let taxNumber = content.taxNumber {
-            businese.taxNumber = taxNumber
+            contact.taxNumber = taxNumber
         }
 
         if let legalStatus = content.legalStatus {
-            businese.legalStatus = legalStatus
+            contact.legalStatus = legalStatus
         }
 
         if let website = content.website {
-            businese.website = website
+            contact.website = website
         }
 
         if let note = content.note {
-            businese.note = note
+            contact.note = note
+        }
+
+        if let groupId = content.groupId {
+            contact.groupId = groupId
+        }
+
+        if let paymentTermsDays = content.paymentTermsDays {
+            contact.paymentTermsDays = paymentTermsDays
         }
         
-        try await businese.save(on: db)
-        return businese
+        try await contact.save(on: db)
+        return contact
     }
 
     func updateBussineseAddress(id: UUID, addressID: UUID , with content: ContactRepository.UpdateBussineseAddress, on db: Database) async throws -> Contact {
@@ -176,11 +183,11 @@ class ContactRepository: ContactRepositoryProtocol {
         return Contact
     }
 
-    // func delete(id: UUID, on db: Database) async throws -> Contact {
-    //     guard let businese = try await Contact.find(id, on: db) else { throw DefaultError.notFound }
-    //     try await businese.delete(on: db)
-    //     return businese
-    // }
+    func delete(id: UUID, on db: Database) async throws -> Contact {
+        guard let contact = try await Contact.find(id, on: db) else { throw DefaultError.notFound }
+        try await contact.delete(on: db)
+        return contact
+    }
 }
 
 
@@ -194,6 +201,8 @@ extension ContactRepository {
         let legalStatus: BusinessType
         let website: String?        
         let note: String?
+        let groupId: UUID?
+        let paymentTermsDays: Int?
         
         static func validations(_ validations: inout Validations) {
             validations.add("name", as: String.self,
@@ -204,12 +213,14 @@ extension ContactRepository {
 
         enum CodingKeys: String, CodingKey {
             case name
+            case groupId = "group_id"
             case vatRegistered = "vat_registered"
             case contactInformation = "contact_information"
             case taxNumber = "tax_number"
             case legalStatus = "legal_status"
             case website 
             case note
+            case paymentTermsDays = "payment_terms_days"
         }
     }
 
@@ -219,11 +230,10 @@ extension ContactRepository {
         let contactInformation: ContactInformation?
         let taxNumber: String?
         let legalStatus: BusinessType?
-        let website: String?        
-        let logo: String?
-        let stampLogo: String?
-        let authorizedSignSignature: String?
+        let website: String?               
         let note: String?
+        let paymentTermsDays: Int?
+        let groupId: UUID?
         
         static func validations(_ validations: inout Validations) {
 //            if let name {
@@ -326,6 +336,201 @@ extension ContactRepository {
     }
 }
 
+/*
+enum ContactKind: String, Codable {
+    case customer = "CUSTOMER"
+    case supplier = "SUPPLIER"
+    case both = "BOTH"
+}
+
+final class Contact: Model, Content {
+    static let schema = "Contacts"
+    
+    @ID(key: .id)
+    var id: UUID?
+    
+    @Field(key: "code")
+    var code: String
+    
+    @Field(key: "kind")
+    var kind: ContactKind
+    
+    @Field(key: "group_id")
+    var groupId: UUID?
+    
+    @Field(key: "name")
+    var name: String
+    
+    @Field(key: "vat_registered")
+    var vatRegistered: Bool
+    
+    @Field(key: "contact_information")
+    var contactInformation: ContactInformation
+    
+    @Field(key: "tax_number")
+    var taxNumber: String
+    
+    @Enum(key: "legal_status")
+    var legalStatus: BusinessType
+    
+    @Field(key: "website")
+    var website: String?
+    
+    @Field(key: "business_address")
+    var businessAddress: [BusinessAddress]
+    
+    @Field(key: "shipping_address")
+    var shippingAddress: [ShippingAddress]
+    
+    @Field(key: "payment_terms_days")
+    var paymentTermsDays: Int
+    
+    @Field(key: "note")
+    var note: String?
+    
+    @Timestamp(key: "created_at",
+               on: .create,
+               format: .iso8601)
+    var createdAt: Date?
+    
+    @Timestamp(key: "updated_at",
+               on: .update,
+               format: .iso8601)
+    var updatedAt: Date?
+    
+    @Timestamp(key: "deleted_at",
+               on: .delete,
+               format: .iso8601)
+    var deletedAt: Date?
+    
+    init() { }
+    
+    init(id: UUID? = nil,
+         number: Int = 1,
+         name: String = "",
+         groupId: UUID? = nil,
+         kind: ContactKind = .both,
+         vatRegistered: Bool = false,
+         contactInformation: ContactInformation = .init(),
+         taxNumber: String = "",
+         legalStatus: BusinessType = .individual,
+         website: String? = nil,
+         businessAddress: [BusinessAddress] = [.init()],
+         shippingAddress: [ShippingAddress] = [.init()],
+         paymentTermsDays: Int = 30,
+         note: String? = nil) {
+        
+        self.id = id ?? UUID()
+        self.code = ContactCode(number: number).code
+        self.groupId = groupId
+        self.name = name
+        self.vatRegistered = vatRegistered
+        self.contactInformation = contactInformation
+        self.taxNumber = taxNumber
+        self.legalStatus = legalStatus
+        self.website = website
+        self.businessAddress = businessAddress
+        self.shippingAddress = shippingAddress
+        self.paymentTermsDays = paymentTermsDays
+        self.note = note
+    }
+    
+}
+
+extension Contact {
+    struct Stub {
+        static var customer: Contact {
+            Contact(name: "ABC Company",
+                    kind: .customer,
+                    vatRegistered: true,
+                    contactInformation: ContactInformation(contactPerson: "John Doe",
+                                                           phoneNumber: "123-456-7890",
+                                                           email: ""),
+                    taxNumber: "123123212123",
+                    legalStatus: .individual,
+                    website: "www.abcindustries.com",
+                    businessAddress: [BusinessAddress(address: "123",
+                                                      city: "Bangkok",
+                                                      postalCode: "12022",
+                                                      country: "Thailand",
+                                                      phone: "123-456-7890",
+                                                      email: "",
+                                                      fax: "")],
+                    shippingAddress: [ShippingAddress(address: "123",
+                                                      subDistrict: "123",
+                                                      city: "Bangkok",
+                                                      province: "ddd",
+                                                      country: "Thailand",
+                                                      postalCode: "12022",
+                                                      phone: "123-456-7890")],
+                    paymentTermsDays: 30,
+                    note: "Reliable Contact with consistent quality and delivery times.")
+        }
+        
+        static var supplier: Contact {
+            Contact(name: "ABC Industries",
+                    kind: .supplier,
+                    vatRegistered: true,
+                    contactInformation: ContactInformation(contactPerson: "John Doe",
+                                                           phoneNumber: "123-456-7890",
+                                                           email: ""),
+                    taxNumber: "123123212123",
+                    legalStatus: .companyLimited,
+                    website: "www.abcindustries.com",
+                    businessAddress: [BusinessAddress(branch: "HQ",
+                                                      branchCode: "00001",
+                                                      address: "123",
+                                                      city: "Bangkok",
+                                                      postalCode: "12022",
+                                                      country: "Thailand",
+                                                      phone: "123-456-7890",
+                                                      email: "",
+                                                      fax: "")],
+                    shippingAddress: [ShippingAddress(address: "123",
+                                                      subDistrict: "123",
+                                                      city: "Bangkok",
+                                                      province: "ddd",
+                                                      country: "Thailand",
+                                                      postalCode: "12022",
+                                                      phone: "123-456-7890")],
+                    paymentTermsDays: 30,
+                    note: "Reliable Contact with consistent quality and delivery times.")
+        }
+        
+        static var both: Contact {
+            Contact(name: "ABC Industries",
+                    kind: .both,
+                    vatRegistered: true,
+                    contactInformation: ContactInformation(contactPerson: "John Doe",
+                                                           phoneNumber: "123-456-7890",
+                                                           email: ""),
+                    taxNumber: "123123212123",
+                    legalStatus: .companyLimited,
+                    website: "www.abcindustries.com",
+                    businessAddress: [BusinessAddress(branch: "HQ",
+                                                      branchCode: "00001",
+                                                      address: "123",
+                                                      city: "Bangkok",
+                                                      postalCode: "12022",
+                                                      country: "Thailand",
+                                                      phone: "123-456-7890",
+                                                      email: "",
+                                                      fax: "")],
+                    shippingAddress: [ShippingAddress(address: "123",
+                                                      subDistrict: "123",
+                                                      city: "Bangkok",
+                                                      province: "ddd",
+                                                      country: "Thailand",
+                                                      postalCode: "12022",
+                                                      phone: "123-456-7890")],
+                    paymentTermsDays: 30,
+                    note: "Reliable Contact with consistent quality and delivery times.")
+        }
+        
+    }
+}
+
+*/
 /*
 
 struct BusinessAddress: Content {

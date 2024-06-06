@@ -93,8 +93,9 @@ final class Contact: Model, Content {
          note: String? = nil) {
         
         self.id = id ?? UUID()
-        self.code = ContactCode(number: number).code
+        self.code = ContactCode(number: number).code        
         self.groupId = groupId
+        self.kind = kind
         self.name = name
         self.vatRegistered = vatRegistered
         self.contactInformation = contactInformation

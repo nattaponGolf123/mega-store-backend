@@ -14,11 +14,11 @@ class ContactController: RouteCollection {
     }
     
     func boot(routes: RoutesBuilder) throws {
-        let busineses = routes.grouped("contacts")
-        busineses.get(use: all)
-        // busineses.post(use: create)
+        let contacts = routes.grouped("contacts")
+        contacts.get(use: all)
+        // contacts.post(use: create)
         
-        busineses.group(":id") { withID in
+        contacts.group(":id") { withID in
             withID.get(use: getByID)
             withID.put(use: update)
             
@@ -42,10 +42,10 @@ class ContactController: RouteCollection {
     }
 
     // POST /contacts  
-//    func create(req: Request) async throws -> Contact {
-//        let content = try validator.validateCreate(req)
-//        return try await repository.create(with: content, on: req.db)
-//    }
+   func create(req: Request) async throws -> Contact {
+       let content = try validator.validateCreate(req)
+       return try await repository.create(with: content, on: req.db)
+   }
 
      // GET /contacts:id
     func getByID(req: Request) async throws -> Contact {
@@ -77,10 +77,10 @@ class ContactController: RouteCollection {
                                                           on: req.db)
     }
     
-//    func delete(req: Request) async throws -> Contact {
-//        let uuid = try validator.validateID(req)
-//        return try await repository.delete(id: uuid, on: req.db)
-//    }
+   func delete(req: Request) async throws -> Contact {
+       let uuid = try validator.validateID(req)
+       return try await repository.delete(id: uuid, on: req.db)
+   }
 }
 
 /*
