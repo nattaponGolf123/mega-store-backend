@@ -91,11 +91,11 @@ private func configMigrations(_ app: Application) async throws {
     //app.migrations.add(ServiceMigration())
     app.migrations.add(ServiceCategoryMigration())
 
-    app.migrations.add(SupplierMigration())
-    app.migrations.add(SupplierGroupMigration())
+//    app.migrations.add(SupplierMigration())
+//    app.migrations.add(SupplierGroupMigration())
 
-    app.migrations.add(CustomerMigration())
-    app.migrations.add(CustomerGroupMigration())
+//    app.migrations.add(CustomerMigration())
+//    app.migrations.add(CustomerGroupMigration())
 
     app.migrations.add(MyBusineseMigration())    
     
