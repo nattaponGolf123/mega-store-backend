@@ -19,7 +19,7 @@ final class Service: Model, Content {
     var name: String
     
     @Field(key: "description")
-    var description: String
+    var description: String?
     
     @Field(key: "price")
     var price: Double
@@ -58,9 +58,9 @@ final class Service: Model, Content {
 
     init(id: UUID? = nil,
          name: String,
-         description: String,
-         price: Double,
-         unit: String,
+         description: String?,
+         price: Double = 0,
+         unit: String = "",
          categoryId: UUID? = nil,
          images: [String] = [],
          coverImage: String? = nil,

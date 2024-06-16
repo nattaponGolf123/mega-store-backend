@@ -36,7 +36,8 @@ class ServiceCategoryRepository: ServiceCategoryRepositoryProtocol {
         }
         
         let total = try await query.count()
-        let items = try await query.range((page - 1) * perPage..<(page * perPage)).all()
+        //query sorted by name
+        let items = try await query.sort(\.$name).range((page - 1) * perPage..<(page * perPage)).all()        
         
         let response = PaginatedResponse(page: page,
                           perPage: perPage,
@@ -185,17 +186,24 @@ extension ServiceCategoryRepository {
 
 extension ServiceCategoryRepository { 
 
+    enum SortByOption: String, Codable {
+        case name
+    }
+    
     struct Fetch: Content {
         let showDeleted: Bool
         let page: Int
         let perPage: Int
+        let sortBy: SortByOption
 
         init(showDeleted: Bool = false,
              page: Int = 1,
-             perPage: Int = 20) {
+             perPage: Int = 20,
+             sortBy: SortByOption = .name) {
             self.showDeleted = showDeleted
             self.page = page
             self.perPage = perPage
+            self.sortBy = sortBy
         }
         
         init(from decoder: Decoder) throws {
@@ -203,6 +211,7 @@ extension ServiceCategoryRepository {
             self.showDeleted = (try? container.decode(Bool.self, forKey: .showDeleted)) ?? false
             self.page = (try? container.decode(Int.self, forKey: .page)) ?? 1
             self.perPage = (try? container.decode(Int.self, forKey: .perPage)) ?? 20
+            self.sortBy = (try? container.decode(SortByOption.self, forKey: .sortBy)) ?? .name
         }
         
         func encode(to encoder: Encoder) throws {
@@ -210,12 +219,14 @@ extension ServiceCategoryRepository {
             try container.encode(showDeleted, forKey: .showDeleted)
             try container.encode(page, forKey: .page)
             try container.encode(perPage, forKey: .perPage)
+            try container.encode(sortBy, forKey: .sortBy)
         }
 
         enum CodingKeys: String, CodingKey {
             case showDeleted = "show_deleted"
             case page = "page"
             case perPage = "per_page"
+            case sortBy = "sort_by"
         }
     }   
 

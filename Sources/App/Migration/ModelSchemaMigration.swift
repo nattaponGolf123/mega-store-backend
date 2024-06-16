@@ -18,21 +18,21 @@ struct ModelSchemaMigration: AsyncMigration {
         
         do {
             // MyBusinese
-            try await MyBusineseSchema.createBuilder(database: database).create()
-            try await MyBusinese.Stub.myCompany.save(on: database)
-            
-            // Contact
-            try await ContactSchema.createBuilder(database: database).create()
-            try await Contact.Stub.customer.save(on: database)
-            
-            // Contact group
-            try await ContactGroupSchema.createBuilder(database: database).create()
-            try await ContactGroup.Stub.localCustomer.save(on: database)
-            try await ContactGroup.Stub.internationalCustomer.save(on: database)
-            
-            // Contact
-            try await ContactSchema.createBuilder(database: database).create()
-            try await Contact.Stub.customer.save(on: database)
+//            try await MyBusineseSchema.createBuilder(database: database).create()
+//            try await MyBusinese.Stub.myCompany.save(on: database)
+//            
+//            // Contact
+//            try await ContactSchema.createBuilder(database: database).create()
+//            try await Contact.Stub.customer.save(on: database)
+//            
+//            // Contact group
+//            try await ContactGroupSchema.createBuilder(database: database).create()
+//            try await ContactGroup.Stub.localCustomer.save(on: database)
+//            try await ContactGroup.Stub.internationalCustomer.save(on: database)
+//            
+//            // Contact
+//            try await ContactSchema.createBuilder(database: database).create()
+//            try await Contact.Stub.customer.save(on: database)
             
             // Service Category
             try await ServiceCategorySchema.createBuilder(database: database).create()
@@ -51,16 +51,16 @@ struct ModelSchemaMigration: AsyncMigration {
     func revert(on database: Database) async throws {        
         
         // MyBusinese
-        try await database.schema(MyBusineseSchema.schema).delete()
-        
-        // Contact
-        try await database.schema(ContactSchema.schema).delete()
-        
-        // Contact group
-        try await database.schema(ContactGroupSchema.schema).delete()
-        
-        // Contact
-        try await database.schema(ContactSchema.schema).delete()
+//        try await database.schema(MyBusineseSchema.schema).delete()
+//        
+//        // Contact
+//        try await database.schema(ContactSchema.schema).delete()
+//        
+//        // Contact group
+//        try await database.schema(ContactGroupSchema.schema).delete()
+//        
+//        // Contact
+//        try await database.schema(ContactSchema.schema).delete()
         
         // Service Category
         try await database.schema(ServiceCategorySchema.schema).delete()
