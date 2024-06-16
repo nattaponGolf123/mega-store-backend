@@ -9,18 +9,18 @@ import Foundation
 import Fluent
 import Vapor
 
-struct ProductCategoryMigration: AsyncMigration {
-    func prepare(on database: Database) async throws {
-        try await ProductCategorySchema.createBuilder(database: database).create()
+// struct ProductCategoryMigration: AsyncMigration {
+//     func prepare(on database: Database) async throws {
+//         try await ProductCategorySchema.createBuilder(database: database).create()
         
-        // new mocks
-        try await ProductCategory.Stub.steel.save(on: database)    
-    }
+//         // new mocks
+//         try await ProductCategory.Stub.steel.save(on: database)    
+//     }
 
-    func revert(on database: Database) async throws {
-        try await database.schema(ProductCategorySchema.schema).delete()
-    }
-}
+//     func revert(on database: Database) async throws {
+//         try await database.schema(ProductCategorySchema.schema).delete()
+//     }
+// }
 
 /*
  struct CreateUserMigration: AsyncMigration {

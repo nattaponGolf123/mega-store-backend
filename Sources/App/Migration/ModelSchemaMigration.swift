@@ -9,7 +9,7 @@ import Foundation
 import Fluent
 import Vapor
 
-struct CustomerGroupMigration: AsyncMigration {
+struct ModelSchemaMigration: AsyncMigration {
     func prepare(on database: Database) async throws {
         
         // CustomerGroup
@@ -37,6 +37,10 @@ struct CustomerGroupMigration: AsyncMigration {
             // Service Category
             try await ServiceCategorySchema.createBuilder(database: database).create()
             try await ServiceCategory.Stub.transport.save(on: database)
+
+            // Service
+            try await ServiceSchema.createBuilder(database: database).create()
+            try await Service.Stub.yoga.save(on: database)            
             
         } catch {
             print(error)
@@ -44,9 +48,7 @@ struct CustomerGroupMigration: AsyncMigration {
         
         
     }
-    func revert(on database: Database) async throws {
-        // CustomerGroup
-        // try await database.schema(CustomerGroupSchema.schema).delete()
+    func revert(on database: Database) async throws {        
         
         // MyBusinese
         try await database.schema(MyBusineseSchema.schema).delete()
@@ -62,5 +64,8 @@ struct CustomerGroupMigration: AsyncMigration {
         
         // Service Category
         try await database.schema(ServiceCategorySchema.schema).delete()
+
+        // Service
+        try await database.schema(ServiceSchema.schema).delete()
     }
 }

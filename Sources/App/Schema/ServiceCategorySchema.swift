@@ -9,7 +9,7 @@ import Foundation
 import Vapor
 import Fluent
 
-class ServiceCategorySchema {
+class ServiceCategorySchema {    
     static var schema: String { ServiceCategory.schema }
     
     static func createBuilder(database: Database) -> SchemaBuilder {
@@ -20,6 +20,6 @@ class ServiceCategorySchema {
             .field("description", .string)
             .field("created_at", .datetime)
             .field("updated_at", .datetime)
-            .field("deleted_at", .datetime)            
+            .field("deleted_at", .datetime)
     }
 }
