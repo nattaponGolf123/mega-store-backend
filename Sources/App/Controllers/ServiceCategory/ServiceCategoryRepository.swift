@@ -170,7 +170,10 @@ class ServiceCategoryRepository: ServiceCategoryRepositoryProtocol {
         }
     }
     
-    private func sortQuery(query: QueryBuilder<ServiceCategory>, 
+}
+
+private extension ServiceCategoryRepository {
+    func sortQuery(query: QueryBuilder<ServiceCategory>,
                            sortBy: ServiceCategoryRepository.SortBy,
                            sortOrderBy: ServiceCategoryRepository.SortByOrder,
                            page: Int,
@@ -192,7 +195,6 @@ class ServiceCategoryRepository: ServiceCategoryRepositoryProtocol {
              }
          }
      }
- 
 }
 
 extension ServiceCategoryRepository {

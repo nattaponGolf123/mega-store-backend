@@ -22,6 +22,8 @@ class ServiceRepository: ServiceRepositoryProtocol {
         do {
             let page = req.page
             let perPage = req.perPage
+            let sortBy = req.sortBy
+            let sortOrderBy = req.sortByOrder
             
             guard page > 0, perPage > 0 else { throw DefaultError.invalidInput }
             
@@ -34,7 +36,11 @@ class ServiceRepository: ServiceRepositoryProtocol {
             }
             
             let total = try await query.count()
-            let items = try await query.sort(\.$name).range((page - 1) * perPage..<(page * perPage)).all()
+            let items = try await sortQuery(query: query,
+                                            sortBy: sortBy,
+                                            sortOrderBy: sortOrderBy,
+                                            page: page,
+                                            perPage: perPage)
             
             let responseItems = items.map { ServiceResponse(from: $0) }
             let response = PaginatedResponse(page: page, perPage: perPage, total: total, items: responseItems)
@@ -127,6 +133,8 @@ class ServiceRepository: ServiceRepositoryProtocol {
             let perPage = req.perPage
             let page = req.page
             let keyword = req.q
+            let sort = req.sortBy
+            let order = req.sortByOrder
             
             guard
                 keyword.count > 0,
@@ -142,10 +150,13 @@ class ServiceRepository: ServiceRepositoryProtocol {
                     or.filter(\.$number == number)
                 }
              }
-        
-            
+                    
             let total = try await query.count()
-            let items = try await query.range((page - 1) * perPage..<(page * perPage)).all()
+            let items = try await sortQuery(query: query,
+                                            sortBy: sort,
+                                            sortOrderBy: order,
+                                            page: page,
+                                            perPage: perPage)
             let responseItems = items.map { ServiceResponse(from: $0) }
             let response = PaginatedResponse(page: page,
                                              perPage: perPage,
@@ -167,6 +178,53 @@ class ServiceRepository: ServiceRepositoryProtocol {
         let model = try await query.first()
         
         return model?.number ?? 0
+    }
+}
+
+
+private extension ServiceRepository {
+    func sortQuery(query: QueryBuilder<Service>,
+                   sortBy: ServiceRepository.SortBy,
+                   sortOrderBy: ServiceRepository.SortByOrder,
+                   page: Int,
+                   perPage: Int) async throws -> [Service] {
+        switch sortBy {
+        case .name:
+            switch sortOrderBy {
+            case .asc:
+                return try await query.sort(\.$name).range((page - 1) * perPage..<(page * perPage)).all()
+            case .desc:
+                return try await query.sort(\.$name, .descending).range((page - 1) * perPage..<(page * perPage)).all()
+            }
+        case .createdAt:
+            switch sortOrderBy {
+            case .asc:
+                return try await query.sort(\.$createdAt).range((page - 1) * perPage..<(page * perPage)).all()
+            case .desc:
+                return try await query.sort(\.$createdAt, .descending).range((page - 1) * perPage..<(page * perPage)).all()
+            }
+        case .number:
+            switch sortOrderBy {
+            case .asc:
+                return try await query.sort(\.$number).range((page - 1) * perPage..<(page * perPage)).all()
+            case .desc:
+                return try await query.sort(\.$number, .descending).range((page - 1) * perPage..<(page * perPage)).all()
+            }
+        case .price:
+            switch sortOrderBy {
+            case .asc:
+                return try await query.sort(\.$price).range((page - 1) * perPage..<(page * perPage)).all()
+            case .desc:
+                return try await query.sort(\.$price, .descending).range((page - 1) * perPage..<(page * perPage)).all()
+            }
+        case .categoryId:
+            switch sortOrderBy {
+            case .asc:
+                return try await query.sort(\.$categoryId).range((page - 1) * perPage..<(page * perPage)).all()
+            case .desc:
+                return try await query.sort(\.$categoryId, .descending).range((page - 1) * perPage..<(page * perPage)).all()
+            }
+        }
     }
 }
 

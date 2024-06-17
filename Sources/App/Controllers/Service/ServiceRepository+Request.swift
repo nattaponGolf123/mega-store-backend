@@ -16,6 +16,7 @@ extension ServiceRepository {
         case name
         case number
         case price
+        case categoryId = "category_id"
         case createdAt = "created_at"
     }
 
@@ -29,18 +30,18 @@ extension ServiceRepository {
         let page: Int
         let perPage: Int
         let sortBy: SortBy
-        let sortOrder: SortByOrder
+        let sortByOrder: SortByOrder
         
         init(showDeleted: Bool = false,
              page: Int = 1,
              perPage: Int = 20,
              sortBy: SortBy = .number,
-             sortOrder: SortByOrder = .asc) {
+             sortByOrder: SortByOrder = .asc) {
             self.showDeleted = showDeleted
             self.page = page
             self.perPage = perPage
             self.sortBy = sortBy
-            self.sortOrder = sortOrder
+            self.sortByOrder = sortByOrder
         }
         
         init(from decoder: Decoder) throws {
@@ -49,7 +50,7 @@ extension ServiceRepository {
             self.page = (try? container.decode(Int.self, forKey: .page)) ?? 1
             self.perPage = (try? container.decode(Int.self, forKey: .perPage)) ?? 20
             self.sortBy = (try? container.decode(SortBy.self, forKey: .sortBy)) ?? .number
-            self.sortOrder = (try? container.decode(SortByOrder.self, forKey: .sortOrder)) ?? .asc
+            self.sortByOrder = (try? container.decode(SortByOrder.self, forKey: .sortByOrder)) ?? .asc
         }
         
         func encode(to encoder: Encoder) throws {
@@ -58,7 +59,7 @@ extension ServiceRepository {
             try container.encode(page, forKey: .page)
             try container.encode(perPage, forKey: .perPage)
             try container.encode(sortBy, forKey: .sortBy)
-            try container.encode(sortOrder, forKey: .sortOrder)
+            try container.encode(sortByOrder, forKey: .sortByOrder)
         }
         
         enum CodingKeys: String, CodingKey {
@@ -66,7 +67,7 @@ extension ServiceRepository {
             case page = "page"
             case perPage = "per_page"
             case sortBy = "sort_by"
-            case sortOrder = "sort_order"
+            case sortByOrder = "sort_by_order"
         }
     }
     
@@ -75,18 +76,18 @@ extension ServiceRepository {
         let page: Int
         let perPage: Int
         let sortBy: SortBy
-        let sortOrder: SortByOrder
+        let sortByOrder: SortByOrder
         
         init(q: String,
              page: Int = 1,
              perPage: Int = 20,
              sortBy: SortBy = .number,
-             sortOrder: SortByOrder = .asc) {
+             sortByOrder: SortByOrder = .asc) {
             self.q = q
             self.page = page
             self.perPage = perPage
             self.sortBy = sortBy
-            self.sortOrder = sortOrder
+            self.sortByOrder = sortByOrder
         }
         
         init(from decoder: Decoder) throws {
@@ -95,7 +96,7 @@ extension ServiceRepository {
             self.page = (try? container.decode(Int.self, forKey: .page)) ?? 1
             self.perPage = (try? container.decode(Int.self, forKey: .perPage)) ?? 20
             self.sortBy = (try? container.decode(SortBy.self, forKey: .sortBy)) ?? .number
-            self.sortOrder = (try? container.decode(SortByOrder.self, forKey: .sortOrder)) ?? .asc
+            self.sortByOrder = (try? container.decode(SortByOrder.self, forKey: .sortByOrder)) ?? .asc
         }
         
         func encode(to encoder: Encoder) throws {
@@ -104,7 +105,7 @@ extension ServiceRepository {
             try container.encode(page, forKey: .page)
             try container.encode(perPage, forKey: .perPage)
             try container.encode(sortBy, forKey: .sortBy)
-            try container.encode(sortOrder, forKey: .sortOrder)
+            try container.encode(sortByOrder, forKey: .sortByOrder)
         }
         
         enum CodingKeys: String, CodingKey {
@@ -112,7 +113,7 @@ extension ServiceRepository {
             case page
             case perPage = "per_page"
             case sortBy = "sort_by"
-            case sortOrder = "sort_order"
+            case sortByOrder = "sort_by_order"
         }
     }
     
@@ -176,7 +177,7 @@ extension ServiceRepository {
         }
         
         static func validations(_ validations: inout Validations) {
-            validations.add("name", as: String.self, is: .count(3...200))
+            validations.add("name", as: String.self, is: .count(1...200))
             validations.add("price", as: Double.self, is: .range(0...))
         }
     }
@@ -233,7 +234,7 @@ extension ServiceRepository {
         }
         
         static func validations(_ validations: inout Validations) {
-            validations.add("name", as: String.self, is: .count(3...200))
+            validations.add("name", as: String.self, is: .count(1...200))
             validations.add("price", as: Double.self, is: .range(0...))
         }
     }
