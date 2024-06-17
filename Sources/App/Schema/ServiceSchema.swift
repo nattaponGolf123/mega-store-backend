@@ -17,6 +17,8 @@ final class ServiceSchema {
             .id()
             .field("name", .string, .required)
             .unique(on: "name")
+            .field("number", .int, .required)
+            .unique(on: "number")
             .field("description", .string)
             .field("price", .double)
             .field("unit", .string)

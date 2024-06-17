@@ -9,19 +9,19 @@ import Foundation
 import Fluent
 import Vapor
 
-struct MyBusineseMigration: AsyncMigration {
+// struct MyBusineseMigration: AsyncMigration {
 
-    func prepare(on database: Database) async throws {
-        try await MyBusineseSchema.createBuilder(database: database).create()
+//     func prepare(on database: Database) async throws {
+//         try await MyBusineseSchema.createBuilder(database: database).create()
         
-        // new mocks
-        try await MyBusinese.Stub.myCompany.save(on: database)
-    }
+//         // new mocks
+//         try await MyBusinese.Stub.myCompany.save(on: database)
+//     }
 
-    func revert(on database: Database) async throws {
-        try await database.schema(MyBusineseSchema.schema).delete()
-    }
-}
+//     func revert(on database: Database) async throws {
+//         try await database.schema(MyBusineseSchema.schema).delete()
+//     }
+// }
 
 /*
  struct CustomerGroupMigration: AsyncMigration {
