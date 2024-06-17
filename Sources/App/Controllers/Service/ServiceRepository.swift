@@ -126,21 +126,35 @@ class ServiceRepository: ServiceRepositoryProtocol {
         do {
             let perPage = req.perPage
             let page = req.page
-            let name = req.name
+            let keyword = req.q
             
-            guard name.count > 0, perPage > 0, page > 0 else { throw DefaultError.invalidInput }
-            
-            let regexPattern = "(?i)\(name)"
-            let query = Service.query(on: db).filter(\.$name =~ regexPattern)
+            guard
+                keyword.count > 0,
+                perPage > 0,
+                page > 0
+            else { throw DefaultError.invalidInput }
+
+            let regexPattern = "(?i)\(keyword)"  // (?i) makes the regex case-insensitive
+            let query = Service.query(on: db).group(.or) { or in
+                or.filter(\.$name =~ regexPattern)
+                or.filter(\.$description =~ regexPattern)
+                if let number = Int(keyword) {
+                    or.filter(\.$number == number)
+                }
+             }
+        
             
             let total = try await query.count()
             let items = try await query.range((page - 1) * perPage..<(page * perPage)).all()
-            
             let responseItems = items.map { ServiceResponse(from: $0) }
-            let response = PaginatedResponse(page: page, perPage: perPage, total: total, items: responseItems)
+            let response = PaginatedResponse(page: page,
+                                             perPage: perPage,
+                                             total: total,
+                                             items: responseItems)
             
             return response
         } catch {
+            // Handle all other errors
             throw DefaultError.error(message: error.localizedDescription)
         }
     }
