@@ -15,47 +15,52 @@ protocol ServiceCategoryRepositoryProtocol {
 }
 
 class ServiceCategoryRepository: ServiceCategoryRepositoryProtocol {
-     
+    
     func fetchAll(req: ServiceCategoryRepository.Fetch,
                   on db: Database) async throws -> PaginatedResponse<ServiceCategory> {
-    do {
-        let page = req.page
-        let perPage = req.perPage
-
-        guard 
-            page > 0,
-            perPage > 0
-        else { throw DefaultError.invalidInput }
-        
-        let query = ServiceCategory.query(on: db)
-        
-        if req.showDeleted {
-            query.withDeleted()
-        } else {
-            query.filter(\.$deletedAt == nil)
-        }
-        
-        let total = try await query.count()
-        //query sorted by name
-        let items = try await query.sort(\.$name).range((page - 1) * perPage..<(page * perPage)).all()        
-        
-        let response = PaginatedResponse(page: page,
-                          perPage: perPage,
-                          total: total,
-                        items: items)
-        
+        do {
+            let page = req.page
+            let perPage = req.perPage
+            let sortBy = req.sortBy
+            let sortOrderBy = req.sortByOrder
+            
+            guard
+                page > 0,
+                perPage > 0
+            else { throw DefaultError.invalidInput }
+            
+            let query = ServiceCategory.query(on: db)
+            
+            if req.showDeleted {
+                query.withDeleted()
+            } else {
+                query.filter(\.$deletedAt == nil)
+            }
+            
+            let total = try await query.count()
+            let items = try await sortQuery(query: query,
+                                            sortBy: sortBy,
+                                            sortOrderBy: sortOrderBy,
+                                            page: page,
+                                            perPage: perPage)
+            
+            let response = PaginatedResponse(page: page,
+                                             perPage: perPage,
+                                             total: total,
+                                             items: items)
+            
             return response
         } catch {
             // Handle all other errors
             throw DefaultError.error(message: error.localizedDescription)
         }
     }
-
+    
     func create(content: ServiceCategoryRepository.Create, on db: Database) async throws -> ServiceCategory {
         do {
             // Initialize the ServiceCategory from the validated content
             let newGroup = ServiceCategory(name: content.name, description: content.description)
-    
+            
             // Attempt to save the new group to the database
             try await newGroup.save(on: db)
             
@@ -68,7 +73,7 @@ class ServiceCategoryRepository: ServiceCategoryRepositoryProtocol {
             throw DefaultError.error(message: error.localizedDescription)
         }
     }
-
+    
     func find(id: UUID, on db: Database) async throws -> ServiceCategory {
         do {
             guard let group = try await ServiceCategory.query(on: db).filter(\.$id == id).first() else { throw DefaultError.notFound }
@@ -92,7 +97,7 @@ class ServiceCategoryRepository: ServiceCategoryRepositoryProtocol {
             throw DefaultError.error(message: error.localizedDescription)
         }
     }
-
+    
     func update(id: UUID, with content: ServiceCategoryRepository.Update, on db: Database) async throws -> ServiceCategory {
         do {
             
@@ -113,7 +118,7 @@ class ServiceCategoryRepository: ServiceCategoryRepositoryProtocol {
             throw DefaultError.error(message: error.localizedDescription)
         }
     }
-
+    
     func delete(id: UUID, on db: Database) async throws -> ServiceCategory {
         do {
             guard let group = try await ServiceCategory.query(on: db).filter(\.$id == id).first() else { throw DefaultError.notFound }
@@ -128,38 +133,66 @@ class ServiceCategoryRepository: ServiceCategoryRepositoryProtocol {
             throw DefaultError.error(message: error.localizedDescription)
         }
     }
-
+    
     func search(req: ServiceCategoryRepository.Search, on db: Database) async throws -> PaginatedResponse<ServiceCategory> {
-    do {
-        let perPage = req.perPage
-        let page = req.page
-        let name = req.name
-
-        guard 
-            name.count > 0,
-            perPage > 0,
-            page > 0
-        else { throw DefaultError.invalidInput }               
-
-        let regexPattern = "(?i)\(name)"  // (?i) makes the regex case-insensitive
-        let query = ServiceCategory.query(on: db).filter(\.$name =~ regexPattern)
-        
-        
-        let total = try await query.count()
-        let items = try await query.range((page - 1) * perPage..<(page * perPage)).all()
-        
-        
-        let response = PaginatedResponse(page: page,
-                          perPage: perPage,
-                          total: total,
-                        items: items)
-        
-        return response        
-    } catch {
-        // Handle all other errors
-        throw DefaultError.error(message: error.localizedDescription)
+        do {
+            let perPage = req.perPage
+            let page = req.page
+            let name = req.name
+            let sortBy = req.sortBy
+            let sortOrderBy = req.sortByOrder
+            
+            guard
+                name.count > 0,
+                perPage > 0,
+                page > 0
+            else { throw DefaultError.invalidInput }
+            
+            let regexPattern = "(?i)\(name)"  // (?i) makes the regex case-insensitive
+            let query = ServiceCategory.query(on: db).filter(\.$name =~ regexPattern)
+                        
+            let total = try await query.count()
+            let items = try await sortQuery(query: query, 
+                                            sortBy: sortBy,
+                                            sortOrderBy: sortOrderBy,
+                                            page: page,
+                                            perPage: perPage)
+            
+            let response = PaginatedResponse(page: page,
+                                             perPage: perPage,
+                                             total: total,
+                                             items: items)
+            
+            return response
+        } catch {
+            // Handle all other errors
+            throw DefaultError.error(message: error.localizedDescription)
+        }
     }
-}
+    
+    private func sortQuery(query: QueryBuilder<ServiceCategory>, 
+                           sortBy: ServiceCategoryRepository.SortBy,
+                           sortOrderBy: ServiceCategoryRepository.SortByOrder,
+                           page: Int,
+                           perPage: Int) async throws -> [ServiceCategory] {
+         switch sortBy {
+         case .name:
+             switch sortOrderBy {
+             case .asc:
+                 return try await query.sort(\.$name).range((page - 1) * perPage..<(page * perPage)).all()
+             case .desc:
+                 return try await query.sort(\.$name, .descending).range((page - 1) * perPage..<(page * perPage)).all()
+             }
+         case .createdAt:
+             switch sortOrderBy {
+             case .asc:
+                 return try await query.sort(\.$createdAt).range((page - 1) * perPage..<(page * perPage)).all()
+             case .desc:
+                 return try await query.sort(\.$createdAt, .descending).range((page - 1) * perPage..<(page * perPage)).all()
+             }
+         }
+     }
+ 
 }
 
 extension ServiceCategoryRepository {
