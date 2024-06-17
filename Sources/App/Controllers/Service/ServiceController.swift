@@ -31,14 +31,14 @@ class ServiceController: RouteCollection {
     }
     
     // GET /services?show_deleted=true&page=1&per_page=10
-    func all(req: Request) async throws -> PaginatedResponse<Service> {        
+    func all(req: Request) async throws -> PaginatedResponse<ServiceResponse> {
         let reqContent = try req.query.decode(ServiceRepository.Fetch.self)
 
         return try await repository.fetchAll(req: reqContent, on: req.db)
     }
     
     // POST /services
-    func create(req: Request) async throws -> Service {
+    func create(req: Request) async throws -> ServiceResponse {
         let content = try validator.validateCreate(req)
         
         return try await repository.create(content: content, on: req.db)
@@ -52,7 +52,7 @@ class ServiceController: RouteCollection {
     }
     
     // PUT /services/:id
-    func update(req: Request) async throws -> Service {
+    func update(req: Request) async throws -> ServiceResponse {
         let (uuid, content) = try validator.validateUpdate(req)
         
         do {
@@ -81,14 +81,14 @@ class ServiceController: RouteCollection {
     }
 
     // DELETE /services/:id
-    func delete(req: Request) async throws -> Service {
+    func delete(req: Request) async throws -> ServiceResponse {
         let uuid = try validator.validateID(req)
         
         return try await repository.delete(id: uuid, on: req.db)
     }
     
     // GET /services/search?name=xxx&page=1&per_page=10
-    func search(req: Request) async throws -> PaginatedResponse<Service> {
+    func search(req: Request) async throws -> PaginatedResponse<ServiceResponse> {
         let _ = try validator.validateSearchQuery(req)
         let reqContent = try req.query.decode(ServiceRepository.Search.self)
         
