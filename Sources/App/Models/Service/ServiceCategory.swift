@@ -40,7 +40,7 @@ final class ServiceCategory: Model, Content {
 
     init(id: UUID? = nil,
          name: String,
-         description: String?,
+         description: String? = nil,
          createdAt: Date? = nil,
          updatedAt: Date? = nil,
          deletedAt: Date? = nil) {
@@ -56,13 +56,13 @@ final class ServiceCategory: Model, Content {
 extension ServiceCategory {
     struct Stub {
         
-//        static var group: [ServiceCategory] {
-//            [
-//                .init(name: "Transport"),
-//                .init(name: "Food"),
-//                .init(name: "Entertainment"),
-//            ]
-//        }
+       static var group: [ServiceCategory] {
+           [
+               .init(name: "Transport"),
+               .init(name: "Food"),
+               .init(name: "Entertainment"),
+           ]
+       }
         
         static var transport: ServiceCategory {
             .init(name: "Transport",
