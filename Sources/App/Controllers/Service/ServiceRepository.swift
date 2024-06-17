@@ -7,7 +7,7 @@ protocol ServiceRepositoryProtocol {
     func fetchAll(req: ServiceRepository.Fetch,
                   on db: Database) async throws -> PaginatedResponse<Service>
     func create(content: ServiceRepository.Create, on db: Database) async throws -> Service
-    func find(id: UUID, on db: Database) async throws -> Service
+    func find(id: UUID, on db: Database) async throws -> ServiceResponse
     func find(name: String, on db: Database) async throws -> Service
     func update(id: UUID, with content: ServiceRepository.Update, on db: Database) async throws -> Service
     func delete(id: UUID, on db: Database) async throws -> Service
@@ -78,11 +78,11 @@ class ServiceRepository: ServiceRepositoryProtocol {
         }
     }
     
-    func find(id: UUID, on db: Database) async throws -> Service {
+    func find(id: UUID, on db: Database) async throws -> ServiceResponse {
         do {
-            guard let group = try await Service.query(on: db).filter(\.$id == id).first() else { throw DefaultError.notFound }
+            guard let model = try await Service.query(on: db).filter(\.$id == id).first() else { throw DefaultError.notFound }
             
-            return group
+            return ServiceResponse(from: model)
         } catch {
             // Handle all other errors
             throw DefaultError.error(message: error.localizedDescription)

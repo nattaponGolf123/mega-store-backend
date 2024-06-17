@@ -18,10 +18,6 @@ final class Service: Model, Content {
     @Field(key: "number")
     var number: Int
     
-    var code: String {
-        ServiceCode(number: number).code
-    }
-    
     @Field(key: "name")
     var name: String
     
@@ -84,6 +80,8 @@ final class Service: Model, Content {
         self.unit = unit
         self.categoryId = categoryId
         self.images = images
+        self.coverImage = coverImage
+        self.tags = tags
         self.createdAt = createdAt ?? Date()
         self.updatedAt = updatedAt
         self.deletedAt = deletedAt
@@ -112,7 +110,9 @@ extension Service {
                   images: [
                     "https://example.com/yoga-class-image1.jpg",
                     "https://example.com/yoga-class-image2.jpg"
-                  ])
+                  ],
+                  coverImage: nil,
+                  tags: [])
         }
         
         static var pilates: Service {

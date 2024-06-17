@@ -45,7 +45,7 @@ class ServiceController: RouteCollection {
     }
     
     // GET /services/:id
-    func getByID(req: Request) async throws -> Service {
+    func getByID(req: Request) async throws -> ServiceResponse {
         let uuid = try validator.validateID(req)
         
         return try await repository.find(id: uuid, on: req.db)
