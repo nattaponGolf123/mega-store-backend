@@ -223,14 +223,14 @@ extension ProductRepository {
         }
         
         enum CodingKeys: String, CodingKey {
-            case name = "name"
-            case description = "description"
-            case price = "price"
-            case unit = "unit"
+            case name
+            case description
+            case price
+            case unit
             case categoryId = "category_id"
-            case images = "images"
+            case images
             case coverImage = "cover_image"
-            case tags = "tags"
+            case tags
         }
         
         static func validations(_ validations: inout Validations) {
@@ -238,4 +238,163 @@ extension ProductRepository {
             validations.add("price", as: Double.self, is: .range(0...))
         }
     }
+    
+//    struct AddContact: Content {
+//        let contactId: UUID
+//        
+//        enum CodingKeys: String, CodingKey {
+//            case contactId = "contact_id"
+//        }
+//    }
+//    
+//    struct UpdateContact: Content {
+//        let contactId: UUID
+//        
+//        enum CodingKeys: String, CodingKey {
+//            case contactId = "contact_id"
+//        }
+//    }
+
+    struct CreateVariant: Content, Validatable {
+       
+       let name: String
+         let sku: String?
+            let price: Double
+            let description: String?
+            let image: String?
+            let color: String?
+            let barcode: String?
+            let dimensions: ProductDimension?
+
+        init(name: String,
+             sku: String? = nil,
+             price: Double = 0,
+             description: String? = nil,
+             image: String? = nil,
+             color: String? = nil,
+             barcode: String? = nil,
+             dimensions: ProductDimension? = nil) {
+            self.name = name
+            self.sku = sku
+            self.price = price
+            self.description = description
+            self.image = image
+            self.color = color
+            self.barcode = barcode
+            self.dimensions = dimensions
+             }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            self.name = try container.decode(String.self, forKey: .name)
+            self.sku = try? container.decode(String.self, forKey: .sku)
+            self.price = try container.decode(Double.self, forKey: .price)
+            self.description = try? container.decode(String.self, forKey: .description)
+            self.image = try? container.decode(String.self, forKey: .image)
+            self.color = try? container.decode(String.self, forKey: .color)
+            self.barcode = try? container.decode(String.self, forKey: .barcode)
+            self.dimensions = try? container.decode(ProductDimension.self, forKey: .dimensions)
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case name
+            case sku
+            case price
+            case description
+            case image
+            case color
+            case barcode
+            case dimensions
+        }
+
+        static func validations(_ validations: inout Validations) {
+            validations.add("name", as: String.self, is: .count(1...200))
+            validations.add("price", as: Double.self, is: .range(0...))
+        }        
+
+    }
+
+    struct UpdateVariant: Content, Validatable {
+        let name: String?
+        let sku: String?
+        let price: Double?
+        let description: String?
+        let image: String?
+        let color: String?
+        let barcode: String?
+        let dimensions: ProductDimension?
+
+        init(name: String? = nil,
+             sku: String? = nil,
+             price: Double? = nil,
+             description: String? = nil,
+             image: String? = nil,
+             color: String? = nil,
+             barcode: String? = nil,
+             dimensions: ProductDimension? = nil) {
+            self.name = name
+            self.sku = sku
+            self.price = price
+            self.description = description
+            self.image = image
+            self.color = color
+            self.barcode = barcode
+            self.dimensions = dimensions
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            self.name = try? container.decode(String.self, forKey: .name)
+            self.sku = try? container.decode(String.self, forKey: .sku)
+            self.price = try? container.decode(Double.self, forKey: .price)
+            self.description = try? container.decode(String.self, forKey: .description)
+            self.image = try? container.decode(String.self, forKey: .image)
+            self.color = try? container.decode(String.self, forKey: .color)
+            self.barcode = try? container.decode(String.self, forKey: .barcode)
+            self.dimensions = try? container.decode(ProductDimension.self, forKey: .dimensions)
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case name
+            case sku
+            case price
+            case description
+            case image
+            case color
+            case barcode
+            case dimensions
+        }
+
+        static func validations(_ validations: inout Validations) {
+            validations.add("name", as: String.self, is: .count(1...200))
+            validations.add("price", as: Double.self, is: .range(0...))
+        }
+    }
+
 }
+
+
+/*
+ProductVariant json
+{
+    "id": "UUID",
+    "code": "PV00001",
+    "name": "",
+    "sku": "",
+    "price": 123.44,
+    "description": "",
+    "image": "",
+    "color": "Red",
+    "barcode": "123232213",
+    "dimensions": {
+        "length": 1,
+        "width": 1,
+        "height": 1,
+        "weight": 1,
+        "length_unit": "cm",
+        "width_unit": "cm",
+        "height_unit": "cm",
+        "weight_unit": "kg"
+    }
+}
+*/

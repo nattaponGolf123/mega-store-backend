@@ -83,20 +83,6 @@ private func getMongoDBURLPath() -> String {
 }
 
 private func configMigrations(_ app: Application) async throws {
-    //app.migrations.add(UserMigration())
-
-    //app.migrations.add(ProductMigration())
-    //app.migrations.add(ProductCategoryMigration())
-
-    //app.migrations.add(ServiceMigration())
-    //app.migrations.add(ServiceCategoryMigration())
-
-//    app.migrations.add(SupplierMigration())
-//    app.migrations.add(SupplierGroupMigration())
-
-//    app.migrations.add(CustomerMigration())
-//    app.migrations.add(CustomerGroupMigration())
-
     app.migrations.add(ModelSchemaMigration())    
     
     try await app.autoMigrate()
@@ -117,22 +103,3 @@ private func configPwd(_ app: Application) {
         break
     }
 }
-
-
-// struct ListMigrationsCommand: Command {
-//     struct Signature: CommandSignature {}
-
-//     var help: String {
-//         "Lists all registered migrations"
-//     }
-
-//     func run(using context: CommandContext, signature: Signature) throws {
-//         let migrations = context.application.migrations.storage.migrations
-//         for (key, value) in migrations {
-//             context.console.print("Migration for database \(key):")
-//             for migration in value {
-//                 context.console.print(" - \(migration.key)")
-//             }
-//         }
-//     }
-// }

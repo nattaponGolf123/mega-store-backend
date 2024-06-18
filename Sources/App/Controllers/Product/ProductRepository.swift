@@ -12,7 +12,15 @@ protocol ProductRepositoryProtocol {
     func update(id: UUID, with content: ProductRepository.Update, on db: Database) async throws -> ProductResponse
     func delete(id: UUID, on db: Database) async throws -> ProductResponse
     func search(req: ProductRepository.Search, on db: Database) async throws -> PaginatedResponse<ProductResponse>
+    func linkContact(id: UUID, contactId: UUID, on db: Database) async throws -> ProductResponse
+    func deleteContact(id: UUID, contactId: UUID, on db: Database) async throws -> ProductResponse
     func fetchLastedNumber(on db: Database) async throws -> Int
+    
+    func fetchVariantLastedNumber(id: UUID, on db: Database) async throws -> Int
+    func createVariant(id: UUID, content: ProductRepository.CreateVariant, on db: Database) async throws -> ProductResponse
+    func updateVariant(id: UUID, variantId: UUID, with content: ProductRepository.UpdateVariant, on db: Database) async throws -> ProductResponse
+    func deleteVariant(id: UUID, variantId: UUID, on db: Database) async throws -> ProductResponse    
+
 }
 
 class ProductRepository: ProductRepositoryProtocol {
@@ -165,6 +173,55 @@ class ProductRepository: ProductRepositoryProtocol {
             throw DefaultError.error(message: error.localizedDescription)
         }
     }
+    
+    func linkContact(id: UUID, contactId: UUID, on db: Database) async throws -> ProductResponse {
+        do {                        
+            guard 
+                let model = try await Self.getByIDBuilder(uuid: id, db: db).first(),
+                // verify is exist contact and not deleted
+                let contact = try await Contact.query(on: db).filter(\.$id == contactId).first()                
+            else { throw DefaultError.notFound }
+
+            guard 
+                model.suppliers.contains(contactId) == false 
+            else { throw DefaultError.error(message: "Contact already linked") }
+
+            let updateSppliers: [UUID] = model.suppliers + [contactId]
+            model.suppliers = updateSppliers
+
+            try await model.save(on: db)
+            
+            return ProductResponse(from: model)
+        } catch let error as FluentMongoDriver.FluentMongoError {
+            throw error
+        } catch let error as DefaultError {
+            throw error
+        } catch {
+            throw DefaultError.error(message: error.localizedDescription)
+        }
+    }
+    
+    func deleteContact(id: UUID, contactId: UUID, on db: any FluentKit.Database) async throws -> ProductResponse {
+        do {                        
+            guard let model = try await Self.getByIDBuilder(uuid: id, db: db).first() else { throw DefaultError.notFound }
+
+            guard 
+                model.suppliers.contains(contactId) 
+            else { throw DefaultError.error(message: "Contact not found") }
+
+            model.suppliers.removeAll() { $0 == contactId }            
+
+            try await model.save(on: db)
+            
+            return ProductResponse(from: model)
+        } catch let error as FluentMongoDriver.FluentMongoError {
+            throw error
+        } catch let error as DefaultError {
+            throw error
+        } catch {
+            throw DefaultError.error(message: error.localizedDescription)
+        }
+    }
 
     func fetchLastedNumber(on db: Database) async throws -> Int {
         let query = Product.query(on: db).withDeleted()
@@ -174,6 +231,134 @@ class ProductRepository: ProductRepositoryProtocol {
         let model = try await query.first()
         
         return model?.number ?? 0
+    }
+    
+    // MARK: Variant
+    func fetchVariantLastedNumber(id: UUID, on db: Database) async throws -> Int {
+        do {
+            guard 
+                let model = try await Self.getByIDBuilder(uuid: id, db: db).first()             
+            else { throw DefaultError.notFound }
+
+            let variants: [ProductVariant] = model.variants
+            let lastedNumber = variants.map { $0.number }.max() ?? 0
+
+            return lastedNumber
+        } catch let error as FluentMongoDriver.FluentMongoError {
+            throw error
+        } catch let error as DefaultError {
+            throw error
+        } catch {
+            throw DefaultError.error(message: error.localizedDescription)
+        }
+    }
+
+    func createVariant(id: UUID, content: ProductRepository.CreateVariant, on db: Database) async throws -> ProductResponse {
+        do {                        
+            guard 
+                let model = try await Self.getByIDBuilder(uuid: id, db: db).first()             
+            else { throw DefaultError.notFound }
+
+            let curentNumber = try await fetchVariantLastedNumber(id: id, on: db)
+            let nextNumber = curentNumber + 1
+
+            let newVariant = ProductVariant(number: nextNumber,
+                                            name: content.name,
+                                            sku: content.sku,
+                                            price: content.price,
+                                            description: content.description,
+                                            image: content.image,
+                                            color: content.color,
+                                            barcode: content.barcode,
+                                            dimensions: content.dimensions)
+
+
+            try await model.save(on: db)
+            
+            return ProductResponse(from: model)
+        } catch let error as FluentMongoDriver.FluentMongoError {
+            throw error
+        } catch let error as DefaultError {
+            throw error
+        } catch {
+            throw DefaultError.error(message: error.localizedDescription)
+        }
+    }
+    
+    func updateVariant(id: UUID, variantId: UUID, with content: ProductRepository.UpdateVariant, on db: Database) async throws -> ProductResponse {
+        do {
+            guard 
+                let product = try await Product.query(on: db).filter(\.$id == id).first(),
+                let variant = product.variants.first(where: { $0.id == variantId })
+            else {
+                throw DefaultError.notFound
+            }            
+            
+            if let name = content.name {
+                variant.name = name
+            }
+
+            if let sku = content.sku {
+                variant.sku = sku
+            }
+
+            if let price = content.price {
+                variant.price = price
+            }
+
+            if let description = content.description {
+                variant.description = description
+            }
+
+            if let image = content.image {
+                variant.image = image
+            }
+
+            if let color = content.color {
+                variant.color = color
+            }
+
+            if let barcode = content.barcode {
+                variant.barcode = barcode
+            }
+
+            if let dimensions = content.dimensions {
+                variant.dimensions = dimensions
+            }
+
+            //replace variant in product.variants with match uuid
+            product.variants = product.variants.map({ $0.id == variant.id ? variant : $0 })
+            
+            try await product.save(on: db)
+            
+            return ProductResponse(from: product)
+        } catch let error as DefaultError {
+            throw error
+        } catch {
+            throw DefaultError.error(message: error.localizedDescription)
+        }
+
+    }
+    
+    func deleteVariant(id: UUID, variantId: UUID, on db: Database) async throws -> ProductResponse {        
+        do {
+            guard 
+                let product = try await Product.query(on: db).filter(\.$id == id).first(),
+                let variant = product.variants.first(where: { $0.id == variantId })
+            else {
+                throw DefaultError.notFound
+            }            
+
+            product.variants.removeAll() { $0.id == variantId }
+
+            try await product.save(on: db)
+            
+            return ProductResponse(from: product)
+        } catch let error as DefaultError {
+            throw error
+        } catch {
+            throw DefaultError.error(message: error.localizedDescription)
+        }
     }
 }
 
@@ -268,4 +453,189 @@ extension ProductRepository {
         return Product.query(on: db).filter(\.$id == uuid)
     }
 }
+
+/*
+ final class ProductVariant:Model, Content {
+     static let schema = "ProductVariant"
+     
+     @ID(key: .id)
+     var id: UUID?
+     
+     @Field(key: "number")
+     var number: Int
+
+     @Field(key: "name")
+     var name: String
+     
+     @Field(key: "sku")
+     var sku: String?
+     
+     @Field(key: "price")
+     var price: Double
+     
+     @Field(key: "description")
+     var description: String?
+     
+     @Field(key: "image")
+     var image: String?
+     
+     @Field(key: "color")
+     var color: String?
+     
+     @Field(key: "barcode")
+     var barcode: String?
+     
+     @Field(key: "dimensions")
+     var dimensions: ProductDimension?
+     
+     @Timestamp(key: "created_at",
+                on: .create,
+                format: .iso8601)
+     var createdAt: Date?
+     
+     @Timestamp(key: "updated_at",
+                on: .update,
+                format: .iso8601)
+     var updatedAt: Date?
+     
+     @Timestamp(key: "deleted_at",
+                on: .delete,
+                format: .iso8601)
+     var deletedAt: Date?
+     
+     init() { }
+     
+     init(id: UUID? = nil,
+          number: Int = 1,
+          name: String,
+          sku: String? = nil,
+          price: Double = 0,
+          description: String? = nil,
+          image: String? = nil,
+          color: String? = nil,
+          barcode: String? = nil,
+          dimensions: ProductDimension? = nil,
+          createdAt: Date? = nil,
+          updatedAt: Date? = nil,
+          deletedAt: Date? = nil) {
+         
+         self.id = id ?? .init()
+         self.number = number
+         self.name = name
+         self.description = description
+         self.sku = sku
+         self.price = price
+         self.image = image
+         self.color = color
+         self.barcode = barcode
+         self.dimensions = dimensions
+         self.createdAt = createdAt ?? .init()
+         self.updatedAt = updatedAt
+         self.deletedAt = deletedAt
+     }
+
+ }
+ */
+
+/*
+final class Product: Model, Content {
+    static let schema = "Products"
+   
+    @ID(key: .id)
+    var id: UUID?
+
+    @Field(key: "number")
+    var number: Int
+
+    @Field(key: "name")
+    var name: String
+
+    @Field(key: "description")
+    var description: String?
+
+    @Field(key: "unit")
+    var unit: String?
+
+    @Field(key: "price")
+    var price: Double
+
+    @Field(key: "category_id")
+    var categoryId: UUID?
+
+    @Field(key: "manufacturer")
+    var manufacturer: String?
+
+    @Field(key: "barcode")
+    var barcode: String?
+
+    @Timestamp(key: "created_at",
+           on: .create,
+           format: .iso8601)
+    var createdAt: Date?
+
+    @Timestamp(key: "updated_at",
+           on: .update,
+           format: .iso8601)
+    var updatedAt: Date?
+
+    @Timestamp(key: "deleted_at", 
+           on: .delete, 
+           format: .iso8601)
+    var deletedAt: Date?
+
+    @Field(key: "images")
+    var images: [String]
+
+    @Field(key: "cover_image")
+    var coverImage: String?
+
+    @Field(key: "tags")
+    var tags: [String]
+
+    @Field(key: "suppliers")
+    var suppliers: [UUID]
+
+    @Field(key: "variants")
+    var variants: [ProductVariant]
+
+    init() { }
+
+    init(id: UUID? = nil,
+         number: Int = 1,
+         name: String,
+         description: String? = nil,
+         unit: String? = nil,
+         price: Double,
+         categoryId: UUID? = nil,
+         manufacturer: String? = nil,
+         barcode: String? = nil,
+         createdAt: Date? = nil,
+         updatedAt: Date? = nil,
+         deletedAt: Date? = nil,
+         images: [String] = [],
+         coverImage: String? = nil,
+         tags: [String] = [],
+         suppliers: [UUID] = [],
+         variants: [ProductVariant] = []) {
+        self.id = id ?? .init()
+        self.number = number
+        self.name = name
+        self.description = description
+        self.unit = unit
+        self.price = price
+        self.categoryId = categoryId
+        self.manufacturer = manufacturer
+        self.barcode = barcode
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
+        self.images = images
+        self.coverImage = coverImage
+        self.tags = tags
+        self.suppliers = suppliers
+        self.variants = variants
+    }
+
+}
+*/
 

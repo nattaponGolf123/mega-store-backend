@@ -15,7 +15,7 @@ class ProductController: RouteCollection {
     
     func boot(routes: RoutesBuilder) throws {
         
-        let groups = routes.grouped("services")
+        let groups = routes.grouped("products")
         groups.get(use: all)
         groups.post(use: create)
         
@@ -30,28 +30,28 @@ class ProductController: RouteCollection {
         }
     }
     
-    // GET /services?show_deleted=true&page=1&per_page=10
+    // GET /products?show_deleted=true&page=1&per_page=10
     func all(req: Request) async throws -> PaginatedResponse<ProductResponse> {
         let reqContent = try req.query.decode(ProductRepository.Fetch.self)
 
         return try await repository.fetchAll(req: reqContent, on: req.db)
     }
     
-    // POST /services
+    // POST /products
     func create(req: Request) async throws -> ProductResponse {
         let content = try validator.validateCreate(req)
         
         return try await repository.create(content: content, on: req.db)
     }
     
-    // GET /services/:id
+    // GET /products/:id
     func getByID(req: Request) async throws -> ProductResponse {
         let uuid = try validator.validateID(req)
         
         return try await repository.find(id: uuid, on: req.db)
     }
     
-    // PUT /services/:id
+    // PUT /products/:id
     func update(req: Request) async throws -> ProductResponse {
         let (uuid, content) = try validator.validateUpdate(req)
         
@@ -80,14 +80,14 @@ class ProductController: RouteCollection {
         }
     }
 
-    // DELETE /services/:id
+    // DELETE /products/:id
     func delete(req: Request) async throws -> ProductResponse {
         let uuid = try validator.validateID(req)
         
         return try await repository.delete(id: uuid, on: req.db)
     }
     
-    // GET /services/search?name=xxx&page=1&per_page=10
+    // GET /products/search?name=xxx&page=1&per_page=10
     func search(req: Request) async throws -> PaginatedResponse<ProductResponse> {
         let _ = try validator.validateSearchQuery(req)
         let reqContent = try req.query.decode(ProductRepository.Search.self)

@@ -47,7 +47,7 @@ func routes(_ app: Application) throws {
     try protected.register(collection: ServiceController())
     
     try protected.register(collection: ProductCategoryController())
-    //try protected.register(collection: ProductController())
+    try protected.register(collection: ProductController())
     
 }
 

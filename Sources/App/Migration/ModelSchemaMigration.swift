@@ -22,9 +22,9 @@ struct ModelSchemaMigration: AsyncMigration {
 //            try await MyBusinese.Stub.myCompany.save(on: database)
 //            
 //            // Contact
-           try await ContactSchema.createBuilder(database: database).create()
-           try await Contact.Stub.customer.save(on: database)
-//            
+//            try await ContactSchema.createBuilder(database: database).create()
+//            try await Contact.Stub.customer.save(on: database)
+// //            
 //            // Contact group
 //            try await ContactGroupSchema.createBuilder(database: database).create()
 //            try await ContactGroup.Stub.localCustomer.save(on: database)
@@ -35,16 +35,16 @@ struct ModelSchemaMigration: AsyncMigration {
 //            try await Contact.Stub.customer.save(on: database)
             
             // Service Category
-            try await ServiceCategorySchema.createBuilder(database: database).create()
-            try await ServiceCategory.Stub.transport.save(on: database)
+            // try await ServiceCategorySchema.createBuilder(database: database).create()
+            // try await ServiceCategory.Stub.transport.save(on: database)
 
-            // Service
-            try await ServiceSchema.createBuilder(database: database).create()
-            try await Service.Stub.yoga.save(on: database)
+            // // Service
+            // try await ServiceSchema.createBuilder(database: database).create()
+            // try await Service.Stub.yoga.save(on: database)
             
-            // Product Category
-            try await ProductCategorySchema.createBuilder(database: database).create()
-            try await ProductCategory.Stub.steel.save(on: database)
+            // // Product Category
+            // try await ProductCategorySchema.createBuilder(database: database).create()
+            // try await ProductCategory.Stub.steel.save(on: database)
 
             // Product
             try await ProductSchema.createBuilder(database: database).create()
@@ -62,7 +62,7 @@ struct ModelSchemaMigration: AsyncMigration {
 //        try await database.schema(MyBusineseSchema.schema).delete()
 //        
 //        // Contact
-        try await database.schema(ContactSchema.schema).delete()
+        //try await database.schema(ContactSchema.schema).delete()
 //        
 //        // Contact group
 //        try await database.schema(ContactGroupSchema.schema).delete()
@@ -71,9 +71,15 @@ struct ModelSchemaMigration: AsyncMigration {
 //        try await database.schema(ContactSchema.schema).delete()
         
         // Service Category
-        try await database.schema(ServiceCategorySchema.schema).delete()
+        // try await database.schema(ServiceCategorySchema.schema).delete()
 
-        // Service
-        try await database.schema(ServiceSchema.schema).delete()
+        // // Service
+        // try await database.schema(ServiceSchema.schema).delete()
+
+        // // Product Category
+        // try await database.schema(ProductCategorySchema.schema).delete()
+
+        // Product
+        try await database.schema(ProductSchema.schema).delete()
     }
 }
