@@ -8,8 +8,8 @@ struct ContactSchema {
     static func createBuilder(database: Database) -> SchemaBuilder {
         database.schema(Self.schema)
             .id()
-            .field("code", .string, .required)
-            .unique(on: "code")            
+            .field("number", .int, .required)
+            .unique(on: "number")            
             .field("kind", .string, .required)
             .field("group_id", .uuid)
             .field("name", .string, .required)

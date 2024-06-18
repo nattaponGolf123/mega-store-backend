@@ -7,7 +7,6 @@
 
 import Foundation
 import Vapor
-import Fluent
 
 struct ServiceResponse: Content {
     let id: UUID?

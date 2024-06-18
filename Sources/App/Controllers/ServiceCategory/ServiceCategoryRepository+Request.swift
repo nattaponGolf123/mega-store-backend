@@ -54,7 +54,7 @@ extension ServiceCategoryRepository {
 
         enum CodingKeys: String, CodingKey {
             case showDeleted = "show_deleted"
-            case page = "page"
+            case page
             case perPage = "per_page"
             case sortBy = "sort_by"
             case sortByOrder = "sort_by_order"
@@ -99,8 +99,8 @@ extension ServiceCategoryRepository {
         }
 
         enum CodingKeys: String, CodingKey {
-            case name = "name"
-            case page = "page"
+            case name
+            case page
             case perPage = "per_page"
             case sortBy = "sort_by"
             case sortByOrder = "sort_by_order"
@@ -126,13 +126,13 @@ extension ServiceCategoryRepository {
         }
         
         enum CodingKeys: String, CodingKey {
-            case name = "name"
-            case description = "description"
+            case name
+            case description
         }
                 
         static func validations(_ validations: inout Validations) {
             validations.add("name", as: String.self,
-                            is: .count(3...200))
+                            is: .count(1...200))
         }
     }
 
@@ -147,13 +147,13 @@ extension ServiceCategoryRepository {
         }
         
         enum CodingKeys: String, CodingKey {
-            case name = "name"
-            case description = "description"
+            case name
+            case description
         }
         
         static func validations(_ validations: inout Validations) {
             validations.add("name", as: String.self,
-                            is: .count(3...200))
+                            is: .count(1...200))
         }
     }
 }

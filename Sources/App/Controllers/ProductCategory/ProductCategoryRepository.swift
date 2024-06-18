@@ -15,47 +15,47 @@ protocol ProductCategoryRepositoryProtocol {
 }
 
 class ProductCategoryRepository: ProductCategoryRepositoryProtocol {
-     
+    
     func fetchAll(req: ProductCategoryRepository.Fetch,
                   on db: Database) async throws -> PaginatedResponse<ProductCategory> {
-    do {
-        let page = req.page
-        let perPage = req.perPage
-
-        guard 
-            page > 0,
-            perPage > 0
-        else { throw DefaultError.invalidInput }
-        
-        let query = ProductCategory.query(on: db)
-        
-        if req.showDeleted {
-            query.withDeleted()
-        } else {
-            query.filter(\.$deletedAt == nil)
-        }
-        
-        let total = try await query.count()
-        //query sorted by name
-        let items = try await query.sort(\.$name).range((page - 1) * perPage..<(page * perPage)).all()        
-        
-        let response = PaginatedResponse(page: page,
-                          perPage: perPage,
-                          total: total,
-                        items: items)
-        
+        do {
+            let page = req.page
+            let perPage = req.perPage
+            
+            guard
+                page > 0,
+                perPage > 0
+            else { throw DefaultError.invalidInput }
+            
+            let query = ProductCategory.query(on: db)
+            
+            if req.showDeleted {
+                query.withDeleted()
+            } else {
+                query.filter(\.$deletedAt == nil)
+            }
+            
+            let total = try await query.count()
+            //query sorted by name
+            let items = try await query.sort(\.$name).range((page - 1) * perPage..<(page * perPage)).all()
+            
+            let response = PaginatedResponse(page: page,
+                                             perPage: perPage,
+                                             total: total,
+                                             items: items)
+            
             return response
         } catch {
             // Handle all other errors
             throw DefaultError.error(message: error.localizedDescription)
         }
     }
-
+    
     func create(content: ProductCategoryRepository.Create, on db: Database) async throws -> ProductCategory {
         do {
             // Initialize the ProductCategory from the validated content
             let newGroup = ProductCategory(name: content.name, description: content.description)
-    
+            
             // Attempt to save the new group to the database
             try await newGroup.save(on: db)
             
@@ -68,7 +68,7 @@ class ProductCategoryRepository: ProductCategoryRepositoryProtocol {
             throw DefaultError.error(message: error.localizedDescription)
         }
     }
-
+    
     func find(id: UUID, on db: Database) async throws -> ProductCategory {
         do {
             guard let group = try await ProductCategory.query(on: db).filter(\.$id == id).first() else { throw DefaultError.notFound }
@@ -92,7 +92,7 @@ class ProductCategoryRepository: ProductCategoryRepositoryProtocol {
             throw DefaultError.error(message: error.localizedDescription)
         }
     }
-
+    
     func update(id: UUID, with content: ProductCategoryRepository.Update, on db: Database) async throws -> ProductCategory {
         do {
             
@@ -113,7 +113,7 @@ class ProductCategoryRepository: ProductCategoryRepositoryProtocol {
             throw DefaultError.error(message: error.localizedDescription)
         }
     }
-
+    
     func delete(id: UUID, on db: Database) async throws -> ProductCategory {
         do {
             guard let group = try await ProductCategory.query(on: db).filter(\.$id == id).first() else { throw DefaultError.notFound }
@@ -128,38 +128,38 @@ class ProductCategoryRepository: ProductCategoryRepositoryProtocol {
             throw DefaultError.error(message: error.localizedDescription)
         }
     }
-
+    
     func search(req: ProductCategoryRepository.Search, on db: Database) async throws -> PaginatedResponse<ProductCategory> {
-    do {
-        let perPage = req.perPage
-        let page = req.page
-        let name = req.name
-
-        guard 
-            name.count > 0,
-            perPage > 0,
-            page > 0
-        else { throw DefaultError.invalidInput }               
-
-        let regexPattern = "(?i)\(name)"  // (?i) makes the regex case-insensitive
-        let query = ProductCategory.query(on: db).filter(\.$name =~ regexPattern)
-        
-        
-        let total = try await query.count()
-        let items = try await query.range((page - 1) * perPage..<(page * perPage)).all()
-        
-        
-        let response = PaginatedResponse(page: page,
-                          perPage: perPage,
-                          total: total,
-                        items: items)
-        
-        return response        
-    } catch {
-        // Handle all other errors
-        throw DefaultError.error(message: error.localizedDescription)
+        do {
+            let perPage = req.perPage
+            let page = req.page
+            let q = req.q
+            
+            guard
+                q.count > 0,
+                perPage > 0,
+                page > 0
+            else { throw DefaultError.invalidInput }
+            
+            let regexPattern = "(?i)\(q)"  // (?i) makes the regex case-insensitive
+            let query = ProductCategory.query(on: db).filter(\.$name =~ regexPattern)
+            
+            
+            let total = try await query.count()
+            let items = try await query.range((page - 1) * perPage..<(page * perPage)).all()
+            
+            
+            let response = PaginatedResponse(page: page,
+                                             perPage: perPage,
+                                             total: total,
+                                             items: items)
+            
+            return response
+        } catch {
+            // Handle all other errors
+            throw DefaultError.error(message: error.localizedDescription)
+        }
     }
-}
 }
 
 extension ProductCategoryRepository {

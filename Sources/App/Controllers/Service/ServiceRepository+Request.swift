@@ -64,7 +64,7 @@ extension ServiceRepository {
         
         enum CodingKeys: String, CodingKey {
             case showDeleted = "show_deleted"
-            case page = "page"
+            case page
             case perPage = "per_page"
             case sortBy = "sort_by"
             case sortByOrder = "sort_by_order"
@@ -166,14 +166,14 @@ extension ServiceRepository {
         }
         
         enum CodingKeys: String, CodingKey {
-            case name = "name"
-            case description = "description"
-            case price = "price"
-            case unit = "unit"
+            case name
+            case description
+            case price
+            case unit
             case categoryId = "category_id"
-            case images = "images"
+            case images
             case coverImage = "cover_image"
-            case tags = "tags"
+            case tags 
         }
         
         static func validations(_ validations: inout Validations) {

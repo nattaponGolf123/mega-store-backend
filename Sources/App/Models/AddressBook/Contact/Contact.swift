@@ -21,8 +21,8 @@ final class Contact: Model, Content {
     @ID(key: .id)
     var id: UUID?
     
-    @Field(key: "code")
-    var code: String
+    @Field(key: "number")
+    var number: Int
     
     @Enum(key: "kind")
     var kind: ContactKind
@@ -93,7 +93,7 @@ final class Contact: Model, Content {
          note: String? = nil) {
         
         self.id = id ?? UUID()
-        self.code = ContactCode(number: number).code        
+        self.number = number
         self.groupId = groupId
         self.kind = kind
         self.name = name
@@ -113,7 +113,8 @@ final class Contact: Model, Content {
 extension Contact {
     struct Stub {
         static var customer: Contact {
-            Contact(name: "ABC Company",
+            Contact(number: 1, 
+                    name: "ABC Company",
                     kind: .customer,
                     vatRegistered: true,
                     contactInformation: ContactInformation(contactPerson: "John Doe",
@@ -141,7 +142,8 @@ extension Contact {
         }
         
         static var supplier: Contact {
-            Contact(name: "ABC Industries",
+            Contact(number: 2,
+                    name: "ABC Industries",
                     kind: .supplier,
                     vatRegistered: true,
                     contactInformation: ContactInformation(contactPerson: "John Doe",
@@ -171,7 +173,8 @@ extension Contact {
         }
         
         static var both: Contact {
-            Contact(name: "ABC Industries",
+            Contact(number: 1,
+                    name: "ABC Industries",
                     kind: .both,
                     vatRegistered: true,
                     contactInformation: ContactInformation(contactPerson: "John Doe",
