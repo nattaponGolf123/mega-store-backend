@@ -36,7 +36,6 @@ func routes(_ app: Application) throws {
     //try app.register(collection: ProductController())
     
     // required auth
-    //let protected = app.grouped(UserAuthenticator()).grouped(User.guardMiddleware())
     let protected = app.grouped(UserAuthenticator()).grouped(UserJWTPayload.guardMiddleware())
     try protected.register(collection: UserController())
     
@@ -47,15 +46,8 @@ func routes(_ app: Application) throws {
     try protected.register(collection: ServiceCategoryController())
     try protected.register(collection: ServiceController())
     
-    //poc
+    try protected.register(collection: ProductCategoryController())
     //try protected.register(collection: ProductController())
-        
-    // init stub datasource
-//    try LocalDatastore.shared.save(fileName: "products",
-//                                   data: LocalProducts.Stub.applDevices)
-//    
-//    try LocalDatastore.shared.save(fileName: "users",
-//                                   data: Users.Stub.allUsers)
     
 }
 

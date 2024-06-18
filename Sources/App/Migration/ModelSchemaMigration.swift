@@ -40,7 +40,11 @@ struct ModelSchemaMigration: AsyncMigration {
 
             // Service
             try await ServiceSchema.createBuilder(database: database).create()
-            try await Service.Stub.yoga.save(on: database)            
+            try await Service.Stub.yoga.save(on: database)
+            
+            // Product Category
+            try await ProductCategorySchema.createBuilder(database: database).create()
+            try await ProductCategory.Stub.steel.save(on: database)
             
         } catch {
             print(error)

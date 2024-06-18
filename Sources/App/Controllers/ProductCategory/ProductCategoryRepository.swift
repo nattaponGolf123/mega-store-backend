@@ -134,6 +134,8 @@ class ProductCategoryRepository: ProductCategoryRepositoryProtocol {
             let perPage = req.perPage
             let page = req.page
             let q = req.q
+            let sortBy = req.sortBy
+            let sortOrder = req.sortOrder
             
             guard
                 q.count > 0,
@@ -146,7 +148,11 @@ class ProductCategoryRepository: ProductCategoryRepositoryProtocol {
             
             
             let total = try await query.count()
-            let items = try await query.range((page - 1) * perPage..<(page * perPage)).all()
+            let items = try await sortQuery(query: query,
+                                            sortBy: sortBy,
+                                            sortOrder: sortOrder,
+                                            page: page,
+                                            perPage: perPage)
             
             
             let response = PaginatedResponse(page: page,
@@ -158,6 +164,32 @@ class ProductCategoryRepository: ProductCategoryRepositoryProtocol {
         } catch {
             // Handle all other errors
             throw DefaultError.error(message: error.localizedDescription)
+        }
+    }
+}
+
+
+private extension ProductCategoryRepository {
+    func sortQuery(query: QueryBuilder<ProductCategory>,
+                   sortBy: ProductCategoryRepository.SortBy,
+                   sortOrder: ProductCategoryRepository.SortOrder,
+                   page: Int,
+                   perPage: Int) async throws -> [ProductCategory] {
+        switch sortBy {
+        case .name:
+            switch sortOrder {
+            case .asc:
+                return try await query.sort(\.$name).range((page - 1) * perPage..<(page * perPage)).all()
+            case .desc:
+                return try await query.sort(\.$name, .descending).range((page - 1) * perPage..<(page * perPage)).all()
+            }
+        case .createdAt:
+            switch sortOrder {
+            case .asc:
+                return try await query.sort(\.$createdAt).range((page - 1) * perPage..<(page * perPage)).all()
+            case .desc:
+                return try await query.sort(\.$createdAt, .descending).range((page - 1) * perPage..<(page * perPage)).all()
+            }
         }
     }
 }

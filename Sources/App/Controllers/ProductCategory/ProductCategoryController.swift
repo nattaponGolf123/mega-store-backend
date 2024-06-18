@@ -15,7 +15,7 @@ class ProductCategoryController: RouteCollection {
     
     func boot(routes: RoutesBuilder) throws {
         
-        let groups = routes.grouped("service_categories")
+        let groups = routes.grouped("product_categories")
         groups.get(use: all)
         groups.post(use: create)
         
@@ -30,28 +30,28 @@ class ProductCategoryController: RouteCollection {
         }
     }
     
-    // GET /service_categories?show_deleted=true&page=1&per_page=10
+    // GET /product_categories?show_deleted=true&page=1&per_page=10
     func all(req: Request) async throws -> PaginatedResponse<ProductCategory> {        
         let reqContent = try req.query.decode(ProductCategoryRepository.Fetch.self)
 
         return try await repository.fetchAll(req: reqContent, on: req.db)
     }
     
-    // POST /service_categories
+    // POST /product_categories
     func create(req: Request) async throws -> ProductCategory {
         let content = try validator.validateCreate(req)
         
         return try await repository.create(content: content, on: req.db)
     }
     
-    // GET /service_categories/:id
+    // GET /product_categories/:id
     func getByID(req: Request) async throws -> ProductCategory {
         let uuid = try validator.validateID(req)
         
         return try await repository.find(id: uuid, on: req.db)
     }
     
-    // PUT /service_categories/:id
+    // PUT /product_categories/:id
     func update(req: Request) async throws -> ProductCategory {
         let (uuid, content) = try validator.validateUpdate(req)
         
@@ -80,14 +80,14 @@ class ProductCategoryController: RouteCollection {
         }
     }
 
-    // DELETE /service_categories/:id
+    // DELETE /product_categories/:id
     func delete(req: Request) async throws -> ProductCategory {
         let uuid = try validator.validateID(req)
         
         return try await repository.delete(id: uuid, on: req.db)
     }
     
-    // GET /service_categories/search?name=xxx&page=1&per_page=10
+    // GET /product_categories/search?name=xxx&page=1&per_page=10
     func search(req: Request) async throws -> PaginatedResponse<ProductCategory> {
         let _ = try validator.validateSearchQuery(req)
         let reqContent = try req.query.decode(ProductCategoryRepository.Search.self)
