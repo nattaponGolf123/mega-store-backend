@@ -36,7 +36,11 @@ class ContactRepository: ContactRepositoryProtocol {
         }
         
         let total = try await query.count()
-        let items = try await query.range((page - 1) * perPage..<(page * perPage)).all()
+        let items = try await sortQuery(query: query,
+                                       sortBy: req.sortBy,
+                                       sortOrder: req.sortOrder,
+                                       page: page,
+                                       perPage: perPage)
         
         let response = PaginatedResponse(page: page,
                                          perPage: perPage,
@@ -256,7 +260,11 @@ class ContactRepository: ContactRepositoryProtocol {
             
             
             let total = try await query.count()
-            let items = try await query.range((page - 1) * perPage..<(page * perPage)).all()
+            let items = try await sortQuery(query: query,
+                                           sortBy: req.sortBy,
+                                           sortOrder: req.sortOrder,
+                                           page: page,
+                                           perPage: perPage)
             
             
             let response = PaginatedResponse(page: page,

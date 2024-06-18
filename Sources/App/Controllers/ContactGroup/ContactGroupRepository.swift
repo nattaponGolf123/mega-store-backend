@@ -15,46 +15,50 @@ protocol ContactGroupRepositoryProtocol {
 }
 
 class ContactGroupRepository: ContactGroupRepositoryProtocol {
-     
+    
     func fetchAll(req: ContactGroupRepository.Fetch,
                   on db: Database) async throws -> PaginatedResponse<ContactGroup> {
-    do {
-        let page = req.page
-        let perPage = req.perPage
-
-        guard 
-            page > 0,
-            perPage > 0
-        else { throw DefaultError.invalidInput }
-        
-        let query = ContactGroup.query(on: db)
-        
-        if req.showDeleted {
-            query.withDeleted()
-        } else {
-            query.filter(\.$deletedAt == nil)
-        }
-        
-        let total = try await query.count()
-        let items = try await query.range((page - 1) * perPage..<(page * perPage)).all()
-        
-        let response = PaginatedResponse(page: page,
-                          perPage: perPage,
-                          total: total,
-                        items: items)
-        
+        do {
+            let page = req.page
+            let perPage = req.perPage
+            
+            guard
+                page > 0,
+                perPage > 0
+            else { throw DefaultError.invalidInput }
+            
+            let query = ContactGroup.query(on: db)
+            
+            if req.showDeleted {
+                query.withDeleted()
+            } else {
+                query.filter(\.$deletedAt == nil)
+            }
+            
+            let total = try await query.count()
+            let items = try await sortQuery(query: query,
+                                            sortBy: req.sortBy,
+                                            sortOrder: req.sortOrder,
+                                            page: page,
+                                            perPage: perPage)
+            
+            let response = PaginatedResponse(page: page,
+                                             perPage: perPage,
+                                             total: total,
+                                             items: items)
+            
             return response
         } catch {
             // Handle all other errors
             throw DefaultError.error(message: error.localizedDescription)
         }
     }
-
+    
     func create(content: ContactGroupRepository.Create, on db: Database) async throws -> ContactGroup {
         do {
             // Initialize the ContactGroup from the validated content
             let newGroup = ContactGroup(name: content.name, description: content.description)
-    
+            
             // Attempt to save the new group to the database
             try await newGroup.save(on: db)
             
@@ -67,7 +71,7 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
             throw DefaultError.error(message: error.localizedDescription)
         }
     }
-
+    
     func find(id: UUID, on db: Database) async throws -> ContactGroup {
         do {
             guard let group = try await ContactGroup.query(on: db).filter(\.$id == id).first() else { throw DefaultError.notFound }
@@ -91,7 +95,7 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
             throw DefaultError.error(message: error.localizedDescription)
         }
     }
-
+    
     func update(id: UUID, with content: ContactGroupRepository.Update, on db: Database) async throws -> ContactGroup {
         do {
             
@@ -112,7 +116,7 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
             throw DefaultError.error(message: error.localizedDescription)
         }
     }
-
+    
     func delete(id: UUID, on db: Database) async throws -> ContactGroup {
         do {
             guard let group = try await ContactGroup.query(on: db).filter(\.$id == id).first() else { throw DefaultError.notFound }
@@ -127,38 +131,67 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
             throw DefaultError.error(message: error.localizedDescription)
         }
     }
-
+    
     func search(req: ContactGroupRepository.Search, on db: Database) async throws -> PaginatedResponse<ContactGroup> {
-    do {
-        let perPage = req.perPage
-        let page = req.page
-        let name = req.name
-
-        guard 
-            name.count > 0,
-            perPage > 0,
-            page > 0
-        else { throw DefaultError.invalidInput }               
-
-        let regexPattern = "(?i)\(name)"  // (?i) makes the regex case-insensitive
-        let query = ContactGroup.query(on: db).filter(\.$name =~ regexPattern)
-        
-        
-        let total = try await query.count()
-        let items = try await query.range((page - 1) * perPage..<(page * perPage)).all()
-        
-        
-        let response = PaginatedResponse(page: page,
-                          perPage: perPage,
-                          total: total,
-                        items: items)
-        
-        return response        
-    } catch {
-        // Handle all other errors
-        throw DefaultError.error(message: error.localizedDescription)
+        do {
+            let perPage = req.perPage
+            let page = req.page
+            let name = req.name
+            
+            guard
+                name.count > 0,
+                perPage > 0,
+                page > 0
+            else { throw DefaultError.invalidInput }
+            
+            let regexPattern = "(?i)\(name)"  // (?i) makes the regex case-insensitive
+            let query = ContactGroup.query(on: db).filter(\.$name =~ regexPattern)
+            
+            
+            let total = try await query.count()
+            let items = try await sortQuery(query: query,
+                                            sortBy: req.sortBy,
+                                            sortOrder: req.sortOrder,
+                                            page: page,
+                                            perPage: perPage)
+            
+            
+            let response = PaginatedResponse(page: page,
+                                             perPage: perPage,
+                                             total: total,
+                                             items: items)
+            
+            return response
+        } catch {
+            // Handle all other errors
+            throw DefaultError.error(message: error.localizedDescription)
+        }
     }
 }
+
+private extension ContactGroupRepository {
+    func sortQuery(query: QueryBuilder<ContactGroup>,
+                   sortBy: ContactGroupRepository.SortBy,
+                   sortOrder: ContactGroupRepository.SortOrder,
+                   page: Int,
+                   perPage: Int) async throws -> [ContactGroup] {
+        switch sortBy {
+        case .name:
+            switch sortOrder {
+            case .asc:
+                return try await query.sort(\.$name).range((page - 1) * perPage..<(page * perPage)).all()
+            case .desc:
+                return try await query.sort(\.$name, .descending).range((page - 1) * perPage..<(page * perPage)).all()
+            }
+        case .createdAt:
+            switch sortOrder {
+            case .asc:
+                return try await query.sort(\.$createdAt).range((page - 1) * perPage..<(page * perPage)).all()
+            case .desc:
+                return try await query.sort(\.$createdAt, .descending).range((page - 1) * perPage..<(page * perPage)).all()
+            }
+        }
+    }
 }
 
 extension ContactGroupRepository {

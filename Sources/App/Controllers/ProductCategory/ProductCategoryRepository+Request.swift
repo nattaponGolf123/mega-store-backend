@@ -57,7 +57,7 @@ extension ProductCategoryRepository {
             case page 
             case perPage = "per_page"
             case sortBy = "sort_by"
-            case sortOrder = "sort_by_order"
+            case sortOrder = "sort_order"
         }
     }   
 
