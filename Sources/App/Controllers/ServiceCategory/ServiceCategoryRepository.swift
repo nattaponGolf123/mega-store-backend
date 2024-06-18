@@ -138,17 +138,17 @@ class ServiceCategoryRepository: ServiceCategoryRepositoryProtocol {
         do {
             let perPage = req.perPage
             let page = req.page
-            let name = req.name
+            let q = req.q
             let sortBy = req.sortBy
             let sortOrderBy = req.sortByOrder
             
             guard
-                name.count > 0,
+                q.count > 0,
                 perPage > 0,
                 page > 0
             else { throw DefaultError.invalidInput }
             
-            let regexPattern = "(?i)\(name)"  // (?i) makes the regex case-insensitive
+            let regexPattern = "(?i)\(q)"  // (?i) makes the regex case-insensitive
             let query = ServiceCategory.query(on: db).filter(\.$name =~ regexPattern)
                         
             let total = try await query.count()

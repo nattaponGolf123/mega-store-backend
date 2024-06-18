@@ -62,18 +62,18 @@ extension ServiceCategoryRepository {
     }   
 
     struct Search: Content {
-        let name: String
+        let q: String
         let page: Int
         let perPage: Int
         let sortBy: SortBy
         let sortByOrder: SortByOrder
 
-        init(name: String,
+        init(q: String,
              page: Int = 1,
              perPage: Int = 20,
              sortBy: SortBy = .name,
              sortByOrder: SortByOrder = .asc) {
-            self.name = name
+            self.q = q
             self.page = page
             self.perPage = perPage
             self.sortBy = sortBy
@@ -82,7 +82,7 @@ extension ServiceCategoryRepository {
 
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.name = try container.decode(String.self, forKey: .name)
+            self.q = try container.decode(String.self, forKey: .q)
             self.page = (try? container.decode(Int.self, forKey: .page)) ?? 1
             self.perPage = (try? container.decode(Int.self, forKey: .perPage)) ?? 20
             self.sortBy = (try? container.decode(SortBy.self, forKey: .sortBy)) ?? .name
@@ -91,7 +91,7 @@ extension ServiceCategoryRepository {
 
         func encode(to encoder: Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
-            try container.encode(name, forKey: .name)
+            try container.encode(q, forKey: .q)
             try container.encode(page, forKey: .page)
             try container.encode(perPage, forKey: .perPage)
             try container.encode(sortBy, forKey: .sortBy)
@@ -99,7 +99,7 @@ extension ServiceCategoryRepository {
         }
 
         enum CodingKeys: String, CodingKey {
-            case name
+            case q
             case page
             case perPage = "per_page"
             case sortBy = "sort_by"

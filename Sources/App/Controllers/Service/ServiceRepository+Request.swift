@@ -173,7 +173,7 @@ extension ServiceRepository {
             case categoryId = "category_id"
             case images
             case coverImage = "cover_image"
-            case tags 
+            case tags
         }
         
         static func validations(_ validations: inout Validations) {

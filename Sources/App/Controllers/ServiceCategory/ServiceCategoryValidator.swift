@@ -59,7 +59,7 @@ class ServiceCategoryValidator: ServiceCategoryValidatorProtocol {
 
     func validateSearchQuery(_ req: Request) throws -> String {
         guard 
-            let search = req.query[String.self, at: "name"],
+            let search = req.query[String.self, at: "q"],
             !search.isEmpty
             else { throw DefaultError.invalidInput }
         
