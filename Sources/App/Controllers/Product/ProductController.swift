@@ -1,304 +1,176 @@
-//
-//  File.swift
-//
-//
-//  Created by IntrodexMac on 23/1/2567 BE.
-//
-
-import Vapor
+import Foundation
 import Fluent
+import Vapor
 
 class ProductController: RouteCollection {
-
-    func boot(routes: RoutesBuilder) throws {
-        
-        let products = routes.grouped("products")
-//        products.get(use: all)
-//        products.post(use: create)
-//        
-//        products.group(":id") { productWithID in
-//            productWithID.get(use: getByID)
-//            productWithID.put(use: update)
-//            productWithID.delete(use: delete)            
-//        }
+    
+    private(set) var repository: ProductRepositoryProtocol
+    private(set) var validator: ProductValidatorProtocol
+    
+    init(repository: ProductRepositoryProtocol = ProductRepository(),
+         validator: ProductValidatorProtocol = ProductValidator()) {
+        self.repository = repository
+        self.validator = validator
     }
     
-    // GET /products
-//    func all(req: Request) async throws -> [Product] {
-//        do {
-//            let query = try req.query.decode(QueryProduct.self)
-//            
-//            if let name = query.name {
-//                // return with filter by name
-//                return try await Product.query(on: req.db)
-//                    .filter(\.$name =~ name)
-//                    .all()
-//            }
-//            // return all product
-//            return try await Product.query(on: req.db).all()
-//        } catch {
-//            return try await Product.query(on: req.db).all()
-//        }
-//    }
-//    
-//    // POST /products
-//    func create(req: Request) async throws -> Product {
-//        // try to decode param by CreateContent
-//        let content = try req.content.decode(CreateProduct.self)
-//        
-//        // validate
-//        try CreateProduct.validate(content: req)
-//                
-////        let newProduct = Product(name: content.name,
-////                                 description: content.description,
-////                                 unit: content.unit,
-////                                 price: content.price,
-////                                 categoryID: UUID(),
-////                                 manufacturer: nil,
-////                                 barcode: nil,
-////                                 imageUrl: nil,
-////                                 tags: ["test"],
-////                                 variants: [
-////                                     .init(variantID: UUID(),
-////                                           variantName: "v name",
-////                                           variantSKU: "sku",
-////                                           price: 100)
-////                                  ])
-//        let newProduct = Product(name: content.name,
-//                                 description: content.description,
-//                                 unit: content.unit,
-//                                 price: content.price,
-//                                 categoryID: UUID(),
-//                                 manufacturer: nil,
-//                                 barcode: nil,
-//                                 imageUrl: nil,
-//                                 tags: ["test"],
-//                                 variants: [
-//                                     .init(variantID: UUID(),
-//                                           variantName: "v name",
-//                                           variantSKU: "sku",
-//                                           price: 100)
-//                                  ])
-//                                 
-//        try await newProduct.create(on: req.db)
-//        
-//        return newProduct
-//    }
-//    
-//    // GET /products/:id
-//    func getByID(req: Request) async throws -> Product {
-//        guard
-//            let id = req.parameters.get("id"),
-//            let uuid = UUID(id)
-//        else { throw Abort(.badRequest) }
-//        
-//        do {
-//            guard
-//                let product = try await Product.query(on: req.db)
-//                .filter(\.$id == uuid)
-//                .first()
-//            else { throw Abort(.notFound) }
-//            
-//            return product
-//        } catch {
-//            throw Abort(.notFound)
-//        }
-//    }
-//    
-//    // PUT /products/:id
-//    func update(req: Request) async throws -> Product {
-//        guard
-//            let id = req.parameters.get("id"),
-//            let uuid = UUID(id)
-//        else { throw Abort(.badRequest) }
-//        
-//        // try to decode param by UpdateProduct
-//        let content = try req.content.decode(UpdateProduct.self)
-//        
-//        // validate
-//        try UpdateProduct.validate(content: req)
-//        
-//        let updateBuilder = updateProductFieldsBuilder(uuid: uuid,
-//                                                    content: content,
-//                                                    db: req.db)
-//        try await updateBuilder.update()
-//                
-//        do {
-//            guard
-//                let product = try await getByIDBuilder(uuid: uuid,
-//                                                       db: req.db).first()
-//            else { throw Abort(.notFound) }
-//            
-//            return product
-//        } catch {
-//            throw Abort(.notFound)
-//        }
-//    }
-//    
-//    // DELETE /products/:id
-//    func delete(req: Request) async throws -> HTTPStatus {
-//        guard
-//            let id = req.parameters.get("id"),
-//            let uuid = UUID(id)
-//        else { throw Abort(.badRequest) }
-//        
-//        do {
-//            guard
-//                let product = try await getByIDBuilder(uuid: uuid,
-//                                                       db: req.db).first()
-//            else { throw Abort(.notFound) }
-//            
-//            try await product.delete(on: req.db)
-//        } catch {
-//            throw Abort(.notFound)
-//        }
-//                
-//        return .ok
-//    }
+    func boot(routes: RoutesBuilder) throws {
+        
+        let groups = routes.grouped("services")
+        groups.get(use: all)
+        groups.post(use: create)
+        
+        groups.group(":id") { withID in
+            withID.get(use: getByID)
+            withID.put(use: update)
+            withID.delete(use: delete)
+        }
+        
+        groups.group("search") { _search in
+            _search.get(use: search)
+        }
+    }
+    
+    // GET /services?show_deleted=true&page=1&per_page=10
+    func all(req: Request) async throws -> PaginatedResponse<ProductResponse> {
+        let reqContent = try req.query.decode(ProductRepository.Fetch.self)
+
+        return try await repository.fetchAll(req: reqContent, on: req.db)
+    }
+    
+    // POST /services
+    func create(req: Request) async throws -> ProductResponse {
+        let content = try validator.validateCreate(req)
+        
+        return try await repository.create(content: content, on: req.db)
+    }
+    
+    // GET /services/:id
+    func getByID(req: Request) async throws -> ProductResponse {
+        let uuid = try validator.validateID(req)
+        
+        return try await repository.find(id: uuid, on: req.db)
+    }
+    
+    // PUT /services/:id
+    func update(req: Request) async throws -> ProductResponse {
+        let (uuid, content) = try validator.validateUpdate(req)
+        
+        do {
+            // check if name is duplicate
+            guard let name = content.name else { throw DefaultError.invalidInput }
+            
+            let _ = try await repository.find(name: name, on: req.db)
+            
+            throw CommonError.duplicateName
+            
+        } catch let error as DefaultError {
+            switch error {
+            case .notFound: // no duplicate
+                return try await repository.update(id: uuid, with: content, on: req.db)
+            default:
+                throw error
+            }
+            
+        } catch let error as CommonError {
+            throw error
+            
+        } catch {
+            // Handle all other errors
+            throw DefaultError.error(message: error.localizedDescription)
+        }
+    }
+
+    // DELETE /services/:id
+    func delete(req: Request) async throws -> ProductResponse {
+        let uuid = try validator.validateID(req)
+        
+        return try await repository.delete(id: uuid, on: req.db)
+    }
+    
+    // GET /services/search?name=xxx&page=1&per_page=10
+    func search(req: Request) async throws -> PaginatedResponse<ProductResponse> {
+        let _ = try validator.validateSearchQuery(req)
+        let reqContent = try req.query.decode(ProductRepository.Search.self)
+        
+        return try await repository.search(req: reqContent, on: req.db)        
+    }
 }
 
-//private extension ProductController {
-//    
-//    // Helper function to update product fields in the database
-//    func updateProductFieldsBuilder(uuid: UUID,
-//                                    content: UpdateProduct,
-//                                    db: Database) -> QueryBuilder<Product> {
-//        let updateBuilder = Product.query(on: db).filter(\.$id == uuid)
-//        
-//        if let name = content.name {
-//            updateBuilder.set(\.$name, 
-//                               to: name)
-//        }
-//        if let price = content.price {
-//            updateBuilder.set(\.$price, 
-//                               to: price)
-//        }
-//        if let description = content.description {
-//            updateBuilder.set(\.$description, 
-//                               to: description)
-//        }
-////        if let unit = content.unit {
-////            updateBuilder.set(\.$unit, 
-////                               to: unit)
-////        }
-//        return updateBuilder
-//    }
-//    
-//    func getByIDBuilder(uuid: UUID,
-//                        db: Database) -> QueryBuilder<Product> {
-//        return Product.query(on: db).filter(\.$id == uuid)
-//    }
-//}
+/*
 
-//extension ProductController {
-//    
-//    struct QueryProduct: Content {
-//        let name: String?
-//    }
-//    
-//    struct RequestParameter: Content {
-//        let id: Int
-//        
-//        init(from decoder: Decoder) throws {
-//            let container = try decoder.container(keyedBy: CodingKeys.self)
-//            let _id = try container.decode(String.self,
-//                                           forKey: .id)
-//            guard
-//                let id = Int(_id)
-//            else { throw Abort(.badRequest) }
-//            
-//            self.id = id
-//        }
-//    }
-//    
-//    struct CreateProduct: Content, Validatable {
-//        let name: String
-//        let price: Double
-//        let description: String
-//        let unit: String
-//        
-//        init(name: String,
-//             price: Double,
-//             description: String,
-//             unit: String) {
-//            self.name = name
-//            self.price = price
-//            self.description = description
-//            self.unit = unit
-//        }
-//        
-//        init(from decoder: Decoder) throws {
-//            let container = try decoder.container(keyedBy: CodingKeys.self)
-//            self.name = try container.decode(String.self,
-//                                             forKey: .name)
-//            self.price = try container.decode(Double.self,
-//                                              forKey: .price)
-//            self.description = (try? container.decode(String.self,
-//                                                    forKey: .description)) ?? ""
-//            self.unit = (try? container.decodeIfPresent(String.self,
-//                                                        forKey: .unit)) ?? "THB"
-//        }
-//        
-//        enum CodingKeys: String, CodingKey {
-//            case name = "name"
-//            case price = "price"
-//            case description = "des"
-//            case unit = "unit"
-//        }
-//     
-//        static func validations(_ validations: inout Validations) {
-//            validations.add("name", as: String.self,
-//                            is: .count(3...))
-//            validations.add("price", as: Double.self,
-//                            is: .range(0...))
-//            validations.add("des", as: String.self,
-//                            is: .count(3...),
-//                            required: false)
-//            validations.add("unit", as: String.self,
-//                            is: .count(3...),
-//                            required: false)
-//        }
-//    }
-//    
-//    struct UpdateProduct: Content, Validatable {
-//        let name: String?
-//        let price: Double?
-//        let description: String?
-//        let unit: String?
-//        
-//        init(name: String? = nil,
-//             price: Double? = nil,
-//             description: String? = nil,
-//             unit: String? = nil) {
-//            self.name = name
-//            self.price = price
-//            self.description = description
-//            self.unit = unit
-//        }
-//        
-//        enum CodingKeys: String, CodingKey {
-//            case name = "name"
-//            case price = "price"
-//            case description = "des"
-//            case unit = "unit"
-//        }
-//     
-//        static func validations(_ validations: inout Validations) {
-//            validations.add("name", as: String.self,
-//                            is: .count(3...),
-//                            required: false)
-//            validations.add("price", as: Double.self,
-//                            is: .range(0...),
-//                            required: false)
-//            validations.add("des", as: String.self,
-//                            is: .count(3...),
-//                            required: false)
-//            validations.add("unit", as: String.self,
-//                            is: .count(3...),
-//                            required: false)
-//        }
-//    }
-//    
-//}
+protocol ProductRepositoryProtocol {
+    func fetchAll(req: ProductRepository.Fetch,
+                  on db: Database) async throws -> PaginatedResponse<Product>
+    func create(content: ProductRepository.Create, on db: Database) async throws -> Product
+    func find(id: UUID, on db: Database) async throws -> Product
+    func find(name: String, on db: Database) async throws -> Product
+    func update(id: UUID, with content: ProductRepository.Update, on db: Database) async throws -> Product
+    func delete(id: UUID, on db: Database) async throws -> Product
+    func search(req: ProductRepository.Search, on db: Database) async throws -> PaginatedResponse<Product>
+}
+*/
 
+/*
+protocol ProductValidatorProtocol {
+    func validateCreate(_ req: Request) throws -> ProductRepository.Create
+    func validateUpdate(_ req: Request) throws -> (uuid: UUID, content: ProductRepository.Update)
+    func validateID(_ req: Request) throws -> UUID
+    func validateSearchQuery(_ req: Request) throws -> String
+}
 
+class ProductValidator: ProductValidatorProtocol {
+    typealias CreateContent = ProductRepository.Create
+    typealias UpdateContent = ProductRepository.Update
+
+    func validateCreate(_ req: Request) throws -> CreateContent {
+        
+        do {
+            // Decode the incoming Product
+            let content: ProductValidator.CreateContent = try req.content.decode(CreateContent.self)  
+
+            // Validate the Product directly
+            try CreateContent.validate(content: req)
+            
+            return content
+        } catch let error as ValidationsError {
+            // Parse and throw a more specific input validation error if validation fails
+            let errors = InputError.parse(failures: error.failures)
+            throw InputValidateError.inputValidateFailed(errors: errors)
+        } catch {
+            // Handle all other errors
+            throw DefaultError.invalidInput
+        }
+    }
+
+    func validateUpdate(_ req: Request) throws -> (uuid: UUID, content: ProductRepository.Update) {
+        typealias UpdateProduct = ProductRepository.Update
+        do {
+            // Decode the incoming Product and validate it
+            let content: UpdateProduct = try req.content.decode(UpdateProduct.self)
+            try UpdateProduct.validate(content: req)
+            
+            // Extract the ID from the request's parameters
+            guard let id = req.parameters.get("id", as: UUID.self) else { throw DefaultError.invalidInput }
+            
+            return (id, content)
+        } catch let error as ValidationsError {
+            let errors = InputError.parse(failures: error.failures)
+            throw InputValidateError.inputValidateFailed(errors: errors)
+        } catch {
+            throw DefaultError.invalidInput
+        }
+    }
+
+    func validateID(_ req: Request) throws -> UUID {
+        guard let id = req.parameters.get("id"), let uuid = UUID(id) else { throw DefaultError.invalidInput }
+        
+        return uuid
+    }
+
+    func validateSearchQuery(_ req: Request) throws -> String {
+        guard let search = req.query[String.self, at: "q"] else { throw DefaultError.invalidInput }
+        
+        return search
+    }
+}
+*/

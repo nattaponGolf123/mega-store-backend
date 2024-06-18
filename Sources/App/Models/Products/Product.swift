@@ -15,23 +15,26 @@ final class Product: Model, Content {
     @ID(key: .id)
     var id: UUID?
 
+    @Field(key: "number")
+    var number: Int
+
     @Field(key: "name")
     var name: String
 
     @Field(key: "description")
-    var description: String
+    var description: String?
 
     @Field(key: "unit")
-    var unit: String 
+    var unit: String?
 
-    @Field(key: "selling_price")
-    var sellingPrice: Double
+    @Field(key: "price")
+    var price: Double
 
     @Field(key: "category_id")
     var categoryId: UUID?
 
     @Field(key: "manufacturer")
-    var manufacturer: String
+    var manufacturer: String?
 
     @Field(key: "barcode")
     var barcode: String?
@@ -69,26 +72,28 @@ final class Product: Model, Content {
     init() { }
 
     init(id: UUID? = nil,
-        name: String,
-         description: String,
-         unit: String,
-         sellingPrice: Double = 0,
+         number: Int = 1,
+         name: String,
+         description: String? = nil,
+         unit: String? = nil,
+         price: Double,
          categoryId: UUID? = nil,
-         manufacturer: String = "",
-         barcode: String? = nil,         
+         manufacturer: String? = nil,
+         barcode: String? = nil,
+         createdAt: Date? = nil,
+         updatedAt: Date? = nil,
+         deletedAt: Date? = nil,
          images: [String] = [],
          coverImage: String? = nil,
          tags: [String] = [],
          suppliers: [UUID] = [],
-         variants: [ProductVariant] = [],
-         createdAt: Date? = nil,
-         updatedAt: Date? = nil,
-         deletedAt: Date? = nil) {
-        self.id = id
+         variants: [ProductVariant] = []) {
+        self.id = id ?? .init()
+        self.number = number
         self.name = name
         self.description = description
         self.unit = unit
-        self.sellingPrice = sellingPrice
+        self.price = price
         self.categoryId = categoryId
         self.manufacturer = manufacturer
         self.barcode = barcode
@@ -107,13 +112,34 @@ final class Product: Model, Content {
 extension Product { 
     struct Stub {
         static var steel: Product {
-            return Product(name: "Steel",
-             description: "Steel Description",
-              unit: "kg",
-               sellingPrice: 100.11,
-                categoryId: nil,
-                 manufacturer: "Steel Manufacturer",
-                variants: [ProductVariant.Stub.steelVariant])
+            .init(name: "Steel",
+                  description: "Steel is an alloy of iron and carbon containing less than 2% carbon and 1% manganese and small amounts of silicon, phosphorus, sulphur and oxygen.",
+                  unit: "kg",
+                  price: 100.00,
+                  categoryId: ProductCategory.Stub.steel.id,
+                  manufacturer: "Steel Manufacturer",
+                  barcode: "1234567890",
+                  images: ["https://example.com/steel.jpg"],
+                  coverImage: "https://example.com/steel.jpg",
+                  tags: ["steel", "iron", "carbon"],
+                  variants: [
+                      .init(number: 1,
+                            name: "Steel",
+                            sku: "STL-001",
+                            price: 100.00,
+                            description: "Steel is an alloy of iron and carbon containing less than 2% carbon and 1% manganese and small amounts of silicon, phosphorus, sulphur and oxygen.",
+                            image: "https://example.com/steel.jpg",
+                            color: "Silver",
+                            barcode: "1234567890",
+                            dimensions: .init(length: 1,
+                                              width: 1,
+                                              height: 1,
+                                              weight: 1,
+                                              lengthUnit: "cm",
+                                              widthUnit: "cm",
+                                              heightUnit: "cm",
+                                              weightUnit: "kg"))
+                  ])
         }
     }
 }
@@ -126,99 +152,99 @@ extension Product {
 
 }
 
-extension Product {
+// extension Product {
    
-   struct Create: Content, Validatable {
-       let name: String
-       let price: Double
-       let description: String
-       let unit: String
+//    struct Create: Content, Validatable {
+//        let name: String
+//        let price: Double
+//        let description: String
+//        let unit: String
        
-       init(name: String,
-            price: Double,
-            description: String,
-            unit: String) {
-           self.name = name
-           self.price = price
-           self.description = description
-           self.unit = unit
-       }
+//        init(name: String,
+//             price: Double,
+//             description: String,
+//             unit: String) {
+//            self.name = name
+//            self.price = price
+//            self.description = description
+//            self.unit = unit
+//        }
        
-       init(from decoder: Decoder) throws {
-           let container = try decoder.container(keyedBy: CodingKeys.self)
-           self.name = try container.decode(String.self,
-                                            forKey: .name)
-           self.price = try container.decode(Double.self,
-                                             forKey: .price)
-           self.description = (try? container.decode(String.self,
-                                                   forKey: .description)) ?? ""
-           self.unit = (try? container.decodeIfPresent(String.self,
-                                                       forKey: .unit)) ?? ""
-       }
+//        init(from decoder: Decoder) throws {
+//            let container = try decoder.container(keyedBy: CodingKeys.self)
+//            self.name = try container.decode(String.self,
+//                                             forKey: .name)
+//            self.price = try container.decode(Double.self,
+//                                              forKey: .price)
+//            self.description = (try? container.decode(String.self,
+//                                                    forKey: .description)) ?? ""
+//            self.unit = (try? container.decodeIfPresent(String.self,
+//                                                        forKey: .unit)) ?? ""
+//        }
        
-       enum CodingKeys: String, CodingKey {
-           case name = "name"
-           case price = "price"
-           case description = "description"
-           case unit = "unit"
-       }
+//        enum CodingKeys: String, CodingKey {
+//            case name = "name"
+//            case price = "price"
+//            case description = "description"
+//            case unit = "unit"
+//        }
     
-       static func validations(_ validations: inout Validations) {
-            validations.add("name", as: String.self,
-                            is: .count(1...400),
-                            required: true)
-            // validations.add("description", as: String.self,
-            //                 is: .count(...400),
-            //                 required: false)
-            validations.add("price", as: Double.self,
-                            is: .range(0...),
-                            required: true)
-            validations.add("unit", as: String.self,
-                            is: .count(1...),
-                            required: true)      
-       }
-   }
+//        static func validations(_ validations: inout Validations) {
+//             validations.add("name", as: String.self,
+//                             is: .count(1...400),
+//                             required: true)
+//             // validations.add("description", as: String.self,
+//             //                 is: .count(...400),
+//             //                 required: false)
+//             validations.add("price", as: Double.self,
+//                             is: .range(0...),
+//                             required: true)
+//             validations.add("unit", as: String.self,
+//                             is: .count(1...),
+//                             required: true)      
+//        }
+//    }
    
-   struct Update: Content, Validatable {
-       let name: String?
-       let price: Double?
-       let description: String?
-       let unit: String?
+//    struct Update: Content, Validatable {
+//        let name: String?
+//        let price: Double?
+//        let description: String?
+//        let unit: String?
        
-       init(name: String? = nil,
-            price: Double? = nil,
-            description: String? = nil,
-            unit: String? = nil) {
-           self.name = name
-           self.price = price
-           self.description = description
-           self.unit = unit
-       }
+//        init(name: String? = nil,
+//             price: Double? = nil,
+//             description: String? = nil,
+//             unit: String? = nil) {
+//            self.name = name
+//            self.price = price
+//            self.description = description
+//            self.unit = unit
+//        }
        
-       enum CodingKeys: String, CodingKey {
-           case name = "name"
-           case price = "price"
-           case description = "des"
-           case unit = "unit"
-       }
+//        enum CodingKeys: String, CodingKey {
+//            case name = "name"
+//            case price = "price"
+//            case description = "des"
+//            case unit = "unit"
+//        }
     
-       static func validations(_ validations: inout Validations) {
-           validations.add("name", as: String.self,
-                           is: .count(3...),
-                           required: false)
-           validations.add("price", as: Double.self,
-                           is: .range(0...),
-                           required: false)
-           validations.add("des", as: String.self,
-                           is: .count(3...),
-                           required: false)
-           validations.add("unit", as: String.self,
-                           is: .count(3...),
-                           required: false)
-       }
-   }
+//        static func validations(_ validations: inout Validations) {
+//            validations.add("name", as: String.self,
+//                            is: .count(3...),
+//                            required: false)
+//            validations.add("price", as: Double.self,
+//                            is: .range(0...),
+//                            required: false)
+//            validations.add("des", as: String.self,
+//                            is: .count(3...),
+//                            required: false)
+//            validations.add("unit", as: String.self,
+//                            is: .count(3...),
+//                            required: false)
+//        }
+//    }
 
-}
+// }
 
 /*
  {

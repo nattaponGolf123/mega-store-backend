@@ -9,49 +9,26 @@ import Foundation
 import Vapor
 import Fluent
 
-@propertyWrapper
-struct UniqueVariantId {
-    private var value: String?
-    
-    var wrappedValue: String {
-        mutating get {
-            if let existingValue = value {
-                return existingValue
-            } else {
-                let newValue = generateRandomString()
-                value = newValue
-                return newValue
-            }
-        }
-    }
-    
-    private func generateRandomString() -> String {
-        let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-        return String((0..<5).map { _ in letters.randomElement()! })
-    }
-}
-
-
 final class ProductVariant:Model, Content {
     static let schema = "ProductVariant"
     
     @ID(key: .id)
     var id: UUID?
     
-    @Field(key: "variant_id")
-    var variantId: String
-    
-    @Field(key: "variant_name")
+    @Field(key: "number")
+    var number: Int
+
+    @Field(key: "name")
     var name: String
     
-    @Field(key: "variant_sku")
-    var sku: String
+    @Field(key: "sku")
+    var sku: String?
     
     @Field(key: "price")
-    var sellingPrice: Double
+    var price: Double
     
-    @Field(key: "additional_description")
-    var additionalDescription: String
+    @Field(key: "description")
+    var description: String?
     
     @Field(key: "image")
     var image: String?
@@ -83,90 +60,46 @@ final class ProductVariant:Model, Content {
     init() { }
     
     init(id: UUID? = nil,
-         variantId: String? = nil,
+         number: Int = 1,
          name: String,
-         sku: String,
-         sellingPrice: Double,
-         additionalDescription: String,
+         sku: String? = nil,
+         price: Double = 0,
+         description: String? = nil,
          image: String? = nil,
          color: String? = nil,
          barcode: String? = nil,
          dimensions: ProductDimension? = nil,
          createdAt: Date? = nil,
          updatedAt: Date? = nil,
-         deletedAt: Date? = nil) {
-        
-        @UniqueVariantId
-        var _variantId: String
+         deletedAt: Date? = nil) {        
         
         self.id = id ?? .init()
-        self.variantId = variantId ?? _variantId
+        self.number = number
         self.name = name
+        self.description = description
         self.sku = sku
-        self.sellingPrice = sellingPrice
-        self.additionalDescription = additionalDescription
+        self.price = price        
         self.image = image
         self.color = color
         self.barcode = barcode
         self.dimensions = dimensions
-        self.createdAt = createdAt
+        self.createdAt = createdAt ?? .init()
         self.updatedAt = updatedAt
         self.deletedAt = deletedAt
     }
-    
-    //encode
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(id, forKey: .id)
-        try container.encode(variantId, forKey: .variantId)
-        try container.encode(name, forKey: .name)
-        try container.encode(sku, forKey: .sku)
-        try container.encode(sellingPrice, forKey: .sellingPrice)
-        try container.encode(additionalDescription, forKey: .additionalDescription)
-        try container.encode(image, forKey: .image)
-        try container.encode(color, forKey: .color)
-        try container.encode(barcode, forKey: .barcode)
-        try container.encode(dimensions, forKey: .dimensions)
-    }
 
-    //decode
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(UUID.self, forKey: .id)
-        variantId = try container.decode(String.self, forKey: .variantId)
-        name = try container.decode(String.self, forKey: .name)
-        sku = try container.decode(String.self, forKey: .sku)
-        sellingPrice = try container.decode(Double.self, forKey: .sellingPrice)
-        additionalDescription = try container.decode(String.self, forKey: .additionalDescription)
-        image = try container.decode(String.self, forKey: .image)
-        color = try container.decode(String.self, forKey: .color)
-        barcode = try container.decode(String.self, forKey: .barcode)
-        dimensions = try container.decode(ProductDimension.self, forKey: .dimensions)
-    }
-
-    enum CodingKeys: String, CodingKey {
-        case id
-        case variantId = "variant_id"
-        case name = "variant_name"
-        case sku = "variant_sku"
-        case sellingPrice = "price"
-        case additionalDescription = "additional_description"
-        case image
-        case color
-        case barcode
-        case dimensions
-    }
 }
 
-extension ProductVariant { 
-    struct Stub {
-        static var steelVariant: ProductVariant {
-            return .init(name: "Steel Variant",
-                         sku: "STL-123",
-                         sellingPrice: 100.11,
-                         additionalDescription: "Steel Variant Description",
+ extension ProductVariant { 
+     struct Stub {
+
+        static var metal: ProductVariant {
+            return .init(name: "Metal Variant",
+                         sku: "MTL-123",
+                         price: 100.11,
+                         description: "Metal Variant Description",
                          color: "Silver",
-                         barcode: "STL-123-456",
+                         barcode: "MTL-123-456",
                          dimensions: .init(length: 1,
                                            width: 1,
                                            height: 1,
@@ -174,8 +107,9 @@ extension ProductVariant {
                                            lengthUnit: "cm",
                                            weightUnit: "kg"))
         }
-    }
-}
+
+     }
+ }
 
 /*
  {
