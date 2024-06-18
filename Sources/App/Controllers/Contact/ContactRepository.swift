@@ -285,33 +285,33 @@ class ContactRepository: ContactRepositoryProtocol {
 private extension ContactRepository {
     func sortQuery(query: QueryBuilder<Contact>,
                    sortBy: ContactRepository.SortBy,
-                   sortOrderBy: ContactRepository.SortByOrder,
+                   sortOrder: ContactRepository.SortOrder,
                    page: Int,
                    perPage: Int) async throws -> [Contact] {
         switch sortBy {
         case .name:
-            switch sortOrderBy {
+            switch sortOrder {
             case .asc:
                 return try await query.sort(\.$name).range((page - 1) * perPage..<(page * perPage)).all()
             case .desc:
                 return try await query.sort(\.$name, .descending).range((page - 1) * perPage..<(page * perPage)).all()
             }
         case .createdAt:
-            switch sortOrderBy {
+            switch sortOrder {
             case .asc:
                 return try await query.sort(\.$createdAt).range((page - 1) * perPage..<(page * perPage)).all()
             case .desc:
                 return try await query.sort(\.$createdAt, .descending).range((page - 1) * perPage..<(page * perPage)).all()
             }
         case .groupId:
-            switch sortOrderBy {
+            switch sortOrder {
             case .asc:
                 return try await query.sort(\.$groupId).range((page - 1) * perPage..<(page * perPage)).all()
             case .desc:
                 return try await query.sort(\.$groupId, .descending).range((page - 1) * perPage..<(page * perPage)).all()
             }
         case .number:
-            switch sortOrderBy {
+            switch sortOrder {
             case .asc:
                 return try await query.sort(\.$number).range((page - 1) * perPage..<(page * perPage)).all()
             case .desc:
@@ -325,19 +325,19 @@ private extension ContactRepository {
      private extension ServiceCategoryRepository {
      func sortQuery(query: QueryBuilder<ServiceCategory>,
      sortBy: ServiceCategoryRepository.SortBy,
-     sortOrderBy: ServiceCategoryRepository.SortByOrder,
+     sortOrder: ServiceCategoryRepository.SortByOrder,
      page: Int,
      perPage: Int) async throws -> [ServiceCategory] {
      switch sortBy {
      case .name:
-     switch sortOrderBy {
+     switch sortOrder {
      case .asc:
      return try await query.sort(\.$name).range((page - 1) * perPage..<(page * perPage)).all()
      case .desc:
      return try await query.sort(\.$name, .descending).range((page - 1) * perPage..<(page * perPage)).all()
      }
      case .createdAt:
-     switch sortOrderBy {
+     switch sortOrder {
      case .asc:
      return try await query.sort(\.$createdAt).range((page - 1) * perPage..<(page * perPage)).all()
      case .desc:

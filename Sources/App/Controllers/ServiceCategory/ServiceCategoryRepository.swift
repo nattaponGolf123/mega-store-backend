@@ -22,7 +22,7 @@ class ServiceCategoryRepository: ServiceCategoryRepositoryProtocol {
             let page = req.page
             let perPage = req.perPage
             let sortBy = req.sortBy
-            let sortOrderBy = req.sortByOrder
+            let sortOrder = req.sortOrder
             
             guard
                 page > 0,
@@ -40,7 +40,7 @@ class ServiceCategoryRepository: ServiceCategoryRepositoryProtocol {
             let total = try await query.count()
             let items = try await sortQuery(query: query,
                                             sortBy: sortBy,
-                                            sortOrderBy: sortOrderBy,
+                                            sortOrder: sortOrder,
                                             page: page,
                                             perPage: perPage)
             
@@ -140,7 +140,7 @@ class ServiceCategoryRepository: ServiceCategoryRepositoryProtocol {
             let page = req.page
             let q = req.q
             let sortBy = req.sortBy
-            let sortOrderBy = req.sortByOrder
+            let sortOrder = req.sortOrder
             
             guard
                 q.count > 0,
@@ -154,7 +154,7 @@ class ServiceCategoryRepository: ServiceCategoryRepositoryProtocol {
             let total = try await query.count()
             let items = try await sortQuery(query: query, 
                                             sortBy: sortBy,
-                                            sortOrderBy: sortOrderBy,
+                                            sortOrder: sortOrder,
                                             page: page,
                                             perPage: perPage)
             
@@ -175,19 +175,19 @@ class ServiceCategoryRepository: ServiceCategoryRepositoryProtocol {
 private extension ServiceCategoryRepository {
     func sortQuery(query: QueryBuilder<ServiceCategory>,
                            sortBy: ServiceCategoryRepository.SortBy,
-                           sortOrderBy: ServiceCategoryRepository.SortByOrder,
+                           sortOrder: ServiceCategoryRepository.SortOrder,
                            page: Int,
                            perPage: Int) async throws -> [ServiceCategory] {
          switch sortBy {
          case .name:
-             switch sortOrderBy {
+             switch sortOrder {
              case .asc:
                  return try await query.sort(\.$name).range((page - 1) * perPage..<(page * perPage)).all()
              case .desc:
                  return try await query.sort(\.$name, .descending).range((page - 1) * perPage..<(page * perPage)).all()
              }
          case .createdAt:
-             switch sortOrderBy {
+             switch sortOrder {
              case .asc:
                  return try await query.sort(\.$createdAt).range((page - 1) * perPage..<(page * perPage)).all()
              case .desc:

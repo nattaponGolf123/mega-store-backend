@@ -23,7 +23,7 @@ class ServiceRepository: ServiceRepositoryProtocol {
             let page = req.page
             let perPage = req.perPage
             let sortBy = req.sortBy
-            let sortOrderBy = req.sortByOrder
+            let sortOrder = req.sortOrder
             
             guard page > 0, perPage > 0 else { throw DefaultError.invalidInput }
             
@@ -38,7 +38,7 @@ class ServiceRepository: ServiceRepositoryProtocol {
             let total = try await query.count()
             let items = try await sortQuery(query: query,
                                             sortBy: sortBy,
-                                            sortOrderBy: sortOrderBy,
+                                            sortOrder: sortOrder,
                                             page: page,
                                             perPage: perPage)
             
@@ -134,7 +134,7 @@ class ServiceRepository: ServiceRepositoryProtocol {
             let page = req.page
             let keyword = req.q
             let sort = req.sortBy
-            let order = req.sortByOrder
+            let order = req.sortOrder
             
             guard
                 keyword.count > 0,
@@ -154,7 +154,7 @@ class ServiceRepository: ServiceRepositoryProtocol {
             let total = try await query.count()
             let items = try await sortQuery(query: query,
                                             sortBy: sort,
-                                            sortOrderBy: order,
+                                            sortOrder: order,
                                             page: page,
                                             perPage: perPage)
             let responseItems = items.map { ServiceResponse(from: $0) }
@@ -185,40 +185,40 @@ class ServiceRepository: ServiceRepositoryProtocol {
 private extension ServiceRepository {
     func sortQuery(query: QueryBuilder<Service>,
                    sortBy: ServiceRepository.SortBy,
-                   sortOrderBy: ServiceRepository.SortByOrder,
+                   sortOrder: ServiceRepository.SortOrder,
                    page: Int,
                    perPage: Int) async throws -> [Service] {
         switch sortBy {
         case .name:
-            switch sortOrderBy {
+            switch sortOrder {
             case .asc:
                 return try await query.sort(\.$name).range((page - 1) * perPage..<(page * perPage)).all()
             case .desc:
                 return try await query.sort(\.$name, .descending).range((page - 1) * perPage..<(page * perPage)).all()
             }
         case .createdAt:
-            switch sortOrderBy {
+            switch sortOrder {
             case .asc:
                 return try await query.sort(\.$createdAt).range((page - 1) * perPage..<(page * perPage)).all()
             case .desc:
                 return try await query.sort(\.$createdAt, .descending).range((page - 1) * perPage..<(page * perPage)).all()
             }
         case .number:
-            switch sortOrderBy {
+            switch sortOrder {
             case .asc:
                 return try await query.sort(\.$number).range((page - 1) * perPage..<(page * perPage)).all()
             case .desc:
                 return try await query.sort(\.$number, .descending).range((page - 1) * perPage..<(page * perPage)).all()
             }
         case .price:
-            switch sortOrderBy {
+            switch sortOrder {
             case .asc:
                 return try await query.sort(\.$price).range((page - 1) * perPage..<(page * perPage)).all()
             case .desc:
                 return try await query.sort(\.$price, .descending).range((page - 1) * perPage..<(page * perPage)).all()
             }
         case .categoryId:
-            switch sortOrderBy {
+            switch sortOrder {
             case .asc:
                 return try await query.sort(\.$categoryId).range((page - 1) * perPage..<(page * perPage)).all()
             case .desc:

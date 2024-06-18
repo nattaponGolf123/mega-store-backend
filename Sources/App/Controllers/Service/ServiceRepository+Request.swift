@@ -20,7 +20,7 @@ extension ServiceRepository {
         case createdAt = "created_at"
     }
 
-    enum SortByOrder: String, Codable {
+    enum SortOrder: String, Codable {
         case asc
         case desc
     }
@@ -30,18 +30,18 @@ extension ServiceRepository {
         let page: Int
         let perPage: Int
         let sortBy: SortBy
-        let sortByOrder: SortByOrder
+        let sortOrder: SortOrder
         
         init(showDeleted: Bool = false,
              page: Int = 1,
              perPage: Int = 20,
              sortBy: SortBy = .number,
-             sortByOrder: SortByOrder = .asc) {
+             sortOrder: SortOrder = .asc) {
             self.showDeleted = showDeleted
             self.page = page
             self.perPage = perPage
             self.sortBy = sortBy
-            self.sortByOrder = sortByOrder
+            self.sortOrder = sortOrder
         }
         
         init(from decoder: Decoder) throws {
@@ -50,7 +50,7 @@ extension ServiceRepository {
             self.page = (try? container.decode(Int.self, forKey: .page)) ?? 1
             self.perPage = (try? container.decode(Int.self, forKey: .perPage)) ?? 20
             self.sortBy = (try? container.decode(SortBy.self, forKey: .sortBy)) ?? .number
-            self.sortByOrder = (try? container.decode(SortByOrder.self, forKey: .sortByOrder)) ?? .asc
+            self.sortOrder = (try? container.decode(SortOrder.self, forKey: .sortOrder)) ?? .asc
         }
         
         func encode(to encoder: Encoder) throws {
@@ -59,7 +59,7 @@ extension ServiceRepository {
             try container.encode(page, forKey: .page)
             try container.encode(perPage, forKey: .perPage)
             try container.encode(sortBy, forKey: .sortBy)
-            try container.encode(sortByOrder, forKey: .sortByOrder)
+            try container.encode(sortOrder, forKey: .sortOrder)
         }
         
         enum CodingKeys: String, CodingKey {
@@ -67,7 +67,7 @@ extension ServiceRepository {
             case page
             case perPage = "per_page"
             case sortBy = "sort_by"
-            case sortByOrder = "sort_by_order"
+            case sortOrder = "sort_order"
         }
     }
     
@@ -76,18 +76,18 @@ extension ServiceRepository {
         let page: Int
         let perPage: Int
         let sortBy: SortBy
-        let sortByOrder: SortByOrder
+        let sortOrder: SortOrder
         
         init(q: String,
              page: Int = 1,
              perPage: Int = 20,
              sortBy: SortBy = .number,
-             sortByOrder: SortByOrder = .asc) {
+             sortOrder: SortOrder = .asc) {
             self.q = q
             self.page = page
             self.perPage = perPage
             self.sortBy = sortBy
-            self.sortByOrder = sortByOrder
+            self.sortOrder = sortOrder
         }
         
         init(from decoder: Decoder) throws {
@@ -96,7 +96,7 @@ extension ServiceRepository {
             self.page = (try? container.decode(Int.self, forKey: .page)) ?? 1
             self.perPage = (try? container.decode(Int.self, forKey: .perPage)) ?? 20
             self.sortBy = (try? container.decode(SortBy.self, forKey: .sortBy)) ?? .number
-            self.sortByOrder = (try? container.decode(SortByOrder.self, forKey: .sortByOrder)) ?? .asc
+            self.sortOrder = (try? container.decode(SortOrder.self, forKey: .sortOrder)) ?? .asc
         }
         
         func encode(to encoder: Encoder) throws {
@@ -105,7 +105,7 @@ extension ServiceRepository {
             try container.encode(page, forKey: .page)
             try container.encode(perPage, forKey: .perPage)
             try container.encode(sortBy, forKey: .sortBy)
-            try container.encode(sortByOrder, forKey: .sortByOrder)
+            try container.encode(sortOrder, forKey: .sortOrder)
         }
         
         enum CodingKeys: String, CodingKey {
@@ -113,7 +113,7 @@ extension ServiceRepository {
             case page
             case perPage = "per_page"
             case sortBy = "sort_by"
-            case sortByOrder = "sort_by_order"
+            case sortOrder = "sort_order"
         }
     }
     
