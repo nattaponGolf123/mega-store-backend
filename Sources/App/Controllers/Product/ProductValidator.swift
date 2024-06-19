@@ -6,6 +6,13 @@ protocol ProductValidatorProtocol {
     func validateUpdate(_ req: Request) throws -> (uuid: UUID, content: ProductRepository.Update)
     func validateID(_ req: Request) throws -> UUID
     func validateSearchQuery(_ req: Request) throws -> String
+
+    func validateCreateVariant(_ req: Request) throws -> (uuid: UUID, content: ProductRepository.CreateVariant)
+    func validateUpdateVariant(_ req: Request) throws -> (uuid: UUID, variantId: UUID, content: ProductRepository.UpdateVariant)
+    func validateDeleteVariant(_ req: Request) throws -> (uuid: UUID, variantId: UUID)
+    
+    func validateAddContact(_ req: Request) throws -> (uuid: UUID, contactId: UUID)
+    func validateRemoveContact(_ req: Request) throws -> (uuid: UUID, contactId: UUID)
 }
 
 class ProductValidator: ProductValidatorProtocol {
@@ -65,132 +72,211 @@ class ProductValidator: ProductValidatorProtocol {
         
         return search
     }
+
+    func validateCreateVariant(_ req: Request) throws -> (uuid: UUID, content: ProductRepository.CreateVariant) {
+        typealias CreateVariant = ProductRepository.CreateVariant
+        do {
+            let content: CreateVariant = try req.content.decode(CreateVariant.self)
+            try CreateVariant.validate(content: req)
+            
+            guard let id = req.parameters.get("id", as: UUID.self) else { throw DefaultError.invalidInput }
+            
+            return (id, content)
+        } catch let error as ValidationsError {
+            let errors = InputError.parse(failures: error.failures)
+            throw InputValidateError.inputValidateFailed(errors: errors)
+        } catch {
+            throw DefaultError.invalidInput
+        }
+    }
+
+    func validateUpdateVariant(_ req: Request) throws -> (uuid: UUID, variantId: UUID, content: ProductRepository.UpdateVariant) {
+        typealias UpdateVariant = ProductRepository.UpdateVariant
+        do {
+            let content: UpdateVariant = try req.content.decode(UpdateVariant.self)
+            try UpdateVariant.validate(content: req)
+            
+            guard
+                let id = req.parameters.get("id", as: UUID.self),
+                let variantId = req.parameters.get("variant_id", as: UUID.self)
+                else { throw DefaultError.invalidInput }
+            
+            return (id, variantId, content)
+        } catch let error as ValidationsError {
+            let errors = InputError.parse(failures: error.failures)
+            throw InputValidateError.inputValidateFailed(errors: errors)
+        } catch {
+            throw DefaultError.invalidInput
+        }
+    }
+
+    func validateDeleteVariant(_ req: Request) throws -> (uuid: UUID, variantId: UUID) {
+        guard
+            let id = req.parameters.get("id", as: UUID.self),
+            let variantId = req.parameters.get("variant_id", as: UUID.self)
+            else { throw DefaultError.invalidInput }
+        
+        return (id, variantId)
+    }
+
+    func validateAddContact(_ req: Request) throws -> (uuid: UUID, contactId: UUID) {
+        guard
+            let id = req.parameters.get("id", as: UUID.self),
+            let contactId = req.parameters.get("contact_id", as: UUID.self)
+            else { throw DefaultError.invalidInput }
+        
+        return (id, contactId)
+    }
+
+    func validateRemoveContact(_ req: Request) throws -> (uuid: UUID, contactId: UUID) {
+        guard
+            let id = req.parameters.get("id", as: UUID.self),
+            let contactId = req.parameters.get("contact_id", as: UUID.self)
+            else { throw DefaultError.invalidInput }
+        
+        return (id, contactId)
+    }
+
 }
+
 /*
-protocol ProductRepositoryProtocol {
-    func fetchAll(req: ProductRepository.Fetch,
-                  on db: Database) async throws -> PaginatedResponse<Product>
-    func create(content: ProductRepository.Create, on db: Database) async throws -> Product
-    func find(id: UUID, on db: Database) async throws -> Product
-    func find(name: String, on db: Database) async throws -> Product
-    func update(id: UUID, with content: ProductRepository.Update, on db: Database) async throws -> Product
-    func delete(id: UUID, on db: Database) async throws -> Product
-    func search(req: ProductRepository.Search, on db: Database) async throws -> PaginatedResponse<Product>
+class ProductController: RouteCollection {
+    
+    private(set) var repository: ProductRepositoryProtocol
+    private(set) var validator: ProductValidatorProtocol
+    
+    init(repository: ProductRepositoryProtocol = ProductRepository(),
+         validator: ProductValidatorProtocol = ProductValidator()) {
+        self.repository = repository
+        self.validator = validator
+    }
+    
+    func boot(routes: RoutesBuilder) throws {
+        
+        let groups = routes.grouped("products")
+        groups.get(use: all)
+        groups.post(use: create)
+        
+        groups.group(":id") { withID in
+            withID.get(use: getByID)
+            withID.put(use: update)
+            withID.delete(use: delete)
+            
+            withID.group("variants") { withVariant in
+                withVariant.post(use: createVariant)
+                withVariant.put(use: updateVariant)
+                withVariant.delete(use: deleteVariant)                
+            }
+
+            withID.group("contacts") { withContact in
+                withContact.post(use: addContact)
+                withContact.delete(use: reomveContact)
+        }
+        
+        groups.group("search") { withSearch in
+            withSearch.get(use: search)
+        }
+    }
+    
+    // GET /products?show_deleted=true&page=1&per_page=10
+    func all(req: Request) async throws -> PaginatedResponse<ProductResponse> {
+        let reqContent = try req.query.decode(ProductRepository.Fetch.self)
+
+        return try await repository.fetchAll(req: reqContent, on: req.db)
+    }
+    
+    // POST /products
+    func create(req: Request) async throws -> ProductResponse {
+        let content = try validator.validateCreate(req)
+        
+        return try await repository.create(content: content, on: req.db)
+    }
+    
+    // GET /products/:id
+    func getByID(req: Request) async throws -> ProductResponse {
+        let uuid = try validator.validateID(req)
+        
+        return try await repository.find(id: uuid, on: req.db)
+    }
+    
+    // PUT /products/:id
+    func update(req: Request) async throws -> ProductResponse {
+        let (uuid, content) = try validator.validateUpdate(req)
+        
+        do {
+            // check if name is duplicate
+            guard let name = content.name else { throw DefaultError.invalidInput }
+            
+            let _ = try await repository.find(name: name, on: req.db)
+            
+            throw CommonError.duplicateName
+            
+        } catch let error as DefaultError {
+            switch error {
+            case .notFound: // no duplicate
+                return try await repository.update(id: uuid, with: content, on: req.db)
+            default:
+                throw error
+            }
+            
+        } catch let error as CommonError {
+            throw error
+            
+        } catch {
+            // Handle all other errors
+            throw DefaultError.error(message: error.localizedDescription)
+        }
+    }
+
+    // DELETE /products/:id
+    func delete(req: Request) async throws -> ProductResponse {
+        let uuid = try validator.validateID(req)
+        
+        return try await repository.delete(id: uuid, on: req.db)
+    }
+    
+    // GET /products/search?name=xxx&page=1&per_page=10
+    func search(req: Request) async throws -> PaginatedResponse<ProductResponse> {
+        let _ = try validator.validateSearchQuery(req)
+        let reqContent = try req.query.decode(ProductRepository.Search.self)
+        
+        return try await repository.search(req: reqContent, on: req.db)        
+    }
+
+    // POST /products/:id/variants
+    func createVariant(req: Request) async throws -> ProductResponse {
+        let (uuid, content) = try validator.validateCreateVariant(req)
+        
+        return try await repository.createVariant(id: uuid, content: content, on: req.db)
+    }
+
+    // PUT /products/:id/variants/:variant_id
+    func updateVariant(req: Request) async throws -> ProductResponse {
+        let (uuid, variantId, content) = try validator.validateUpdateVariant(req)
+        
+        return try await repository.updateVariant(id: uuid, variantId: variantId, with: content, on: req.db)
+    }
+
+    // DELETE /products/:id/variants/:variant_id
+    func deleteVariant(req: Request) async throws -> ProductResponse {
+        let (uuid, variantId) = try validator.validateDeleteVariant(req)
+        
+        return try await repository.deleteVariant(id: uuid, variantId: variantId, on: req.db)
+    }
+
+    // POST /products/:id/contacts
+    func addContact(req: Request) async throws -> ProductResponse {
+        let (uuid, contactId) = try validator.validateAddContact(req)
+        
+        return try await repository.linkContact(id: uuid, contactId: contactId, on: req.db)
+    }
+
+    // DELETE /products/:id/contacts/:contact_id
+    func reomveContact(req: Request) async throws -> ProductResponse {
+        let (uuid, contactId) = try validator.validateRemoveContact(req)
+        
+        return try await repository.deleteContact(id: uuid, contactId: contactId, on: req.db)
+    }
+    
 }
-extension ProductRepository { 
-
-    struct Fetch: Content {
-        let showDeleted: Bool
-        let page: Int
-        let perPage: Int
-
-        init(showDeleted: Bool = false,
-             page: Int = 1,
-             perPage: Int = 20) {
-            self.showDeleted = showDeleted
-            self.page = page
-            self.perPage = perPage
-        }
-        
-        init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.showDeleted = (try? container.decode(Bool.self, forKey: .showDeleted)) ?? false
-            self.page = (try? container.decode(Int.self, forKey: .page)) ?? 1
-            self.perPage = (try? container.decode(Int.self, forKey: .perPage)) ?? 20
-        }
-        
-        func encode(to encoder: Encoder) throws {
-            var container = encoder.container(keyedBy: CodingKeys.self)
-            try container.encode(showDeleted, forKey: .showDeleted)
-            try container.encode(page, forKey: .page)
-            try container.encode(perPage, forKey: .perPage)
-        }
-
-        enum CodingKeys: String, CodingKey {
-            case showDeleted = "show_deleted"
-            case page = "page"
-            case perPage = "per_page"
-        }
-    }   
-
-    struct Search: Content {
-        let name: String
-        let page: Int
-        let perPage: Int
-
-        init(name: String,
-             perPage: Int = 20) {
-            self.name = name
-            self.perPage = perPage
-        }
-
-        init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.name = try container.decode(String.self, forKey: .name)
-            self.perPage = (try? container.decode(Int.self, forKey: .perPage)) ?? 20            
-        }
-
-        func encode(to encoder: Encoder) throws {
-            var container = encoder.container(keyedBy: CodingKeys.self)
-            try container.encode(name, forKey: .name)
-            try container.encode(perPage, forKey: .perPage)
-        }
-
-        enum CodingKeys: String, CodingKey {
-            case name = "name"
-            case perPage = "per_page"
-        }
-    }
-
-    struct Create: Content, Validatable {
-        let name: String
-        let description: String?
-        
-        init(name: String,
-             description: String? = nil) {
-            self.name = name
-            self.description = description
-        }
-        
-        init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.name = try container.decode(String.self,
-                                             forKey: .name)
-            self.description = try? container.decode(String.self,
-                                                    forKey: .description)
-        }
-        
-        enum CodingKeys: String, CodingKey {
-            case name = "name"
-            case description = "description"
-        }
-                
-        static func validations(_ validations: inout Validations) {
-            validations.add("name", as: String.self,
-                            is: .count(3...200))
-        }
-    }
-
-    struct Update: Content, Validatable {
-        let name: String?
-        let description: String?
-        
-        init(name: String? = nil,
-            description: String? = nil) {
-            self.name = name
-            self.description = description
-        }
-        
-        enum CodingKeys: String, CodingKey {
-            case name = "name"
-            case description = "description"
-        }
-        
-        static func validations(_ validations: inout Validations) {
-            validations.add("name", as: String.self,
-                            is: .count(3...200))
-        }
-    }
-}
-
 */

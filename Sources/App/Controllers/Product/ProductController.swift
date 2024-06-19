@@ -23,10 +23,21 @@ class ProductController: RouteCollection {
             withID.get(use: getByID)
             withID.put(use: update)
             withID.delete(use: delete)
+            
+            withID.group("variants") { withVariant in
+                withVariant.post(use: createVariant)
+                withVariant.put(use: updateVariant)
+                withVariant.delete(use: deleteVariant)                
+            }
+
+            withID.group("contacts") { withContact in
+                withContact.post(use: addContact)
+                withContact.delete(use: reomveContact)
+            }
         }
         
-        groups.group("search") { _search in
-            _search.get(use: search)
+        groups.group("search") { withSearch in
+            withSearch.get(use: search)
         }
     }
     
@@ -94,83 +105,63 @@ class ProductController: RouteCollection {
         
         return try await repository.search(req: reqContent, on: req.db)        
     }
+
+    // POST /products/:id/variants
+    func createVariant(req: Request) async throws -> ProductResponse {
+        let (uuid, content) = try validator.validateCreateVariant(req)
+        
+        return try await repository.createVariant(id: uuid, content: content, on: req.db)
+    }
+
+    // PUT /products/:id/variants/:variant_id
+    func updateVariant(req: Request) async throws -> ProductResponse {
+        let (uuid, variantId, content) = try validator.validateUpdateVariant(req)
+        
+        return try await repository.updateVariant(id: uuid, variantId: variantId, with: content, on: req.db)
+    }
+
+    // DELETE /products/:id/variants/:variant_id
+    func deleteVariant(req: Request) async throws -> ProductResponse {
+        let (uuid, variantId) = try validator.validateDeleteVariant(req)
+        
+        return try await repository.deleteVariant(id: uuid, variantId: variantId, on: req.db)
+    }
+
+    // POST /products/:id/contacts
+    func addContact(req: Request) async throws -> ProductResponse {
+        let (uuid, contactId) = try validator.validateAddContact(req)
+        
+        return try await repository.linkContact(id: uuid, contactId: contactId, on: req.db)
+    }
+
+    // DELETE /products/:id/contacts/:contact_id
+    func reomveContact(req: Request) async throws -> ProductResponse {
+        let (uuid, contactId) = try validator.validateRemoveContact(req)
+        
+        return try await repository.deleteContact(id: uuid, contactId: contactId, on: req.db)
+    }
+    
 }
 
 /*
-
 protocol ProductRepositoryProtocol {
     func fetchAll(req: ProductRepository.Fetch,
-                  on db: Database) async throws -> PaginatedResponse<Product>
-    func create(content: ProductRepository.Create, on db: Database) async throws -> Product
-    func find(id: UUID, on db: Database) async throws -> Product
-    func find(name: String, on db: Database) async throws -> Product
-    func update(id: UUID, with content: ProductRepository.Update, on db: Database) async throws -> Product
-    func delete(id: UUID, on db: Database) async throws -> Product
-    func search(req: ProductRepository.Search, on db: Database) async throws -> PaginatedResponse<Product>
+                  on db: Database) async throws -> PaginatedResponse<ProductResponse>
+    func create(content: ProductRepository.Create, on db: Database) async throws -> ProductResponse
+    func find(id: UUID, on db: Database) async throws -> ProductResponse
+    func find(name: String, on db: Database) async throws -> ProductResponse
+    func update(id: UUID, with content: ProductRepository.Update, on db: Database) async throws -> ProductResponse
+    func delete(id: UUID, on db: Database) async throws -> ProductResponse
+    func search(req: ProductRepository.Search, on db: Database) async throws -> PaginatedResponse<ProductResponse>
+    func linkContact(id: UUID, contactId: UUID, on db: Database) async throws -> ProductResponse
+    func deleteContact(id: UUID, contactId: UUID, on db: Database) async throws -> ProductResponse
+    func fetchLastedNumber(on db: Database) async throws -> Int
+    
+    func fetchVariantLastedNumber(id: UUID, on db: Database) async throws -> Int
+    func createVariant(id: UUID, content: ProductRepository.CreateVariant, on db: Database) async throws -> ProductResponse
+    func updateVariant(id: UUID, variantId: UUID, with content: ProductRepository.UpdateVariant, on db: Database) async throws -> ProductResponse
+    func deleteVariant(id: UUID, variantId: UUID, on db: Database) async throws -> ProductResponse    
+
 }
-*/
 
-/*
-protocol ProductValidatorProtocol {
-    func validateCreate(_ req: Request) throws -> ProductRepository.Create
-    func validateUpdate(_ req: Request) throws -> (uuid: UUID, content: ProductRepository.Update)
-    func validateID(_ req: Request) throws -> UUID
-    func validateSearchQuery(_ req: Request) throws -> String
-}
-
-class ProductValidator: ProductValidatorProtocol {
-    typealias CreateContent = ProductRepository.Create
-    typealias UpdateContent = ProductRepository.Update
-
-    func validateCreate(_ req: Request) throws -> CreateContent {
-        
-        do {
-            // Decode the incoming Product
-            let content: ProductValidator.CreateContent = try req.content.decode(CreateContent.self)  
-
-            // Validate the Product directly
-            try CreateContent.validate(content: req)
-            
-            return content
-        } catch let error as ValidationsError {
-            // Parse and throw a more specific input validation error if validation fails
-            let errors = InputError.parse(failures: error.failures)
-            throw InputValidateError.inputValidateFailed(errors: errors)
-        } catch {
-            // Handle all other errors
-            throw DefaultError.invalidInput
-        }
-    }
-
-    func validateUpdate(_ req: Request) throws -> (uuid: UUID, content: ProductRepository.Update) {
-        typealias UpdateProduct = ProductRepository.Update
-        do {
-            // Decode the incoming Product and validate it
-            let content: UpdateProduct = try req.content.decode(UpdateProduct.self)
-            try UpdateProduct.validate(content: req)
-            
-            // Extract the ID from the request's parameters
-            guard let id = req.parameters.get("id", as: UUID.self) else { throw DefaultError.invalidInput }
-            
-            return (id, content)
-        } catch let error as ValidationsError {
-            let errors = InputError.parse(failures: error.failures)
-            throw InputValidateError.inputValidateFailed(errors: errors)
-        } catch {
-            throw DefaultError.invalidInput
-        }
-    }
-
-    func validateID(_ req: Request) throws -> UUID {
-        guard let id = req.parameters.get("id"), let uuid = UUID(id) else { throw DefaultError.invalidInput }
-        
-        return uuid
-    }
-
-    func validateSearchQuery(_ req: Request) throws -> String {
-        guard let search = req.query[String.self, at: "q"] else { throw DefaultError.invalidInput }
-        
-        return search
-    }
-}
 */
