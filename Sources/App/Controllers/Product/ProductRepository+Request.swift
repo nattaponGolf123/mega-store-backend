@@ -239,21 +239,14 @@ extension ProductRepository {
         }
     }
     
-//    struct AddContact: Content {
-//        let contactId: UUID
-//        
-//        enum CodingKeys: String, CodingKey {
-//            case contactId = "contact_id"
-//        }
-//    }
-//    
-//    struct UpdateContact: Content {
-//        let contactId: UUID
-//        
-//        enum CodingKeys: String, CodingKey {
-//            case contactId = "contact_id"
-//        }
-//    }
+   struct AddContact: Content {
+       let contactId: UUID
+       
+       enum CodingKeys: String, CodingKey {
+           case contactId = "contact_id"
+       }
+       
+   }   
 
     struct CreateVariant: Content, Validatable {
        

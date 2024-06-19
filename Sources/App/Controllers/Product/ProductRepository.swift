@@ -179,15 +179,15 @@ class ProductRepository: ProductRepositoryProtocol {
             guard 
                 let model = try await Self.getByIDBuilder(uuid: id, db: db).first(),
                 // verify is exist contact and not deleted
-                let contact = try await Contact.query(on: db).filter(\.$id == contactId).first()                
+                let _ = try await Contact.query(on: db).filter(\.$id == contactId).first()                
             else { throw DefaultError.notFound }
 
             guard 
-                model.suppliers.contains(contactId) == false 
+                model.contacts.contains(contactId) == false 
             else { throw DefaultError.error(message: "Contact already linked") }
 
-            let updateSppliers: [UUID] = model.suppliers + [contactId]
-            model.suppliers = updateSppliers
+            let updateSppliers: [UUID] = model.contacts + [contactId]
+            model.contacts = updateSppliers
 
             try await model.save(on: db)
             
@@ -206,10 +206,10 @@ class ProductRepository: ProductRepositoryProtocol {
             guard let model = try await Self.getByIDBuilder(uuid: id, db: db).first() else { throw DefaultError.notFound }
 
             guard 
-                model.suppliers.contains(contactId) 
+                model.contacts.contains(contactId) 
             else { throw DefaultError.error(message: "Contact not found") }
 
-            model.suppliers.removeAll() { $0 == contactId }            
+            model.contacts.removeAll() { $0 == contactId }            
 
             try await model.save(on: db)
             
@@ -259,6 +259,36 @@ class ProductRepository: ProductRepositoryProtocol {
                 let model = try await Self.getByIDBuilder(uuid: id, db: db).first()             
             else { throw DefaultError.notFound }
 
+            //check name not duplicate
+            let isDuplicate = model.variants.contains(where: { $0.name == content.name })
+            if isDuplicate {
+                throw DefaultError.error(message: "Name is duplicate")
+            }
+
+            // check color not duplicate
+            if let color = content.color {
+                let isDuplicate = model.variants.contains(where: { $0.color == color })
+                if isDuplicate {
+                    throw DefaultError.error(message: "Color is duplicate")
+                }
+            }
+
+            // check sku not duplicate
+            if let sku = content.sku {
+                let isDuplicate = model.variants.contains(where: { $0.sku == sku })
+                if isDuplicate {
+                    throw DefaultError.error(message: "SKU is duplicate")
+                }
+            }
+
+            // check barcode not duplicate
+            if let barcode = content.barcode {
+                let isDuplicate = model.variants.contains(where: { $0.barcode == barcode })
+                if isDuplicate {
+                    throw DefaultError.error(message: "Barcode is duplicate")
+                }
+            }
+
             let curentNumber = try await fetchVariantLastedNumber(id: id, on: db)
             let nextNumber = curentNumber + 1
 
@@ -271,7 +301,7 @@ class ProductRepository: ProductRepositoryProtocol {
                                             color: content.color,
                                             barcode: content.barcode,
                                             dimensions: content.dimensions)
-
+            model.variants.append(newVariant)
 
             try await model.save(on: db)
             
@@ -294,11 +324,22 @@ class ProductRepository: ProductRepositoryProtocol {
                 throw DefaultError.notFound
             }            
             
-            if let name = content.name {
+            if let name = content.name {                
+                // check name not duplicate
+                let isDuplicate = product.variants.contains(where: { $0.name == name && $0.id != variantId })
+                if isDuplicate {
+                    throw DefaultError.error(message: "Name is duplicate")
+                }
                 variant.name = name
             }
 
             if let sku = content.sku {
+                // check sku not duplicate
+                let isDuplicate = product.variants.contains(where: { $0.sku == sku && $0.id != variantId })
+                if isDuplicate {
+                    throw DefaultError.error(message: "SKU is duplicate")
+                }
+
                 variant.sku = sku
             }
 
@@ -315,10 +356,21 @@ class ProductRepository: ProductRepositoryProtocol {
             }
 
             if let color = content.color {
+                // check color not duplicate
+                let isDuplicate = product.variants.contains(where: { $0.color == color && $0.id != variantId })
+                if isDuplicate {
+                    throw DefaultError.error(message: "Color is duplicate")
+                }
+
                 variant.color = color
             }
 
             if let barcode = content.barcode {
+                // check barcode not duplicate
+                let isDuplicate = product.variants.contains(where: { $0.barcode == barcode && $0.id != variantId })
+                if isDuplicate {
+                    throw DefaultError.error(message: "Barcode is duplicate")
+                }
                 variant.barcode = barcode
             }
 
@@ -592,8 +644,8 @@ final class Product: Model, Content {
     @Field(key: "tags")
     var tags: [String]
 
-    @Field(key: "suppliers")
-    var suppliers: [UUID]
+    @Field(key: "contacts")
+    var contacts: [UUID]
 
     @Field(key: "variants")
     var variants: [ProductVariant]
@@ -615,7 +667,7 @@ final class Product: Model, Content {
          images: [String] = [],
          coverImage: String? = nil,
          tags: [String] = [],
-         suppliers: [UUID] = [],
+         contacts: [UUID] = [],
          variants: [ProductVariant] = []) {
         self.id = id ?? .init()
         self.number = number
@@ -632,7 +684,7 @@ final class Product: Model, Content {
         self.images = images
         self.coverImage = coverImage
         self.tags = tags
-        self.suppliers = suppliers
+        self.contacts = contacts
         self.variants = variants
     }
 

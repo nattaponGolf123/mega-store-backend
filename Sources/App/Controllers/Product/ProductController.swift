@@ -27,12 +27,19 @@ class ProductController: RouteCollection {
             withID.group("variants") { withVariant in
                 withVariant.post(use: createVariant)
                 withVariant.put(use: updateVariant)
-                withVariant.delete(use: deleteVariant)                
+
+                withVariant.group(":variant_id") { withVariantID in
+                    withVariantID.delete(use: deleteVariant)
+                }             
             }
 
             withID.group("contacts") { withContact in
                 withContact.post(use: addContact)
                 withContact.delete(use: reomveContact)
+
+                withContact.group(":contact_id") { withContactID in
+                    withContactID.delete(use: reomveContact)
+                }
             }
         }
         

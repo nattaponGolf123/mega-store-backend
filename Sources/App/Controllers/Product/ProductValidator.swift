@@ -10,7 +10,7 @@ protocol ProductValidatorProtocol {
     func validateCreateVariant(_ req: Request) throws -> (uuid: UUID, content: ProductRepository.CreateVariant)
     func validateUpdateVariant(_ req: Request) throws -> (uuid: UUID, variantId: UUID, content: ProductRepository.UpdateVariant)
     func validateDeleteVariant(_ req: Request) throws -> (uuid: UUID, variantId: UUID)
-    
+
     func validateAddContact(_ req: Request) throws -> (uuid: UUID, contactId: UUID)
     func validateRemoveContact(_ req: Request) throws -> (uuid: UUID, contactId: UUID)
 }
@@ -120,20 +120,23 @@ class ProductValidator: ProductValidatorProtocol {
     }
 
     func validateAddContact(_ req: Request) throws -> (uuid: UUID, contactId: UUID) {
+        typealias AddContact = ProductRepository.AddContact
         guard
-            let id = req.parameters.get("id", as: UUID.self),
-            let contactId = req.parameters.get("contact_id", as: UUID.self)
+            let id = req.parameters.get("id", as: UUID.self)
             else { throw DefaultError.invalidInput }
+
+            let content = try req.content.decode(AddContact.self)
         
-        return (id, contactId)
+        return (id, content.contactId)
     }
 
     func validateRemoveContact(_ req: Request) throws -> (uuid: UUID, contactId: UUID) {
+        
         guard
             let id = req.parameters.get("id", as: UUID.self),
             let contactId = req.parameters.get("contact_id", as: UUID.self)
             else { throw DefaultError.invalidInput }
-        
+
         return (id, contactId)
     }
 

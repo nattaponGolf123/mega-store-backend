@@ -31,7 +31,7 @@ class ProductSchema {
             .field("images", .array(of: .string))
             .field("cover_image", .string)
             .field("tags", .array(of: .string))
-            .field("suppliers", .array(of: .uuid))
+            .field("contacts", .array(of: .uuid))
             .field("variants", .array(of: .json))
     }
     
@@ -92,8 +92,8 @@ final class Product: Model, Content {
     @Field(key: "tags")
     var tags: [String]
 
-    @Field(key: "suppliers")
-    var suppliers: [UUID]
+    @Field(key: "contacts")
+    var contacts: [UUID]
 
     @Field(key: "variants")
     var variants: [ProductVariant]
@@ -115,7 +115,7 @@ final class Product: Model, Content {
          images: [String] = [],
          coverImage: String? = nil,
          tags: [String] = [],
-         suppliers: [UUID] = [],
+         contacts: [UUID] = [],
          variants: [ProductVariant] = []) {
         self.id = id ?? .init()
         self.number = number
@@ -132,7 +132,7 @@ final class Product: Model, Content {
         self.images = images
         self.coverImage = coverImage
         self.tags = tags
-        self.suppliers = suppliers
+        self.contacts = contacts
         self.variants = variants
     }
 

@@ -63,8 +63,8 @@ final class Product: Model, Content {
     @Field(key: "tags")
     var tags: [String]
 
-    @Field(key: "suppliers")
-    var suppliers: [UUID]
+    @Field(key: "contacts")
+    var contacts: [UUID]
 
     @Field(key: "variants")
     var variants: [ProductVariant]
@@ -86,7 +86,7 @@ final class Product: Model, Content {
          images: [String] = [],
          coverImage: String? = nil,
          tags: [String] = [],
-         suppliers: [UUID] = [],
+         contacts: [UUID] = [],
          variants: [ProductVariant] = []) {
         self.id = id ?? .init()
         self.number = number
@@ -103,7 +103,7 @@ final class Product: Model, Content {
         self.images = images
         self.coverImage = coverImage
         self.tags = tags
-        self.suppliers = suppliers
+        self.contacts = contacts
         self.variants = variants
     }
 
@@ -122,6 +122,7 @@ extension Product {
                   images: ["https://example.com/steel.jpg"],
                   coverImage: "https://example.com/steel.jpg",
                   tags: ["steel", "iron", "carbon"],
+                  contacts: [],
                   variants: [
                       .init(number: 1,
                             name: "Steel",
@@ -262,7 +263,7 @@ extension Product {
 	"images": [""], // image url 
     "cover_image": "", // image url
 	"tags": ["abc", "def"],
-    "suppliers: [], // ref to supplier uuid
+    "contacts: [], // ref to supplier uuid
 	"variants": [
 		{
 			"id": "UUID", // unique UUID , store as sub-document in mongo
