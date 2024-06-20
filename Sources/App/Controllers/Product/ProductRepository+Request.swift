@@ -358,9 +358,9 @@ extension ProductRepository {
             case dimensions
         }
 
-        static func validations(_ validations: inout Validations) {
-            validations.add("name", as: String.self, is: .count(1...200))
-            validations.add("price", as: Double.self, is: .range(0...))
+        static func validations(_ validations: inout Validations) {            
+            validations.add("name", as: String.self, is: .count(1...200), required: false)
+            validations.add("price", as: Double.self, is: .range(0...), required: false)
         }
     }
 

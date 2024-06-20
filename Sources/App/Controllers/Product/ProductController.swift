@@ -26,9 +26,9 @@ class ProductController: RouteCollection {
             
             withID.group("variants") { withVariant in
                 withVariant.post(use: createVariant)
-                withVariant.put(use: updateVariant)
-
+                
                 withVariant.group(":variant_id") { withVariantID in
+                    withVariantID.put(use: updateVariant)
                     withVariantID.delete(use: deleteVariant)
                 }             
             }
