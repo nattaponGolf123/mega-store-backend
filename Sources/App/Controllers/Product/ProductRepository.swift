@@ -396,7 +396,7 @@ class ProductRepository: ProductRepositoryProtocol {
         do {
             guard 
                 let product = try await Product.query(on: db).filter(\.$id == id).first(),
-                let variant = product.variants.first(where: { $0.id == variantId })
+                let _ = product.variants.first(where: { $0.id == variantId })
             else {
                 throw DefaultError.notFound
             }            
