@@ -303,6 +303,8 @@ extension ProductRepository {
         static func validations(_ validations: inout Validations) {
             validations.add("name", as: String.self, is: .count(1...200))
             validations.add("price", as: Double.self, is: .range(0...))
+            validations.add("barcode", as: String.self, is: .count(13...13), required: false)
+            validations.add("barcode", as: String.self, is: .characterSet(.decimalDigits), required: false)
         }        
 
     }
@@ -361,6 +363,8 @@ extension ProductRepository {
         static func validations(_ validations: inout Validations) {            
             validations.add("name", as: String.self, is: .count(1...200), required: false)
             validations.add("price", as: Double.self, is: .range(0...), required: false)
+            validations.add("barcode", as: String.self, is: .count(13...13), required: false)
+            validations.add("barcode", as: String.self, is: .characterSet(.decimalDigits), required: false)
         }
     }
 
