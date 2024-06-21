@@ -205,56 +205,56 @@ final class PurchaseOrderTests: XCTestCase {
 //    }
 }
 
-private extension PurchaseOrderTests {
-    
-    static var productA: ProductItem {
-        return ProductItem(
-            productId: .init(),
-            name: "Product A",
-            description: "Product A Description",
-            variant: nil,
-            quantity: 3,
-            sellingPrice: 99.9,
-            unit: "unit",
-            remark: "Remark"
-        )
-    }
-    
-    static var productB: ProductItem {
-        return ProductItem(
-            productId: .init(),
-            name: "Product B",
-            description: "Product B Description",
-            variant: nil,
-            quantity: 2,
-            sellingPrice: 200,
-            unit: "unit",
-            remark: "Remark"
-        )
-    }
-    
-    static var serviceA: ServiceItem {
-        return ServiceItem(
-            serviceId: .init(),
-            name: "Service A",
-            description: "Service A Description",
-            quantity: 1,
-            price: 300,
-            unit: "unit",
-            remark: "Remark"
-        )
-    }
-    
-    static var serviceB: ServiceItem {
-        return ServiceItem(
-            serviceId: .init(),
-            name: "Service B",
-            description: "Service B Description",
-            quantity: 1,
-            price: 400.11,
-            unit: "unit",
-            remark: "Remark"
-        )
-    }
-}
+//private extension PurchaseOrderTests {
+//    
+//    static var productA: ProductItem {
+//        return ProductItem(
+//            productId: .init(),
+//            name: "Product A",
+//            description: "Product A Description",
+//            variant: nil,
+//            quantity: 3,
+//            sellingPrice: 99.9,
+//            unit: "unit",
+//            remark: "Remark"
+//        )
+//    }
+//    
+//    static var productB: ProductItem {
+//        return ProductItem(
+//            productId: .init(),
+//            name: "Product B",
+//            description: "Product B Description",
+//            variant: nil,
+//            quantity: 2,
+//            sellingPrice: 200,
+//            unit: "unit",
+//            remark: "Remark"
+//        )
+//    }
+//    
+//    static var serviceA: ServiceItem {
+//        return ServiceItem(
+//            serviceId: .init(),
+//            name: "Service A",
+//            description: "Service A Description",
+//            quantity: 1,
+//            price: 300,
+//            unit: "unit",
+//            remark: "Remark"
+//        )
+//    }
+//    
+//    static var serviceB: ServiceItem {
+//        return ServiceItem(
+//            serviceId: .init(),
+//            name: "Service B",
+//            description: "Service B Description",
+//            quantity: 1,
+//            price: 400.11,
+//            unit: "unit",
+//            remark: "Remark"
+//        )
+//    }
+//}
 

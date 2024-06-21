@@ -29,8 +29,8 @@ final class ProductItem: Model, Content {
     @Field(key: "discount_amount")
     var discountAmount: Double?
 
-    @Field(key: "vat_amount")
-    var vatAmount: VatAmount?        
+    @Field(key: "vat")
+    var vat: Vat?
 
     @Field(key: "total_price")
     var totalPrice: Double
@@ -48,7 +48,7 @@ final class ProductItem: Model, Content {
             qty: Double,
             pricePerUnit: Double,
             discountAmount: Double?,
-            vatAmount: VatAmount?,
+            vatAmount: Vat?,
             totalPrice: Double,
             taxWithholding: TaxWithholding?) {
             self.id = id
@@ -59,7 +59,7 @@ final class ProductItem: Model, Content {
             self.qty = qty
             self.pricePerUnit = pricePerUnit
             self.discountAmount = discountAmount
-            self.vatAmount = vatAmount
+            self.vat = vatAmount
             self.totalPrice = totalPrice
             self.taxWithholding = taxWithholding
         }

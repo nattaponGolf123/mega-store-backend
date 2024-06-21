@@ -33,8 +33,8 @@ final class ServiceItem: Model, Content {
     @Field(key: "discount_amount")
     var discountAmount: Double?
 
-    @Field(key: "vat_amount")
-    var vatAmount: VatAmount?        
+    @Field(key: "vat")
+    var vat: Vat?
 
     @Field(key: "total_price")
     var totalPrice: Double
@@ -51,7 +51,7 @@ final class ServiceItem: Model, Content {
             qty: Double,
             pricePerUnit: Double,
             discountAmount: Double?,
-            vatAmount: VatAmount?,
+            vat: Vat?,
             totalPrice: Double,
             taxWithholding: TaxWithholding?) {
             self.id = id
@@ -61,7 +61,7 @@ final class ServiceItem: Model, Content {
             self.qty = qty
             self.pricePerUnit = pricePerUnit
             self.discountAmount = discountAmount
-            self.vatAmount = vatAmount
+            self.vat = vat
             self.totalPrice = totalPrice
             self.taxWithholding = taxWithholding
     }

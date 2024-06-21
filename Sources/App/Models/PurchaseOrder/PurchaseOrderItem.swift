@@ -39,10 +39,10 @@ final class PurchaseOrderItem: Model, Content {
     var discountPricePerUnit: Double
     
     @Field(key: "total_discount_amount")
-    var totalDiscountAmount: Double?
+    var totalDiscountAmount: Double
     
     @Field(key: "vat")
-    var vat: VatAmount?
+    var vat: Vat?
     
     @Field(key: "tax_withholding")
     var taxWithholding: TaxWithholding?
@@ -55,7 +55,7 @@ final class PurchaseOrderItem: Model, Content {
     
     init() { }
     
-       init(id: UUID? = nil,
+    init(id: UUID? = nil,
          itemId: UUID,
          name: String,
          description: String,
@@ -79,31 +79,37 @@ final class PurchaseOrderItem: Model, Content {
         self.totalDiscountAmount = discountPerUnit * qty
         
         // Calculation part
-        let rawTotalAmount = qty * pricePerUnit
-        
-        // Discount
-        let totalAmountAfterDiscount = rawTotalAmount - (discountPerUnit * qty)
+        let totalAmountBeforeDiscount = pricePerUnit * qty
+        let totalAmountDiscount: Double = discountPerUnit * qty
+
+        let totalAmountAfterDiscount = totalAmountBeforeDiscount - totalAmountDiscount
         
         // Vat
         if isVatIncluded {
+
+
             self.totalAmount = totalAmountAfterDiscount
-            self.vat = vatRate.map { VatAmount(totalAmountIncludeVat: totalAmountAfterDiscount, rate: $0) }
+            self.vat = vatRate.map { Vat(totalAmountIncludeVat: totalAmountAfterDiscount, rate: $0) }
         } else {
             self.totalAmount = totalAmountAfterDiscount
-            self.vat = vatRate.map { VatAmount(totalAmountBeforeVat: totalAmountAfterDiscount, rate: $0) }
+            self.vat = vatRate.map { Vat(totalAmountExcludeVat: 0, rate: $0) }
         }
         
-        // TacWithholding
+        // TaxWithholding
         if let vat = self.vat {
-            self.totalPayAmount = vat.amountAfterVat
-            self.taxWithholding = taxWithholdingRate.map { TaxWithholding(totalAmount: vat.amountAfterVat, rate: $0) }
+            self.totalPayAmount = vat.amountAfter
+            self.taxWithholding = taxWithholdingRate.map {
+                TaxWithholding(totalAmount: vat.amountAfter, rate: $0)
+            }
         } else {
             self.totalPayAmount = totalAmountAfterDiscount
-            self.taxWithholding = taxWithholdingRate.map { TaxWithholding(totalAmount: totalAmountAfterDiscount, rate: $0) }
+            self.taxWithholding = taxWithholdingRate.map {
+                TaxWithholding(totalAmount: totalAmountAfterDiscount, rate: $0)
+            }
         }
         
         if let taxWithholding = self.taxWithholding {
-            self.totalPayAmount = taxWithholding.amountAfterTaxWithholding
+            self.totalPayAmount = taxWithholding.amountAfter
         }
     }
     
@@ -152,7 +158,7 @@ final class PurchaseOrderItem: Model, Content {
                   taxWithholdingRate: taxWithholdingRate,
                   isVatIncluded: false)
     }
-
+    
 }
 
 extension PurchaseOrderItem {
