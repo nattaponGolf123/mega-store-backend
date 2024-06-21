@@ -12,13 +12,13 @@ final class VatTests: XCTestCase {
         let vat = Vat(totalAmountIncludeVat: totalAmountIncludeVat, rate: rate)
         
         // Then
-        let expectedAmountBefore = totalAmountIncludeVat / (1 + rate)
-        let expectedAmountAfter = totalAmountIncludeVat
+        //let expectedAmountBefore = totalAmountIncludeVat / (1 + rate)
+        //let expectedAmountAfter = totalAmountIncludeVat
 
         XCTAssertEqual(vat.amount, totalAmountIncludeVat, accuracy: 0.0001)
         XCTAssertEqual(vat.rate, rate, accuracy: 0.0001)
-        XCTAssertEqual(vat.amountBefore, expectedAmountBefore, accuracy: 0.0001)
-        XCTAssertEqual(vat.amountAfter, expectedAmountAfter, accuracy: 0.0001)
+        XCTAssertEqual(vat.amountBefore, 93.4579439252, accuracy: 0.0001)
+        XCTAssertEqual(vat.amountAfter, 100, accuracy: 0.0001)
     }
 
     func testInit_WithTotalAmountExcludeVat_ShouldCalculateAmountBeforeAndAfter() {
@@ -30,13 +30,10 @@ final class VatTests: XCTestCase {
         let vat = Vat(totalAmountExcludeVat: totalAmountExcludeVat, rate: rate)
         
         // Then
-        let expectedAmountBefore = totalAmountExcludeVat
-        let expectedAmountAfter = totalAmountExcludeVat * (1 + rate)
-
         XCTAssertEqual(vat.amount, totalAmountExcludeVat * rate, accuracy: 0.0001)
         XCTAssertEqual(vat.rate, rate, accuracy: 0.0001)
-        XCTAssertEqual(vat.amountBefore, expectedAmountBefore, accuracy: 0.0001)
-        XCTAssertEqual(vat.amountAfter, expectedAmountAfter, accuracy: 0.0001)
+        XCTAssertEqual(vat.amountBefore, 100, accuracy: 0.0001)
+        XCTAssertEqual(vat.amountAfter, 107, accuracy: 0.0001)
     }
 
     func testDecode_WithValidJson_ShouldReturnVatInstance() throws {
