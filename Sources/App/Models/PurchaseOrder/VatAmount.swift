@@ -57,18 +57,18 @@ struct VatAmount: Content {
     
 }
 
-
 struct TaxWithholding: Content {
-    
+    let amountBeforeTaxWithholding: Double // total amount before tax withholding
     let amount: Double // tax withholding amount
     let rate: Double // tax withholding rate
     let amountAfterTaxWithholding: Double // total amount after tax withholding
     
     //totalAmount can be 'total amount after vat' or 'total amount without vat'
     init(totalAmount: Double,
-         rate: Double = 0.03) {
+         rate: Double = 0.03) {        
         self.amount = totalAmount * rate
         self.rate = rate
+        self.amountBeforeTaxWithholding = totalAmount
         self.amountAfterTaxWithholding = totalAmount - (totalAmount * rate)
     }
     
@@ -79,6 +79,8 @@ struct TaxWithholding: Content {
                                            forKey: .amount)
         self.rate = try container.decode(Double.self,
                                          forKey: .rate)
+        self.amountBeforeTaxWithholding = try container.decode(Double.self,
+                                                              forKey: .amountBeforeTaxWithholding)
         self.amountAfterTaxWithholding = try container.decode(Double.self,
                                                               forKey: .amountAfterTaxWithholding)
     }
@@ -88,12 +90,14 @@ struct TaxWithholding: Content {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(amount, forKey: .amount)
         try container.encode(rate, forKey: .rate)
+        try container.encode(amountBeforeTaxWithholding, forKey: .amountBeforeTaxWithholding)
         try container.encode(amountAfterTaxWithholding, forKey: .amountAfterTaxWithholding)
     }
     
     enum CodingKeys: String, CodingKey {
         case amount
         case rate
+        case amountBeforeTaxWithholding = "amount_before_tax_withholding"
         case amountAfterTaxWithholding = "amount_after_tax_withholding"
     }
 }

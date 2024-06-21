@@ -24,40 +24,46 @@ final class ServiceItem: Model, Content {
     @Field(key: "description")
     var description: String
     
-    @Field(key: "quantity")
-    var quantity: Double
+    @Field(key: "qty")
+    var qty: Double
     
-    @Field(key: "price")
-    var price: Double
-    
+    @Field(key: "price_per_unit")
+    var pricePerUnit: Double
+
+    @Field(key: "discount_amount")
+    var discountAmount: Double?
+
+    @Field(key: "vat_amount")
+    var vatAmount: VatAmount?        
+
     @Field(key: "total_price")
     var totalPrice: Double
-    
-    @Field(key: "unit")
-    var unit: String
-    
-    @Field(key: "remark")
-    var remark: String
+
+    @Field(key: "tax_withholding")
+    var taxWithholding: TaxWithholding?
     
     init() { }
     
     init(id: UUID? = nil,
-         serviceId: UUID,
-         name: String,
-         description: String = "",
-         quantity: Double = 1.0,
-         price: Double = 0.0,         
-         unit: String = "",
-         remark: String = "") {
-        self.id = id ?? .init()
-        self.serviceId = serviceId
-        self.name = name
-        self.description = description
-        self.quantity = quantity
-        self.price = price
-        self.totalPrice = quantity * price
-        self.unit = unit
-        self.remark = remark
+            serviceId: UUID,
+            name: String,
+            description: String,
+            qty: Double,
+            pricePerUnit: Double,
+            discountAmount: Double?,
+            vatAmount: VatAmount?,
+            totalPrice: Double,
+            taxWithholding: TaxWithholding?) {
+            self.id = id
+            self.serviceId = serviceId
+            self.name = name
+            self.description = description
+            self.qty = qty
+            self.pricePerUnit = pricePerUnit
+            self.discountAmount = discountAmount
+            self.vatAmount = vatAmount
+            self.totalPrice = totalPrice
+            self.taxWithholding = taxWithholding
     }
     
 }

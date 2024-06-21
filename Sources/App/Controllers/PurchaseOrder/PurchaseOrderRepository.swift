@@ -6,13 +6,13 @@ protocol PurchaseOrderRepositoryProtocol {
     func fetchAll(page: Int, 
                   offset: Int,
                   on db: Database) async throws -> [PurchaseOrder]
-    func create(content: PurchaseOrder.Create,
-                on db: Database) async throws -> PurchaseOrder
+//    func create(content: PurchaseOrder.Create,
+//                on db: Database) async throws -> PurchaseOrder
     func find(id: UUID,
               on db: Database) async throws -> PurchaseOrder
-    func update(id: UUID,
-                with content: PurchaseOrder.Update,
-                on db: Database) async throws -> PurchaseOrder
+//    func update(id: UUID,
+//                with content: PurchaseOrder.Update,
+//                on db: Database) async throws -> PurchaseOrder
     
     func approve(id: UUID, on db: Database) async throws -> PurchaseOrder
     func reject(id: UUID, on db: Database) async throws -> PurchaseOrder
