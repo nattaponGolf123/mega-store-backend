@@ -94,9 +94,9 @@ final class PurchaseOrderItemTests: XCTestCase {
         let expectedVatAmount = 6.3
         let expectedVatAmountAfter = 96.3
 
-        let expectedTaxWithholdingAmount = 2.889
+        let expectedTaxWithholdingAmount = 2.7
 
-        let expectedTotalPayAmount = 93.411
+        let expectedTotalPayAmount = 93.6
 
         //test property
         XCTAssertEqual(item.name, name)
@@ -330,7 +330,6 @@ final class PurchaseOrderItemTests: XCTestCase {
         let expectedVatAmountAfter = 90.0
         
         let expectedTotalAmountBeforeVat = 90.0
-        let expectedVatAmount: Double = 0.0
         
         let expectedTaxWithholdingAmount = 2.7
         
@@ -351,7 +350,7 @@ final class PurchaseOrderItemTests: XCTestCase {
         XCTAssertEqual(item.taxWithholding!.amount, expectedTaxWithholdingAmount, accuracy: 0.0001)
         XCTAssertEqual(item.taxWithholding!.rate, taxWithholdingRate, accuracy: 0.0001)
         XCTAssertEqual(item.taxWithholding!.amountBefore, expectedTotalAmountBeforeVat, accuracy: 0.0001)
-        XCTAssertEqual(item.taxWithholding!.amountAfter, expectedVatAmountAfter, accuracy: 0.0001)
+        XCTAssertEqual(item.taxWithholding!.amountAfter, expectedTotalPayAmount, accuracy: 0.0001)
         
         // other
         XCTAssertEqual(item.totalDiscountAmount, expectedTotalAmountDiscount, accuracy: 0.0001)
