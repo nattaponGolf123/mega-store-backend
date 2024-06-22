@@ -139,9 +139,8 @@ final class PurchaseOrder: Model, Content {
          supplierId: UUID,
          customerId: UUID,
          status: PurchaseOrderStatus = .pending,
-         currency: String,
-         note: String,
-         displayItemIdOrder: [UUID],
+         currency: String = "THB",
+         note: String = "",
          createdAt: Date? = nil,
          updatedAt: Date? = nil,
          deletedAt: Date? = nil,
@@ -163,7 +162,7 @@ final class PurchaseOrder: Model, Content {
         self.status = status
         self.currency = currency
         self.note = note
-        self.displayItemIdOrder = displayItemIdOrder
+        self.displayItemIdOrder = items.map({ $0.itemId })
         self.createdAt = createdAt ?? .init()
         self.updatedAt = updatedAt
         self.deletedAt = deletedAt
@@ -172,27 +171,38 @@ final class PurchaseOrder: Model, Content {
         self.rejectedAt = rejectedAt
         self.logs = logs
         
+        let sumVat = Self.sumVat(items: items)
+        
         self.totalAmount = 0
         self.totalDiscountAmount = 0
         
-        self.vatAmount = 0
-        self.vatAmountBefore = 0
-        self.vatAmountAfter = 0
+        self.vatAmount = sumVat?.vatAmount
+        self.vatAmountBefore = sumVat?.vatAmountBefore
+        self.vatAmountAfter = sumVat?.vatAmountAfter
 
         self.taxWithholdingAmount = 0
         self.taxWithholdingAmountBefore = 0
         self.taxWithholdingAmountAfter = 0
 
-        
-//        self.totalDiscountAmount = Self.sumTotalDiscountAmount(items: items)
-//        self.totalAmount = Self.sumTotalAmount(items: items)
-//        self.vat = Self.sumVat(items: items)
-//        self.taxWithholding = Self.sumTaxWithholding(items: items)
-//        self.paymentAmount = Self.sumTotalPayAmount(items: items)
     }
     
-    static func sumVat(items: [PurchaseOrderItem]) -> Vat? {
-        return nil
+    static func sumVat(items: [PurchaseOrderItem]) -> SumVat? {
+        let sumVats: [SumVat] = items.compactMap({
+            if let vat = $0.vat {
+                return SumVat(vat: vat)
+            }
+            return nil
+        })
+        
+        if sumVats.isEmpty {
+            return nil
+        }
+        
+        let sum = sumVats.reduce(SumVat()) { partialResult, sumVat in
+            return partialResult.append(sumVat: sumVat)
+        }
+        
+        return sum
     }
     
     static func sumTaxWithholding(items: [PurchaseOrderItem]) -> TaxWithholding? {
@@ -252,6 +262,34 @@ final class PurchaseOrder: Model, Content {
         }
     }
     
+}
+
+extension PurchaseOrder {
+    struct SumVat {
+        let vatAmount: Double
+        let vatAmountBefore: Double
+        let vatAmountAfter: Double
+        
+        init(vatAmount: Double = 0,
+             vatAmountBefore: Double = 0,
+             vatAmountAfter: Double = 0) {
+            self.vatAmount = vatAmount
+            self.vatAmountBefore = vatAmountBefore
+            self.vatAmountAfter = vatAmountAfter
+        }
+        
+        init(vat: Vat) {
+            self.vatAmount = vat.amount
+            self.vatAmountBefore = vat.amountBefore
+            self.vatAmountAfter = vat.amountAfter
+        }
+        
+        func append(sumVat: SumVat) -> SumVat {
+            return SumVat(vatAmount: vatAmount + sumVat.vatAmount,
+                          vatAmountBefore: vatAmountBefore + sumVat.vatAmountBefore,
+                          vatAmountAfter: vatAmountAfter + sumVat.vatAmountAfter)
+        }
+    }
 }
 
 

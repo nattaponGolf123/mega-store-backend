@@ -2,7 +2,142 @@
 import XCTVapor
 
 final class PurchaseOrderTests: XCTestCase {
+    
+    // MARK: Test SumVat
+    func testSumVat_WithItem_IncludedVAT() {
+        let items: [PurchaseOrderItem] = [
+            .init(id: nil,
+                  itemId: .init(),
+                  name: "Item 1",
+                  description: "",
+                  variant: nil,
+                  qty: 10,
+                  pricePerUnit: 10,
+                  discountPerUnit: 1,
+                  vatRate: 0.07,
+                  taxWithholdingRate: nil,
+                  isVatIncluded: true),
+            .init(id: nil,
+                    itemId: .init(),
+                    name: "Item 2",
+                    description: "",
+                    variant: nil,
+                    qty: 10,
+                    pricePerUnit: 10,
+                    discountPerUnit: 1,
+                    vatRate: 0.07,
+                    taxWithholdingRate: nil,
+                    isVatIncluded: true)
+        ]
+        
+        let result = PurchaseOrder.sumVat(items: items)
+        
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result!.vatAmount, 11.775700934579447, accuracy: 0.0001)
+        XCTAssertEqual(result!.vatAmountBefore, 168.22429906542055, accuracy: 0.0001)
+        XCTAssertEqual(result!.vatAmountAfter, 180.0, accuracy: 0.0001)
+        
+    }
 
+    func testSumVat_WithItem_ExcludedVAT() {
+        let items: [PurchaseOrderItem] = [
+            .init(id: nil,
+                  itemId: .init(),
+                  name: "Item 1",
+                  description: "",
+                  variant: nil,
+                  qty: 10,
+                  pricePerUnit: 10,
+                  discountPerUnit: 1,
+                  vatRate: 0.07,
+                  taxWithholdingRate: nil,
+                  isVatIncluded: false),
+            .init(id: nil,
+                    itemId: .init(),
+                    name: "Item 2",
+                    description: "",
+                    variant: nil,
+                    qty: 10,
+                    pricePerUnit: 10,
+                    discountPerUnit: 1,
+                    vatRate: 0.07,
+                    taxWithholdingRate: nil,
+                    isVatIncluded: false)
+        ]
+        
+        let result = PurchaseOrder.sumVat(items: items)
+        
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result!.vatAmount, 12.60, accuracy: 0.0001)
+        XCTAssertEqual(result!.vatAmountBefore, 180.0, accuracy: 0.0001)
+        XCTAssertEqual(result!.vatAmountAfter, 192.60, accuracy: 0.0001)
+    }
+    
+    func testSumVat_WithSomeItem_ExcludedVAT() {
+        let items: [PurchaseOrderItem] = [
+            .init(id: nil,
+                  itemId: .init(),
+                  name: "Item 1",
+                  description: "",
+                  variant: nil,
+                  qty: 10,
+                  pricePerUnit: 10,
+                  discountPerUnit: 1,
+                  vatRate: 0.07,
+                  taxWithholdingRate: nil,
+                  isVatIncluded: false),
+            .init(id: nil,
+                    itemId: .init(),
+                    name: "Item 2",
+                    description: "",
+                    variant: nil,
+                    qty: 10,
+                    pricePerUnit: 10,
+                    discountPerUnit: 1,
+                    vatRate: nil,
+                    taxWithholdingRate: nil,
+                    isVatIncluded: false)
+        ]
+        
+        let result = PurchaseOrder.sumVat(items: items)
+        
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result!.vatAmount, 6.3, accuracy: 0.0001)
+        XCTAssertEqual(result!.vatAmountBefore, 90, accuracy: 0.0001)
+        XCTAssertEqual(result!.vatAmountAfter, 96.3, accuracy: 0.0001)
+    }
+    
+    func testSumVat_WithItem_NoVAT() {
+        let items: [PurchaseOrderItem] = [
+            .init(id: nil,
+                  itemId: .init(),
+                  name: "Item 1",
+                  description: "",
+                  variant: nil,
+                  qty: 10,
+                  pricePerUnit: 10,
+                  discountPerUnit: 1,
+                  vatRate: nil,
+                  taxWithholdingRate: nil,
+                  isVatIncluded: false),
+            .init(id: nil,
+                    itemId: .init(),
+                    name: "Item 2",
+                    description: "",
+                    variant: nil,
+                    qty: 10,
+                    pricePerUnit: 10,
+                    discountPerUnit: 1,
+                    vatRate: nil,
+                    taxWithholdingRate: nil,
+                    isVatIncluded: false)
+        ]
+        
+        let result = PurchaseOrder.sumVat(items: items)
+        
+        XCTAssertNil(result)
+    }
+        
 //    // Test Init with all parameters
 //    func testInit_WithAllParameters_ShouldInitializeCorrectly() {
 //        let po = createPurchaseOrderWithStatus(.pending,
