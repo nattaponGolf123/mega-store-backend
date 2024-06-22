@@ -76,12 +76,11 @@ final class PurchaseOrder: Model, Content {
     @Field(key: "tax_withholding_amount_before")
     var taxWithholdingAmountBefore: Double?
     
-    // payment_amount
     @Field(key: "tax_withholding_amount_after")
     var taxWithholdingAmountAfter: Double?
     
-//    @Field(key: "payment_amount")
-//    var paymentAmount: Double
+    @Field(key: "payment_amount")
+    var paymentAmount: Double
     
     @Field(key: "currency")
     var currency: String
@@ -172,18 +171,37 @@ final class PurchaseOrder: Model, Content {
         self.logs = logs
         
         let sumVat = Self.sumVat(items: items)
+        let sumTaxWithholding = Self.sumTaxWithholding(items: items)
         
-        self.totalAmount = 0
-        self.totalDiscountAmount = 0
+        self.totalDiscountAmount = Self.sumTotalDiscountAmount(items: items)
         
         self.vatAmount = sumVat?.vatAmount
         self.vatAmountBefore = sumVat?.vatAmountBefore
         self.vatAmountAfter = sumVat?.vatAmountAfter
 
-        self.taxWithholdingAmount = 0
-        self.taxWithholdingAmountBefore = 0
-        self.taxWithholdingAmountAfter = 0
+        self.taxWithholdingAmount = sumTaxWithholding?.amount
+        self.taxWithholdingAmountBefore = sumTaxWithholding?.amountBefore
+        self.taxWithholdingAmountAfter = sumTaxWithholding?.amountAfter
 
+        if let sumVat {
+            if let sumTaxWithholding {
+                self.totalAmount = sumTaxWithholding.amountBefore
+                self.paymentAmount = sumTaxWithholding.amountAfter
+            } else {
+                self.totalAmount = sumVat.vatAmountAfter
+                self.paymentAmount = sumVat.vatAmountAfter
+            }
+        }
+        else {
+            if let sumTaxWithholding {
+                self.totalAmount = sumTaxWithholding.amountBefore
+                self.paymentAmount = sumTaxWithholding.amountAfter
+            } else {
+                self.totalAmount = Self.sumTotalAmountAfteDiscount(items: items)
+                self.paymentAmount = self.totalAmount
+            }
+        }
+        
     }
     
     static func sumVat(items: [PurchaseOrderItem]) -> SumVat? {
@@ -205,20 +223,36 @@ final class PurchaseOrder: Model, Content {
         return sum
     }
     
-    static func sumTaxWithholding(items: [PurchaseOrderItem]) -> TaxWithholding? {
-        return nil
+    static func sumTaxWithholding(items: [PurchaseOrderItem]) -> SumTaxWithholding? {
+        let sumTaxWithholdings: [SumTaxWithholding] = items.compactMap({
+            if let taxWithholding = $0.taxWithholding {
+                return SumTaxWithholding(taxWithholding: taxWithholding)
+            }
+            return nil
+        })
+        
+        if sumTaxWithholdings.isEmpty {
+            return nil
+        }
+        
+        let sum = sumTaxWithholdings.reduce(SumTaxWithholding()) { partialResult, sumTaxWithholding in
+            return partialResult.append(sumTaxWithholding: sumTaxWithholding)
+        }
+        
+        return sum
     }
     
-    static func sumTotalAmount(items: [PurchaseOrderItem]) -> Double {
-        return 0
+    static func sumTotalAmountAfteDiscount(items: [PurchaseOrderItem]) -> Double {
+        return items.reduce(0.0, { result, item in
+            let sum = item.qty * item.pricePerUnit
+            return result + (sum - item.totalDiscountAmount)
+        })
     }
     
     static func sumTotalDiscountAmount(items: [PurchaseOrderItem]) -> Double {
-        return 0
-    }
-    
-    static func sumTotalPayAmount(items: [PurchaseOrderItem]) -> Double {
-        return 0
+        return items.reduce(0.0, { result, item in
+            return result + item.totalDiscountAmount
+        })
     }
     
     func ableUpdateStatus() -> [PurchaseOrderStatus] {
@@ -288,6 +322,32 @@ extension PurchaseOrder {
             return SumVat(vatAmount: vatAmount + sumVat.vatAmount,
                           vatAmountBefore: vatAmountBefore + sumVat.vatAmountBefore,
                           vatAmountAfter: vatAmountAfter + sumVat.vatAmountAfter)
+        }
+    }
+    
+    struct SumTaxWithholding {
+        let amountBefore: Double // total amount before tax withholding
+        let amount: Double // tax withholding amount
+        let amountAfter: Double // total amount after tax withholding
+        
+        init(amountBefore: Double = 0,
+             amount: Double = 0,
+             amountAfter: Double = 0) {
+            self.amountBefore = amountBefore
+            self.amount = amount
+            self.amountAfter = amountAfter
+        }
+        
+        init(taxWithholding: TaxWithholding) {
+            self.amountBefore = taxWithholding.amountBefore
+            self.amount = taxWithholding.amount
+            self.amountAfter = taxWithholding.amountAfter
+        }
+        
+        func append(sumTaxWithholding: SumTaxWithholding) -> SumTaxWithholding {
+            return SumTaxWithholding(amountBefore: amountBefore + sumTaxWithholding.amountBefore,
+                                     amount: amount + sumTaxWithholding.amount,
+                                     amountAfter: amountAfter + sumTaxWithholding.amountAfter)
         }
     }
 }

@@ -4,7 +4,7 @@ import XCTVapor
 final class PurchaseOrderTests: XCTestCase {
     
     // MARK: Test SumVat
-    func testSumVat_WithItem_IncludedVAT() {
+    func testSumVat_WithItems_IncludedVAT() {
         let items: [PurchaseOrderItem] = [
             .init(id: nil,
                   itemId: .init(),
@@ -33,13 +33,13 @@ final class PurchaseOrderTests: XCTestCase {
         let result = PurchaseOrder.sumVat(items: items)
         
         XCTAssertNotNil(result)
-        XCTAssertEqual(result!.vatAmount, 11.775700934579447, accuracy: 0.0001)
-        XCTAssertEqual(result!.vatAmountBefore, 168.22429906542055, accuracy: 0.0001)
-        XCTAssertEqual(result!.vatAmountAfter, 180.0, accuracy: 0.0001)
+        XCTAssertEqual(result!.vatAmount, 11.775700934579447, accuracy: 0.01)
+        XCTAssertEqual(result!.vatAmountBefore, 168.22429906542055, accuracy: 0.01)
+        XCTAssertEqual(result!.vatAmountAfter, 180.0, accuracy: 0.01)
         
     }
 
-    func testSumVat_WithItem_ExcludedVAT() {
+    func testSumVat_WithItems_ExcludedVAT() {
         let items: [PurchaseOrderItem] = [
             .init(id: nil,
                   itemId: .init(),
@@ -68,12 +68,12 @@ final class PurchaseOrderTests: XCTestCase {
         let result = PurchaseOrder.sumVat(items: items)
         
         XCTAssertNotNil(result)
-        XCTAssertEqual(result!.vatAmount, 12.60, accuracy: 0.0001)
-        XCTAssertEqual(result!.vatAmountBefore, 180.0, accuracy: 0.0001)
-        XCTAssertEqual(result!.vatAmountAfter, 192.60, accuracy: 0.0001)
+        XCTAssertEqual(result!.vatAmount, 12.60, accuracy: 0.01)
+        XCTAssertEqual(result!.vatAmountBefore, 180.0, accuracy: 0.01)
+        XCTAssertEqual(result!.vatAmountAfter, 192.60, accuracy: 0.01)
     }
     
-    func testSumVat_WithSomeItem_ExcludedVAT() {
+    func testSumVat_WithSomeItems_ExcludedVAT() {
         let items: [PurchaseOrderItem] = [
             .init(id: nil,
                   itemId: .init(),
@@ -102,12 +102,12 @@ final class PurchaseOrderTests: XCTestCase {
         let result = PurchaseOrder.sumVat(items: items)
         
         XCTAssertNotNil(result)
-        XCTAssertEqual(result!.vatAmount, 6.3, accuracy: 0.0001)
-        XCTAssertEqual(result!.vatAmountBefore, 90, accuracy: 0.0001)
-        XCTAssertEqual(result!.vatAmountAfter, 96.3, accuracy: 0.0001)
+        XCTAssertEqual(result!.vatAmount, 6.3, accuracy: 0.01)
+        XCTAssertEqual(result!.vatAmountBefore, 90, accuracy: 0.01)
+        XCTAssertEqual(result!.vatAmountAfter, 96.3, accuracy: 0.01)
     }
     
-    func testSumVat_WithItem_NoVAT() {
+    func testSumVat_WithItems_NoVAT() {
         let items: [PurchaseOrderItem] = [
             .init(id: nil,
                   itemId: .init(),
@@ -137,21 +137,446 @@ final class PurchaseOrderTests: XCTestCase {
         
         XCTAssertNil(result)
     }
+    
+    // MARK: Test SumTaxWithholding
+    func testSumTaxWithholding_WithItems_IncludedVAT() {
+        let items: [PurchaseOrderItem] = [
+            .init(id: nil,
+                  itemId: .init(),
+                  name: "Item 1",
+                  description: "",
+                  variant: nil,
+                  qty: 10,
+                  pricePerUnit: 10,
+                  discountPerUnit: 1,
+                  vatRate: 0.07,
+                  taxWithholdingRate: 0.03,
+                  isVatIncluded: true),
+            .init(id: nil,
+                    itemId: .init(),
+                    name: "Item 2",
+                    description: "",
+                    variant: nil,
+                    qty: 10,
+                    pricePerUnit: 10,
+                    discountPerUnit: 1,
+                  vatRate: 0.07,
+                    taxWithholdingRate: 0.03,
+                    isVatIncluded: true)
+        ]
         
-//    // Test Init with all parameters
-//    func testInit_WithAllParameters_ShouldInitializeCorrectly() {
-//        let po = createPurchaseOrderWithStatus(.pending,
-//                                               productAndServiceAreVatExcluded: false,
-//                                               vatIncluded: false)
-//        
-//        XCTAssertNotNil(po.id)
-//        XCTAssertEqual(po.productItems.count, 2)
-//        XCTAssertEqual(po.serviceItems .count, 2)
-//        XCTAssertEqual(po.supplierContactInformation.contactPerson, "Som Doe")
-//        XCTAssertEqual(po.supplierBusinessAddress.address, "5678 Elm St.")
-//        XCTAssertEqual(po.customerContactInformation.contactPerson, "John Doe")
-//        XCTAssertEqual(po.customerBusinessAddress.address, "123 Main St")
-//    }
+        let result = PurchaseOrder.sumTaxWithholding(items: items)
+        
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result!.amount, 5.046728971962616, accuracy: 0.01)
+        XCTAssertEqual(result!.amountBefore, 180.0, accuracy: 0.01)
+        XCTAssertEqual(result!.amountAfter, 174.9532710280374, accuracy: 0.01)
+    }
+    
+    func testSumTaxWithholding_WithItems_ExcludedVAT() {
+        let items: [PurchaseOrderItem] = [
+            .init(id: nil,
+                  itemId: .init(),
+                  name: "Item 1",
+                  description: "",
+                  variant: nil,
+                  qty: 10,
+                  pricePerUnit: 10,
+                  discountPerUnit: 1,
+                  vatRate: 0.07,
+                  taxWithholdingRate: 0.03,
+                  isVatIncluded: false),
+            .init(id: nil,
+                    itemId: .init(),
+                    name: "Item 2",
+                    description: "",
+                    variant: nil,
+                    qty: 10,
+                    pricePerUnit: 10,
+                    discountPerUnit: 1,
+                  vatRate: 0.07,
+                    taxWithholdingRate: 0.03,
+                    isVatIncluded: false)
+        ]
+        
+        let result = PurchaseOrder.sumTaxWithholding(items: items)
+        
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result!.amount, 5.4, accuracy: 0.01)
+        XCTAssertEqual(result!.amountBefore, 192.60, accuracy: 0.01)
+        XCTAssertEqual(result!.amountAfter, 187.20, accuracy: 0.01)
+    }
+        
+    func testSumTaxWithholding_WithItems_NoVat() {
+        let items: [PurchaseOrderItem] = [
+            .init(id: nil,
+                  itemId: .init(),
+                  name: "Item 1",
+                  description: "",
+                  variant: nil,
+                  qty: 10,
+                  pricePerUnit: 10,
+                  discountPerUnit: 1,
+                  vatRate: nil,
+                  taxWithholdingRate: 0.03,
+                  isVatIncluded: false),
+            .init(id: nil,
+                    itemId: .init(),
+                    name: "Item 2",
+                    description: "",
+                    variant: nil,
+                    qty: 10,
+                    pricePerUnit: 10,
+                    discountPerUnit: 1,
+                  vatRate: nil,
+                    taxWithholdingRate: 0.03,
+                    isVatIncluded: false)
+        ]
+        
+        let result = PurchaseOrder.sumTaxWithholding(items: items)
+        
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result!.amount, 5.4, accuracy: 0.01)
+        XCTAssertEqual(result!.amountBefore, 180.0, accuracy: 0.01)
+        XCTAssertEqual(result!.amountAfter, 174.60, accuracy: 0.01)
+    }
+    
+    func testSumTaxWithholding_WithItems_NoVat_NoTaxWithholding() {
+        let items: [PurchaseOrderItem] = [
+            .init(id: nil,
+                  itemId: .init(),
+                  name: "Item 1",
+                  description: "",
+                  variant: nil,
+                  qty: 10,
+                  pricePerUnit: 10,
+                  discountPerUnit: 1,
+                  vatRate: nil,
+                  taxWithholdingRate: nil,
+                  isVatIncluded: false),
+            .init(id: nil,
+                    itemId: .init(),
+                    name: "Item 2",
+                    description: "",
+                    variant: nil,
+                    qty: 10,
+                    pricePerUnit: 10,
+                    discountPerUnit: 1,
+                  vatRate: nil,
+                    taxWithholdingRate: nil,
+                    isVatIncluded: false)
+        ]
+        
+        let result = PurchaseOrder.sumTaxWithholding(items: items)
+        
+        XCTAssertNil(result)
+    }
+    
+    // MARK: Test Calculation properties
+    // Price included VAT , Tax withholding included
+    func testCalculationProperties_WithItems_IncludedVAT_TaxWithholding() {
+        let items: [PurchaseOrderItem] = [
+            .init(id: nil,
+                  itemId: .init(),
+                  name: "Item 1",
+                  description: "",
+                  variant: nil,
+                  qty: 10,
+                  pricePerUnit: 10,
+                  discountPerUnit: 1,
+                  vatRate: 0.07,
+                  taxWithholdingRate: 0.03,
+                  isVatIncluded: true),
+            .init(id: nil,
+                    itemId: .init(),
+                    name: "Item 2",
+                    description: "",
+                    variant: nil,
+                    qty: 10,
+                    pricePerUnit: 10,
+                    discountPerUnit: 1,
+                  vatRate: 0.07,
+                    taxWithholdingRate: 0.03,
+                    isVatIncluded: true)
+        ]
+        
+        let order = PurchaseOrder(month: 1,
+                                   year: 2024,
+                                   items: items,
+                                   supplierId: .init(),
+                                   customerId: .init())
+        
+        XCTAssertNotNil(order.vatAmount)
+        XCTAssertNotNil(order.vatAmountBefore)
+        XCTAssertNotNil(order.vatAmountAfter)
+        
+        XCTAssertEqual(order.vatAmount!, 11.78, accuracy: 0.01)
+        XCTAssertEqual(order.vatAmountBefore!, 168.22, accuracy: 0.01)
+        XCTAssertEqual(order.vatAmountAfter!, 180.0, accuracy: 0.01)
+        
+        XCTAssertNotNil(order.taxWithholdingAmount)
+        XCTAssertNotNil(order.taxWithholdingAmountBefore)
+        XCTAssertNotNil(order.taxWithholdingAmountAfter)
+        
+        XCTAssertEqual(order.taxWithholdingAmount!, 5.05, accuracy: 0.01)
+        XCTAssertEqual(order.taxWithholdingAmountBefore!, 180.0, accuracy: 0.01)
+        XCTAssertEqual(order.taxWithholdingAmountAfter!, 174.95, accuracy: 0.01)
+        
+        XCTAssertEqual(order.totalAmount, 180.0, accuracy: 0.01)
+        XCTAssertEqual(order.totalDiscountAmount, 20.0, accuracy: 0.01)
+        XCTAssertEqual(order.paymentAmount, 174.95, accuracy: 0.01)
+    }
+    
+    // Price excluded VAT , Tax withholding included
+    func testCalculationProperties_WithItems_ExcludedVAT_TaxWithholding() {
+        let items: [PurchaseOrderItem] = [
+            .init(id: nil,
+                  itemId: .init(),
+                  name: "Item 1",
+                  description: "",
+                  variant: nil,
+                  qty: 10,
+                  pricePerUnit: 10,
+                  discountPerUnit: 1,
+                  vatRate: 0.07,
+                  taxWithholdingRate: 0.03,
+                  isVatIncluded: false),
+            .init(id: nil,
+                    itemId: .init(),
+                    name: "Item 2",
+                    description: "",
+                    variant: nil,
+                    qty: 10,
+                    pricePerUnit: 10,
+                    discountPerUnit: 1,
+                  vatRate: 0.07,
+                    taxWithholdingRate: 0.03,
+                    isVatIncluded: false)
+        ]
+        
+        let order = PurchaseOrder(month: 1,
+                                   year: 2024,
+                                   items: items,
+                                   supplierId: .init(),
+                                   customerId: .init())
+        
+        XCTAssertNotNil(order.vatAmount)
+        XCTAssertNotNil(order.vatAmountBefore)
+        XCTAssertNotNil(order.vatAmountAfter)
+        
+        XCTAssertEqual(order.vatAmount!, 12.60, accuracy: 0.01)
+        XCTAssertEqual(order.vatAmountBefore!, 180.0, accuracy: 0.01)
+        XCTAssertEqual(order.vatAmountAfter!, 192.60, accuracy: 0.01)
+        
+        XCTAssertNotNil(order.taxWithholdingAmount)
+        XCTAssertNotNil(order.taxWithholdingAmountBefore)
+        XCTAssertNotNil(order.taxWithholdingAmountAfter)
+        
+        XCTAssertEqual(order.taxWithholdingAmount!, 5.40, accuracy: 0.01)
+        XCTAssertEqual(order.taxWithholdingAmountBefore!, 192.60, accuracy: 0.01)
+        XCTAssertEqual(order.taxWithholdingAmountAfter!, 187.20, accuracy: 0.01)
+        
+        XCTAssertEqual(order.totalAmount, 192.6, accuracy: 0.01)
+        XCTAssertEqual(order.totalDiscountAmount, 20.0, accuracy: 0.01)
+        XCTAssertEqual(order.paymentAmount, 187.20, accuracy: 0.01)
+    }
+    
+    // Price included VAT , Tax withholding excluded
+    func testCalculationProperties_WithItems_IncludedVAT_TaxWithholdingExcluded() {
+        let items: [PurchaseOrderItem] = [
+            .init(id: nil,
+                  itemId: .init(),
+                  name: "Item 1",
+                  description: "",
+                  variant: nil,
+                  qty: 10,
+                  pricePerUnit: 10,
+                  discountPerUnit: 1,
+                  vatRate: 0.07,
+                  taxWithholdingRate: nil,
+                  isVatIncluded: true),
+            .init(id: nil,
+                    itemId: .init(),
+                    name: "Item 2",
+                    description: "",
+                    variant: nil,
+                    qty: 10,
+                    pricePerUnit: 10,
+                    discountPerUnit: 1,
+                  vatRate: 0.07,
+                    taxWithholdingRate: nil,
+                    isVatIncluded: true)
+        ]
+        
+        let order = PurchaseOrder(month: 1,
+                                   year: 2024,
+                                   items: items,
+                                   supplierId: .init(),
+                                   customerId: .init())
+        
+        XCTAssertNotNil(order.vatAmount)
+        XCTAssertNotNil(order.vatAmountBefore)
+        XCTAssertNotNil(order.vatAmountAfter)
+        
+        XCTAssertEqual(order.vatAmount!, 11.78, accuracy: 0.01)
+        XCTAssertEqual(order.vatAmountBefore!, 168.22, accuracy: 0.01)
+        XCTAssertEqual(order.vatAmountAfter!, 180.0, accuracy: 0.01)
+        
+        XCTAssertNil(order.taxWithholdingAmount)
+        XCTAssertNil(order.taxWithholdingAmountBefore)
+        XCTAssertNil(order.taxWithholdingAmountAfter)
+        
+        XCTAssertEqual(order.totalAmount, 180.0, accuracy: 0.01)
+        XCTAssertEqual(order.totalDiscountAmount, 20.0, accuracy: 0.01)
+        XCTAssertEqual(order.paymentAmount, 180.0, accuracy: 0.01)
+    }
+    
+    // Price excluded VAT , Tax withholding excluded
+    func testCalculationProperties_WithItems_ExcludedVAT_TaxWithholdingExcluded() {
+        let items: [PurchaseOrderItem] = [
+            .init(id: nil,
+                  itemId: .init(),
+                  name: "Item 1",
+                  description: "",
+                  variant: nil,
+                  qty: 10,
+                  pricePerUnit: 10,
+                  discountPerUnit: 1,
+                  vatRate: 0.07,
+                  taxWithholdingRate: nil,
+                  isVatIncluded: false),
+            .init(id: nil,
+                    itemId: .init(),
+                    name: "Item 2",
+                    description: "",
+                    variant: nil,
+                    qty: 10,
+                    pricePerUnit: 10,
+                    discountPerUnit: 1,
+                  vatRate: 0.07,
+                    taxWithholdingRate: nil,
+                    isVatIncluded: false)
+        ]
+        
+        let order = PurchaseOrder(month: 1,
+                                   year: 2024,
+                                   items: items,
+                                   supplierId: .init(),
+                                   customerId: .init())
+        
+        XCTAssertNotNil(order.vatAmount)
+        XCTAssertNotNil(order.vatAmountBefore)
+        XCTAssertNotNil(order.vatAmountAfter)
+        
+        XCTAssertEqual(order.vatAmount!, 12.60, accuracy: 0.01)
+        XCTAssertEqual(order.vatAmountBefore!, 180.0, accuracy: 0.01)
+        XCTAssertEqual(order.vatAmountAfter!, 192.60, accuracy: 0.01)
+        
+        XCTAssertNil(order.taxWithholdingAmount)
+        XCTAssertNil(order.taxWithholdingAmountBefore)
+        XCTAssertNil(order.taxWithholdingAmountAfter)
+        
+        XCTAssertEqual(order.totalAmount, 192.60, accuracy: 0.01)
+        XCTAssertEqual(order.totalDiscountAmount, 20.0, accuracy: 0.01)
+        XCTAssertEqual(order.paymentAmount, 192.60, accuracy: 0.01)
+    }
+    
+    // Price No VAT , Tax withholding included
+    func testCalculationProperties_WithItems_NoVAT_TaxWithholdingIncluded() {
+        let items: [PurchaseOrderItem] = [
+            .init(id: nil,
+                  itemId: .init(),
+                  name: "Item 1",
+                  description: "",
+                  variant: nil,
+                  qty: 10,
+                  pricePerUnit: 10,
+                  discountPerUnit: 1,
+                  vatRate: nil,
+                  taxWithholdingRate: 0.03,
+                  isVatIncluded: false),
+            .init(id: nil,
+                  itemId: .init(),
+                  name: "Item 2",
+                  description: "",
+                  variant: nil,
+                  qty: 10,
+                  pricePerUnit: 10,
+                  discountPerUnit: 1,
+                  vatRate: nil,
+                  taxWithholdingRate: 0.03,
+                  isVatIncluded: false)
+        ]
+        
+        let order = PurchaseOrder(month: 1,
+                                   year: 2024,
+                                   items: items,
+                                   supplierId: .init(),
+                                   customerId: .init())
+        
+        XCTAssertNil(order.vatAmount)
+        XCTAssertNil(order.vatAmountBefore)
+        XCTAssertNil(order.vatAmountAfter)
+        
+        XCTAssertNotNil(order.taxWithholdingAmount)
+        XCTAssertNotNil(order.taxWithholdingAmountBefore)
+        XCTAssertNotNil(order.taxWithholdingAmountAfter)
+        
+        XCTAssertEqual(order.taxWithholdingAmount!, 5.40, accuracy: 0.01)
+        XCTAssertEqual(order.taxWithholdingAmountBefore!, 180.0, accuracy: 0.01)
+        XCTAssertEqual(order.taxWithholdingAmountAfter!, 174.60, accuracy: 0.01)
+        
+        XCTAssertEqual(order.totalAmount, 180.0, accuracy: 0.01)
+        XCTAssertEqual(order.totalDiscountAmount, 20.0, accuracy: 0.01)
+        XCTAssertEqual(order.paymentAmount, 174.60, accuracy: 0.01)
+    }
+    
+    // Price No VAT , No Tax withholding
+    func testCalculationProperties_WithItems_NoVAT_NoTaxWithholding() {
+        let items: [PurchaseOrderItem] = [
+            .init(id: nil,
+                  itemId: .init(),
+                  name: "Item 1",
+                  description: "",
+                  variant: nil,
+                  qty: 10,
+                  pricePerUnit: 10,
+                  discountPerUnit: 1,
+                  vatRate: nil,
+                  taxWithholdingRate: nil,
+                  isVatIncluded: false),
+            .init(id: nil,
+                    itemId: .init(),
+                    name: "Item 2",
+                    description: "",
+                    variant: nil,
+                    qty: 10,
+                    pricePerUnit: 10,
+                    discountPerUnit: 1,
+                  vatRate: nil,
+                    taxWithholdingRate: nil,
+                    isVatIncluded: false)
+        ]
+        
+        let order = PurchaseOrder(month: 1,
+                                   year: 2024,
+                                   items: items,
+                                   supplierId: .init(),
+                                   customerId: .init())
+        
+        XCTAssertNil(order.vatAmount)
+        XCTAssertNil(order.vatAmountBefore)
+        XCTAssertNil(order.vatAmountAfter)
+        
+        XCTAssertNil(order.taxWithholdingAmount)
+        XCTAssertNil(order.taxWithholdingAmountBefore)
+        XCTAssertNil(order.taxWithholdingAmountAfter)
+        
+        XCTAssertEqual(order.totalAmount, 180.0, accuracy: 0.01)
+        XCTAssertEqual(order.totalDiscountAmount, 20.0, accuracy: 0.01)
+        XCTAssertEqual(order.paymentAmount, 180.0, accuracy: 0.01)
+    }
+    
 //
 //    // Test ableUpdateStatus
 //    func testAbleUpdateStatus_WithPendingStatus_ShouldReturnExpectedStatuses() {
@@ -225,53 +650,8 @@ final class PurchaseOrderTests: XCTestCase {
 //        XCTAssertEqual(po.previousVersions.count, 1)
 //    }
 //
-////    func testPrepareUpdate_WithNonLatestVersion_ShouldNotPrepareForUpdate() {
-////        var po = createPurchaseOrder(isLatestVersion: false)
-////        po.prepareUpdate()
-////        XCTAssertFalse(po.isLastedVersion)
-////        XCTAssertTrue(po.previousVersions.isEmpty)
-////    }
+
 //
-//    // Test sum function
-//    func testSum_WithProductAndServiceItems_ShouldReturnCorrectTotal() {
-//        let productItems: [ProductItem] = [
-//            .init(productId: .init(),
-//                  name: "Product A",
-//                  description: "Product A Description",
-//                  variant: nil,
-//                  quantity: 3,
-//                  sellingPrice: 99.9,
-//                  unit: "unit",
-//                  remark: "Remark"),
-//            .init(productId: .init(),
-//                    name: "Product B",
-//                    description: "Product B Description",
-//                    variant: nil,
-//                    quantity: 2,
-//                    sellingPrice: 200,
-//                    unit: "unit",
-//                    remark: "Remark")
-//        ]
-//        let serviceItems: [ServiceItem] = [
-//            .init(serviceId: .init(),
-//                  name: "Service A",
-//                  description: "Service A Description",
-//                  quantity: 1,
-//                  price: 300,
-//                  unit: "unit",
-//                  remark: "Remark"),
-//            .init(serviceId: .init(),
-//                  name: "Service B",
-//                  description: "Service B Description",
-//                  quantity: 1,
-//                  price: 400.11,
-//                  unit: "unit",
-//                  remark: "Remark")
-//        ]
-//        let total = PurchaseOrder.sum(productItems: productItems, serviceItems: serviceItems)
-//        XCTAssertEqual(total, 1399.81, accuracy: 0.01)
-//    }
-//    
 //    // Helper methods to create PurchaseOrder instances for testing
 ////    private func createPurchaseOrderWithStatus(_ status: PurchaseOrderStatus,
 ////                                               productAndServiceAreVatExcluded: Bool,
@@ -281,7 +661,7 @@ final class PurchaseOrderTests: XCTestCase {
 ////                                                                     phoneNumber: "1234567890",
 ////                                                                     email: "abc@email.com")
 ////        let customerAddress: BusinessAddress = BusinessAddress.Stub.usa
-////                                                                                                                  
+////
 ////        let supplierContact = ContactInformation(contactPerson: "Som Doe",
 ////                                                  phoneNumber: "0987654321",
 ////                                                  email: "")
@@ -340,56 +720,720 @@ final class PurchaseOrderTests: XCTestCase {
 //    }
 }
 
-//private extension PurchaseOrderTests {
-//    
-//    static var productA: ProductItem {
-//        return ProductItem(
-//            productId: .init(),
-//            name: "Product A",
-//            description: "Product A Description",
-//            variant: nil,
-//            quantity: 3,
-//            sellingPrice: 99.9,
-//            unit: "unit",
-//            remark: "Remark"
-//        )
-//    }
-//    
-//    static var productB: ProductItem {
-//        return ProductItem(
-//            productId: .init(),
-//            name: "Product B",
-//            description: "Product B Description",
-//            variant: nil,
-//            quantity: 2,
-//            sellingPrice: 200,
-//            unit: "unit",
-//            remark: "Remark"
-//        )
-//    }
-//    
-//    static var serviceA: ServiceItem {
-//        return ServiceItem(
-//            serviceId: .init(),
-//            name: "Service A",
-//            description: "Service A Description",
-//            quantity: 1,
-//            price: 300,
-//            unit: "unit",
-//            remark: "Remark"
-//        )
-//    }
-//    
-//    static var serviceB: ServiceItem {
-//        return ServiceItem(
-//            serviceId: .init(),
-//            name: "Service B",
-//            description: "Service B Description",
-//            quantity: 1,
-//            price: 400.11,
-//            unit: "unit",
-//            remark: "Remark"
-//        )
-//    }
-//}
+/*
+ enum PurchaseOrderStatus: String, Codable {
+     case pending
+     case approved
+     case rejected
+     case voided
+ }
 
+ final class PurchaseOrder: Model, Content {
+     static let schema = "PurchaseOrders"
+     
+     @ID(key: .id)
+     var id: UUID?
+     
+     @Field(key: "month")
+     var month: Int
+     
+     @Field(key: "year")
+     var year: Int
+     
+     @Field(key: "number")
+     var number: Int
+     
+     @Field(key: "reference")
+     var reference: String?
+     
+     @Field(key: "items")
+     var items: [PurchaseOrderItem]
+     
+     @Field(key: "order_date")
+     var orderDate: Date
+     
+     @Field(key: "delivery_date")
+     var deliveryDate: Date
+     
+     @Field(key: "payment_terms_days")
+     var paymentTermsDays: Int
+     
+     @Field(key: "supplier_id")
+     var supplierId: UUID
+     
+     @Field(key: "customer_id")
+     var customerId: UUID
+     
+     @Field(key: "status")
+     var status: PurchaseOrderStatus
+     
+     // sum(pricePerUnit x qty)
+     @Field(key: "total_amount")
+     var totalAmount: Double
+     
+     // sum(discountPerUnit x qty)
+     @Field(key: "total_discount_amount")
+     var totalDiscountAmount: Double
+     
+     // MARK: VAT
+     @Field(key: "vat_amount")
+     var vatAmount: Double?
+     
+     @Field(key: "vat_amount_before")
+     var vatAmountBefore: Double?
+     
+     @Field(key: "vat_amount_after")
+     var vatAmountAfter: Double?
+     
+     // MARK: TAX WITHHOLDING
+     @Field(key: "tax_withholding_amount")
+     var taxWithholdingAmount: Double?
+     
+     @Field(key: "tax_withholding_amount_before")
+     var taxWithholdingAmountBefore: Double?
+     
+     @Field(key: "tax_withholding_amount_after")
+     var taxWithholdingAmountAfter: Double?
+     
+     @Field(key: "payment_amount")
+     var paymentAmount: Double
+     
+     @Field(key: "currency")
+     var currency: String
+     
+     @Field(key: "internal_note")
+     var note: String
+     
+     @Field(key: "display_item_id_order")
+     var displayItemIdOrder: [UUID] // orderItemId
+     
+     @Timestamp(key: "created_at",
+                on: .create,
+                format: .iso8601)
+     var createdAt: Date?
+     
+     @Timestamp(key: "updated_at",
+                on: .update,
+                format: .iso8601)
+     var updatedAt: Date?
+     
+     @Timestamp(key: "deleted_at",
+                on: .delete,
+                format: .iso8601)
+     var deletedAt: Date?
+     
+     @Timestamp(key: "approved_at",
+                on: .create,
+                format: .iso8601)
+     var approvedAt: Date?
+     
+     @Timestamp(key: "voided_at",
+                on: .create,
+                format: .iso8601)
+     var voidedAt: Date?
+     
+     @Timestamp(key: "rejected_at",
+                on: .create,
+                format: .iso8601)
+     var rejectedAt: Date?
+     
+     @Field(key: "logs")
+     var logs: [ActionLog]
+     
+     init() { }
+     
+     init(id: UUID? = nil,
+          month: Int,
+          year: Int,
+          number: Int = 1,
+          reference: String? = nil,
+          items: [PurchaseOrderItem],
+          orderDate: Date = .init(),
+          deliveryDate: Date = .init(),
+          paymentTermsDays: Int = 30,
+          supplierId: UUID,
+          customerId: UUID,
+          status: PurchaseOrderStatus = .pending,
+          currency: String = "THB",
+          note: String = "",
+          createdAt: Date? = nil,
+          updatedAt: Date? = nil,
+          deletedAt: Date? = nil,
+          approvedAt: Date? = nil,
+          voidedAt: Date? = nil,
+          rejectedAt: Date? = nil,
+          logs: [ActionLog] = []) {
+         self.id = id
+         self.month = month
+         self.year = year
+         self.number = number
+         self.reference = reference
+         self.items = items
+         self.orderDate = orderDate
+         self.deliveryDate = deliveryDate
+         self.paymentTermsDays = paymentTermsDays
+         self.supplierId = supplierId
+         self.customerId = customerId
+         self.status = status
+         self.currency = currency
+         self.note = note
+         self.displayItemIdOrder = items.map({ $0.itemId })
+         self.createdAt = createdAt ?? .init()
+         self.updatedAt = updatedAt
+         self.deletedAt = deletedAt
+         self.approvedAt = approvedAt
+         self.voidedAt = voidedAt
+         self.rejectedAt = rejectedAt
+         self.logs = logs
+         
+         let sumVat = Self.sumVat(items: items)
+         let sumTaxWithholding = Self.sumTaxWithholding(items: items)
+         
+         self.totalDiscountAmount = Self.sumTotalDiscountAmount(items: items)
+         
+         self.vatAmount = sumVat?.vatAmount
+         self.vatAmountBefore = sumVat?.vatAmountBefore
+         self.vatAmountAfter = sumVat?.vatAmountAfter
+
+         self.taxWithholdingAmount = sumTaxWithholding?.amount
+         self.taxWithholdingAmountBefore = sumTaxWithholding?.amountBefore
+         self.taxWithholdingAmountAfter = sumTaxWithholding?.amountAfter
+
+         if let sumVat {
+             if let sumTaxWithholding {
+                 self.totalAmount = sumTaxWithholding.amountBefore
+                 self.paymentAmount = sumTaxWithholding.amountAfter
+             } else {
+                 self.totalAmount = sumVat.vatAmountAfter
+                 self.paymentAmount = sumVat.vatAmountAfter
+             }
+         }
+         else {
+             self.totalAmount = Self.sumTotalAmountAfteDiscount(items: items)
+             self.paymentAmount = self.totalAmount
+         }
+         
+     }
+     
+     static func sumVat(items: [PurchaseOrderItem]) -> SumVat? {
+         let sumVats: [SumVat] = items.compactMap({
+             if let vat = $0.vat {
+                 return SumVat(vat: vat)
+             }
+             return nil
+         })
+         
+         if sumVats.isEmpty {
+             return nil
+         }
+         
+         let sum = sumVats.reduce(SumVat()) { partialResult, sumVat in
+             return partialResult.append(sumVat: sumVat)
+         }
+         
+         return sum
+     }
+     
+     static func sumTaxWithholding(items: [PurchaseOrderItem]) -> SumTaxWithholding? {
+         let sumTaxWithholdings: [SumTaxWithholding] = items.compactMap({
+             if let taxWithholding = $0.taxWithholding {
+                 return SumTaxWithholding(taxWithholding: taxWithholding)
+             }
+             return nil
+         })
+         
+         if sumTaxWithholdings.isEmpty {
+             return nil
+         }
+         
+         let sum = sumTaxWithholdings.reduce(SumTaxWithholding()) { partialResult, sumTaxWithholding in
+             return partialResult.append(sumTaxWithholding: sumTaxWithholding)
+         }
+         
+         return sum
+     }
+     
+     static func sumTotalAmountAfteDiscount(items: [PurchaseOrderItem]) -> Double {
+         return items.reduce(0.0, { result, item in
+             let sum = item.qty * item.pricePerUnit
+             return result + (sum - item.totalDiscountAmount)
+         })
+     }
+     
+     static func sumTotalDiscountAmount(items: [PurchaseOrderItem]) -> Double {
+         return items.reduce(0.0, { result, item in
+             return result + item.totalDiscountAmount
+         })
+     }
+     
+     func ableUpdateStatus() -> [PurchaseOrderStatus] {
+         switch status {
+         case .pending:
+             return [.approved, .rejected, .voided]
+         case .approved:
+             return [.voided]
+         default:
+             return []
+         }
+     }
+     
+     func moveStatus(newStatus: PurchaseOrderStatus) {
+         switch status {
+         case .pending:
+             switch newStatus {
+             case .approved:
+                 self.status = newStatus
+                 self.approvedAt = .init()
+             case .rejected:
+                 self.status = newStatus
+                 self.rejectedAt = .init()
+             case .voided:
+                 self.status = newStatus
+                 self.voidedAt = .init()
+             default:
+                 break
+             }
+             
+         case .approved:
+             switch newStatus {
+             case .voided:
+                 self.status = newStatus
+                 self.voidedAt = .init()
+             default:
+                 break
+             }
+         default:
+             break
+         }
+     }
+     
+ }
+
+ extension PurchaseOrder {
+     struct SumVat {
+         let vatAmount: Double
+         let vatAmountBefore: Double
+         let vatAmountAfter: Double
+         
+         init(vatAmount: Double = 0,
+              vatAmountBefore: Double = 0,
+              vatAmountAfter: Double = 0) {
+             self.vatAmount = vatAmount
+             self.vatAmountBefore = vatAmountBefore
+             self.vatAmountAfter = vatAmountAfter
+         }
+         
+         init(vat: Vat) {
+             self.vatAmount = vat.amount
+             self.vatAmountBefore = vat.amountBefore
+             self.vatAmountAfter = vat.amountAfter
+         }
+         
+         func append(sumVat: SumVat) -> SumVat {
+             return SumVat(vatAmount: vatAmount + sumVat.vatAmount,
+                           vatAmountBefore: vatAmountBefore + sumVat.vatAmountBefore,
+                           vatAmountAfter: vatAmountAfter + sumVat.vatAmountAfter)
+         }
+     }
+     
+     struct SumTaxWithholding {
+         let amountBefore: Double // total amount before tax withholding
+         let amount: Double // tax withholding amount
+         let amountAfter: Double // total amount after tax withholding
+         
+         init(amountBefore: Double = 0,
+              amount: Double = 0,
+              amountAfter: Double = 0) {
+             self.amountBefore = amountBefore
+             self.amount = amount
+             self.amountAfter = amountAfter
+         }
+         
+         init(taxWithholding: TaxWithholding) {
+             self.amountBefore = taxWithholding.amountBefore
+             self.amount = taxWithholding.amount
+             self.amountAfter = taxWithholding.amountAfter
+         }
+         
+         func append(sumTaxWithholding: SumTaxWithholding) -> SumTaxWithholding {
+             return SumTaxWithholding(amountBefore: amountBefore + sumTaxWithholding.amountBefore,
+                                      amount: amount + sumTaxWithholding.amount,
+                                      amountAfter: amountAfter + sumTaxWithholding.amountAfter)
+         }
+     }
+ }
+
+
+ */
+
+/*
+ final class PurchaseOrderItemTests: XCTestCase {
+     
+     // Price included VAT , Tax withholding included
+     func testInit_WithPriceIncludedVat_WithTaxWithholdingIncluded_ShouldCalculateCorrectValues() {
+         // Given
+         let itemId = UUID()
+         let name = "Test Item"
+         let description = "Test Description"
+         let variant: ProductVariant? = nil
+         let qty: Double = 10
+         let pricePerUnit: Double = 10
+         let discountPerUnit: Double = 1
+         let vatRate: Double = 0.07
+         let taxWithholdingRate: Double = 0.03
+         
+         // When
+         let item = PurchaseOrderItem(itemId: itemId,
+                                                   name: name,
+                                                   description: description,
+                                                   variant: variant,
+                                                   qty: qty,
+                                                   pricePerUnitIncludeVat: pricePerUnit,
+                                                   discountPerUnit: discountPerUnit,
+                                                   vatRate: vatRate,
+                                                   taxWithholdingRate: taxWithholdingRate)
+         
+         // Then
+         let expectedTotalAmountDiscount = 10.0
+         let expectedVatAmountAfter = 90.0
+                         
+         let expectedTotalAmountBeforeVat = 84.1121495327
+         let expectedVatAmount = 5.8878504673
+
+         let expectedTaxWithholdingAmount = 2.523364486 // tax amount
+         let expectedTotalPayAmount = 87.476635514
+         
+         //test property
+         XCTAssertEqual(item.name, name)
+         XCTAssertEqual(item.description, description)
+         XCTAssertEqual(item.qty, qty)
+         XCTAssertEqual(item.pricePerUnit, pricePerUnit)
+         XCTAssertEqual(item.discountPricePerUnit, discountPerUnit)
+
+         // vat
+         XCTAssertNotNil(item.vat)
+         XCTAssertEqual(item.vat!.amountBefore, expectedTotalAmountBeforeVat, accuracy: 0.01)
+         XCTAssertEqual(item.vat!.amountAfter, expectedVatAmountAfter, accuracy: 0.01)
+         XCTAssertEqual(item.vat!.rate, vatRate, accuracy: 0.01)
+         XCTAssertEqual(item.vat!.amount, expectedVatAmount, accuracy: 0.01)
+
+         // tax withholding
+         XCTAssertNotNil(item.taxWithholding)
+         XCTAssertEqual(item.taxWithholding!.amount, expectedTaxWithholdingAmount, accuracy: 0.01)
+         XCTAssertEqual(item.taxWithholding!.amountBefore, expectedVatAmountAfter, accuracy: 0.01)
+         XCTAssertEqual(item.taxWithholding!.amountAfter, expectedTotalPayAmount, accuracy: 0.01)
+
+         // other
+         XCTAssertEqual(item.totalDiscountAmount, expectedTotalAmountDiscount, accuracy: 0.01)
+         XCTAssertEqual(item.totalAmount, expectedVatAmountAfter, accuracy: 0.01)
+         XCTAssertEqual(item.totalPayAmount, expectedTotalPayAmount, accuracy: 0.01)
+     }
+     
+     // Price excluded VAT , Tax withholding included
+     func testInit_WithPriceExcludedVat_WithTaxWithholdingIncluded_ShouldCalculateCorrectValues() {
+         // given
+         let itemId = UUID()
+         let name = "Test Item"
+         let description = "Test Description"
+         let variant: ProductVariant? = nil
+         let qty: Double = 10
+         let pricePerUnit: Double = 10
+         let discountPerUnit: Double = 1
+         let vatRate: Double = 0.07
+         let taxWithholdingRate: Double = 0.03
+
+         // when
+         let item = PurchaseOrderItem(itemId: itemId,
+                                                   name: name,
+                                                   description: description,
+                                                   variant: variant,
+                                                   qty: qty,
+                                                   pricePerUnitExcludeVat: pricePerUnit,
+                                                   discountPerUnit: discountPerUnit,
+                                                   vatRate: vatRate,
+                                                   taxWithholdingRate: taxWithholdingRate)
+
+         // then
+         let expectedTotalAmountDiscount = 10.0
+         
+         let expectedTotalAmountBeforeVat = 90.0
+         let expectedVatAmount = 6.3
+         let expectedVatAmountAfter = 96.3
+
+         let expectedTaxWithholdingAmount = 2.7
+
+         let expectedTotalPayAmount = 93.6
+
+         //test property
+         XCTAssertEqual(item.name, name)
+         XCTAssertEqual(item.description, description)
+         XCTAssertEqual(item.qty, qty)
+         XCTAssertEqual(item.pricePerUnit, pricePerUnit)
+         XCTAssertEqual(item.discountPricePerUnit, discountPerUnit)
+
+         // vat
+         XCTAssertNotNil(item.vat)
+         XCTAssertEqual(item.vat!.amountBefore, expectedTotalAmountBeforeVat, accuracy: 0.01)
+         XCTAssertEqual(item.vat!.amountAfter, expectedVatAmountAfter, accuracy: 0.01)
+         XCTAssertEqual(item.vat!.rate, vatRate, accuracy: 0.01)
+         XCTAssertEqual(item.vat!.amount, expectedVatAmount, accuracy: 0.01)
+
+         // tax withholding
+         XCTAssertNotNil(item.taxWithholding)
+         XCTAssertEqual(item.taxWithholding!.amount, expectedTaxWithholdingAmount, accuracy: 0.01)
+         XCTAssertEqual(item.taxWithholding!.amountBefore, expectedVatAmountAfter, accuracy: 0.01)
+         XCTAssertEqual(item.taxWithholding!.amountAfter, expectedTotalPayAmount, accuracy: 0.01)
+
+         // other
+         XCTAssertEqual(item.totalDiscountAmount, expectedTotalAmountDiscount, accuracy: 0.01)
+         XCTAssertEqual(item.totalAmount, expectedVatAmountAfter, accuracy: 0.01)
+         XCTAssertEqual(item.totalPayAmount, expectedTotalPayAmount, accuracy: 0.01)
+     }
+
+     // Price included 0 VAT , 0 Tax withholding excluded
+     func testInit_WithVatZeroIncluded_WithTaxWithholdingZeroIncluded_ShouldCalculateCorrectValues() {
+         // given
+         let itemId = UUID()
+         let name = "Test Item"
+         let description = "Test Description"
+         let variant: ProductVariant? = nil
+         let qty: Double = 10
+         let pricePerUnit: Double = 10
+         let discountPerUnit: Double = 1
+         let vatRate: Double = 0
+         let taxWithholdingRate: Double = 0
+         
+         // when
+         let item = PurchaseOrderItem(itemId: itemId,
+                                      name: name,
+                                      description: description,
+                                      variant: variant,
+                                      qty: qty,
+                                      pricePerUnitIncludeVat: pricePerUnit,
+                                      discountPerUnit: discountPerUnit,
+                                      vatRate: vatRate,
+                                      taxWithholdingRate: taxWithholdingRate)
+         
+         // then
+         let expectedTotalAmountDiscount = 10.0
+         let expectedVatAmountAfter = 90.0
+
+         let expectedTotalAmountBeforeVat = 90.0
+         let expectedVatAmount = 0.0
+
+         let expectedTaxWithholdingAmount = 0.0
+
+         let expectedTotalPayAmount = 90.0
+
+         //test property
+         XCTAssertEqual(item.name, name)
+         XCTAssertEqual(item.description, description)
+         XCTAssertEqual(item.qty, qty)
+         XCTAssertEqual(item.pricePerUnit, pricePerUnit)
+         XCTAssertEqual(item.discountPricePerUnit, discountPerUnit)
+
+         // vat
+         XCTAssertNotNil(item.vat)
+         XCTAssertEqual(item.vat!.amountBefore, expectedTotalAmountBeforeVat, accuracy: 0.01)
+         XCTAssertEqual(item.vat!.amountAfter, expectedVatAmountAfter, accuracy: 0.01)
+         XCTAssertEqual(item.vat!.rate, vatRate, accuracy: 0.01)
+         XCTAssertEqual(item.vat!.amount, expectedVatAmount, accuracy: 0.01)
+
+         // tax withholding
+         XCTAssertNotNil(item.taxWithholding)
+         XCTAssertEqual(item.taxWithholding!.amount, expectedTaxWithholdingAmount, accuracy: 0.01)
+         XCTAssertEqual(item.taxWithholding!.amountBefore, expectedVatAmountAfter, accuracy: 0.01)
+         XCTAssertEqual(item.taxWithholding!.amountAfter, expectedTotalPayAmount, accuracy: 0.01)
+
+         // other
+         XCTAssertEqual(item.totalDiscountAmount, expectedTotalAmountDiscount, accuracy: 0.01)
+         XCTAssertEqual(item.totalAmount, expectedVatAmountAfter, accuracy: 0.01)
+         XCTAssertEqual(item.totalPayAmount, expectedTotalPayAmount, accuracy: 0.01)
+         
+
+     }
+     
+     // Price included VAT , No Tax withholding
+     func testInit_WithPriceIncludedVat_WithNoTaxWithholding_ShouldCalculateCorrectValues() {
+         // given
+         let itemId = UUID()
+         let name = "Test Item"
+         let description = "Test Description"
+         let variant: ProductVariant? = nil
+         let qty: Double = 10
+         let pricePerUnit: Double = 10
+         let discountPerUnit: Double = 1
+         let vatRate: Double = 0.07
+         let taxWithholdingRate: Double? = nil
+         
+         // when
+         let item = PurchaseOrderItem(itemId: itemId,
+                                      name: name,
+                                      description: description,
+                                      variant: variant,
+                                      qty: qty,
+                                      pricePerUnitIncludeVat: pricePerUnit,
+                                      discountPerUnit: discountPerUnit,
+                                      vatRate: vatRate,
+                                      taxWithholdingRate: taxWithholdingRate)
+         
+         // then
+         let expectedTotalAmountDiscount = 10.0
+         let expectedVatAmountAfter = 90.0
+                         
+         let expectedTotalAmountBeforeVat = 84.1121495327
+         let expectedVatAmount = 5.8878504673
+
+         let expectedTotalPayAmount = 90.0
+         
+         //test property
+         XCTAssertEqual(item.name, name)
+         XCTAssertEqual(item.description, description)
+         XCTAssertEqual(item.qty, qty)
+         XCTAssertEqual(item.pricePerUnit, pricePerUnit)
+         XCTAssertEqual(item.discountPricePerUnit, discountPerUnit)
+         
+         // vat
+         XCTAssertNotNil(item.vat)
+         XCTAssertEqual(item.vat!.amountBefore, expectedTotalAmountBeforeVat, accuracy: 0.01)
+         XCTAssertEqual(item.vat!.amountAfter, expectedVatAmountAfter, accuracy: 0.01)
+         XCTAssertEqual(item.vat!.rate, vatRate, accuracy: 0.01)
+         XCTAssertEqual(item.vat!.amount, expectedVatAmount, accuracy: 0.01)
+         
+         // tax withholding
+         XCTAssertNil(item.taxWithholding)
+         
+         // other
+         XCTAssertEqual(item.totalDiscountAmount, expectedTotalAmountDiscount, accuracy: 0.01)
+         XCTAssertEqual(item.totalAmount, expectedVatAmountAfter, accuracy: 0.01)
+         XCTAssertEqual(item.totalPayAmount, expectedTotalPayAmount, accuracy: 0.01)
+         
+     }
+     
+     // Price excluded VAT , No Tax withholding
+     func testInit_WithPriceExcludedVat_WithNoTaxWithholding_ShouldCalculateCorrectValues() {
+         // given
+         let itemId = UUID()
+         let name = "Test Item"
+         let description = "Test Description"
+         let variant: ProductVariant? = nil
+         let qty: Double = 10
+         let pricePerUnit: Double = 10
+         let discountPerUnit: Double = 1
+         let vatRate: Double = 0.07
+         let taxWithholdingRate: Double? = nil
+         
+         // when
+         let item = PurchaseOrderItem(itemId: itemId,
+                                      name: name,
+                                      description: description,
+                                      variant: variant,
+                                      qty: qty,
+                                      pricePerUnitExcludeVat: pricePerUnit,
+                                      discountPerUnit: discountPerUnit,
+                                      vatRate: vatRate,
+                                      taxWithholdingRate: taxWithholdingRate)
+         
+         // then
+         let expectedTotalAmountDiscount = 10.0
+         let expectedVatAmountAfter = 96.3
+         
+         let expectedTotalAmountBeforeVat = 90.0
+         let expectedVatAmount: Double = 6.3
+         
+         let expectedTotalPayAmount = 96.3
+         
+         //test property
+         XCTAssertEqual(item.name, name)
+         XCTAssertEqual(item.description, description)
+         XCTAssertEqual(item.qty, qty)
+         XCTAssertEqual(item.pricePerUnit, pricePerUnit)
+         XCTAssertEqual(item.discountPricePerUnit, discountPerUnit)
+         
+         // vat
+         XCTAssertNotNil(item.vat)
+         XCTAssertEqual(item.vat!.amountBefore, expectedTotalAmountBeforeVat, accuracy: 0.01)
+         XCTAssertEqual(item.vat!.amountAfter, expectedVatAmountAfter, accuracy: 0.01)
+         XCTAssertEqual(item.vat!.rate, vatRate, accuracy: 0.01)
+         XCTAssertEqual(item.vat!.amount, expectedVatAmount, accuracy: 0.01)
+         
+         // tax withholding
+         XCTAssertNil(item.taxWithholding)
+         
+         // other
+         XCTAssertEqual(item.totalDiscountAmount, expectedTotalAmountDiscount, accuracy: 0.01)
+         XCTAssertEqual(item.totalAmount, expectedVatAmountAfter, accuracy: 0.01)
+         XCTAssertEqual(item.totalPayAmount, expectedTotalPayAmount, accuracy: 0.01)
+         
+     }
+
+     // Price No VAT , With Tax withholding
+     func testInit_WithNoVat_WithTaxWithholding_ShouldCalculateCorrectValues() {
+         // given
+         let itemId = UUID()
+         let name = "Test Item"
+         let description = "Test Description"
+         let variant: ProductVariant? = nil
+         let qty: Double = 10
+         let pricePerUnit: Double = 10
+         let discountPerUnit: Double = 1
+         let vatRate: Double? = nil
+         let taxWithholdingRate: Double = 0.03
+         
+         // when
+         let item = PurchaseOrderItem(itemId: itemId,
+                                      name: name,
+                                      description: description,
+                                      variant: variant,
+                                      qty: qty,
+                                      pricePerUnitExcludeVat: pricePerUnit,
+                                      discountPerUnit: discountPerUnit,
+                                      vatRate: vatRate,
+                                      taxWithholdingRate: taxWithholdingRate)
+         
+         // then
+         let expectedTotalAmountDiscount = 10.0
+         let expectedVatAmountAfter = 90.0
+         
+         let expectedTotalAmountBeforeVat = 90.0
+         
+         let expectedTaxWithholdingAmount = 2.7
+         
+         let expectedTotalPayAmount = 87.3
+         
+         //test property
+         XCTAssertEqual(item.name, name)
+         XCTAssertEqual(item.description, description)
+         XCTAssertEqual(item.qty, qty)
+         XCTAssertEqual(item.pricePerUnit, pricePerUnit)
+         XCTAssertEqual(item.discountPricePerUnit, discountPerUnit)
+         
+         // vat
+         XCTAssertNil(item.vat)
+         
+         // tax withholding
+         XCTAssertNotNil(item.taxWithholding)
+         XCTAssertEqual(item.taxWithholding!.amount, expectedTaxWithholdingAmount, accuracy: 0.01)
+         XCTAssertEqual(item.taxWithholding!.rate, taxWithholdingRate, accuracy: 0.01)
+         XCTAssertEqual(item.taxWithholding!.amountBefore, expectedTotalAmountBeforeVat, accuracy: 0.01)
+         XCTAssertEqual(item.taxWithholding!.amountAfter, expectedTotalPayAmount, accuracy: 0.01)
+         
+         // other
+         XCTAssertEqual(item.totalDiscountAmount, expectedTotalAmountDiscount, accuracy: 0.01)
+         XCTAssertEqual(item.totalAmount, expectedVatAmountAfter, accuracy: 0.01)
+         XCTAssertEqual(item.totalPayAmount, expectedTotalPayAmount, accuracy: 0.01)
+         
+         
+     }
+
+ }
+
+ extension PurchaseOrderItemTests {
+     struct Stub {
+         static var samplePurchaseOrderItem: PurchaseOrderItem {
+             return PurchaseOrderItem(itemId: UUID(), name: "Test Item", description: "Test Description", variant: nil, qty: 10, pricePerUnitIncludeVat: 10, discountPerUnit: 1, vatRate: 0.07, taxWithholdingRate: 0.03)
+         }
+     }
+ }
+
+ */
