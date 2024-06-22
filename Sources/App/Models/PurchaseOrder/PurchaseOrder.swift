@@ -12,228 +12,251 @@ enum PurchaseOrderStatus: String, Codable {
     case voided
 }
 
- final class PurchaseOrder: Model, Content {
-     static let schema = "PurchaseOrders"
+final class PurchaseOrder: Model, Content {
+    static let schema = "PurchaseOrders"
     
     @ID(key: .id)
     var id: UUID?
     
-//     @Field(key: "month")
-//     var month: Int
-
-//     @Field(key: "year")
-//     var year: Int
-
-//     @Field(key: "number")
-//     var number: Int
-
-//     @Field(key: "reference")
-//     var reference: String?
-
-//     @Field(key: "items")
-//     var items: [PurchaseOrderItem]
+    @Field(key: "month")
+    var month: Int
     
-//     @Field(key: "order_date")
-//     var orderDate: Date
+    @Field(key: "year")
+    var year: Int
     
-//     @Field(key: "delivery_date")
-//     var deliveryDate: Date
+    @Field(key: "number")
+    var number: Int
     
-//     @Field(key: "payment_terms_days")
-//     var paymentTermsDays: Int
+    @Field(key: "reference")
+    var reference: String?
     
-//     @Field(key: "supplier_id")
-//     var supplierId: UUID
+    @Field(key: "items")
+    var items: [PurchaseOrderItem]
     
-//     @Field(key: "customer_id")
-//     var customerId: UUID
+    @Field(key: "order_date")
+    var orderDate: Date
     
-//     @Field(key: "status")
-//     var status: PurchaseOrderStatus
+    @Field(key: "delivery_date")
+    var deliveryDate: Date
     
-//     @Field(key: "total_discount_amount")
-//     var totalDiscountAmount: Double
-
-//     @Field(key: "vat_amount")
-//     var vatAmount: VatAmount?
-
-//     @Field(key: "total_amount")
-//     var totalAmount: Double
+    @Field(key: "payment_terms_days")
+    var paymentTermsDays: Int
     
-//     @Field(key: "tax_withholding")
-//     var taxWithholding: TaxWithholding?
-
-//     @Field(key: "payment_amount")
-//     var paymentAmount: Double // total_amount - TaxWithholding.amount
+    @Field(key: "supplier_id")
+    var supplierId: UUID
     
-//     @Field(key: "currency")
-//     var currency: String
+    @Field(key: "customer_id")
+    var customerId: UUID
     
-//     @Field(key: "internal_note")
-//     var note: String
-
-//     @Field(key: "display_item_id_order")
-//     var displayItemIdOrder: [UUID] // productId or serviceId
+    @Field(key: "status")
+    var status: PurchaseOrderStatus
     
-//     @Timestamp(key: "created_at",
-//                on: .create,
-//                format: .iso8601)
-//     var createdAt: Date?
+    // sum(pricePerUnit x qty)
+    @Field(key: "total_amount")
+    var totalAmount: Double
     
-//     @Timestamp(key: "updated_at",
-//                on: .update,
-//                format: .iso8601)
-//     var updatedAt: Date?
+    // sum(discountPerUnit x qty)
+    @Field(key: "total_discount_amount")
+    var totalDiscountAmount: Double
     
-//     @Timestamp(key: "deleted_at",
-//                on: .delete,
-//                format: .iso8601)
-//     var deletedAt: Date?
+    // MARK: VAT
+    @Field(key: "vat_amount")
+    var vatAmount: Double?
     
-//     @Timestamp(key: "approved_at",
-//                on: .create,
-//                format: .iso8601)
-//     var approvedAt: Date?
+    @Field(key: "vat_amount_before")
+    var vatAmountBefore: Double?
     
-//     @Timestamp(key: "voided_at",
-//                on: .create,
-//                format: .iso8601)
-//     var voidedAt: Date?
+    @Field(key: "vat_amount_after")
+    var vatAmountAfter: Double?
     
-//     @Timestamp(key: "rejected_at",
-//                on: .create,
-//                format: .iso8601)
-//     var rejectedAt: Date?
+    // MARK: TAX WITHHOLDING
+    @Field(key: "tax_withholding_amount")
+    var taxWithholdingAmount: Double?
     
-//     @Field(key: "logs")
-//     var logs: [ActionLog]
+    @Field(key: "tax_withholding_amount_before")
+    var taxWithholdingAmountBefore: Double?
     
-     init() { }
-
-     init(id: UUID? = nil) {
-         self.id = id
-     }
+    // payment_amount
+    @Field(key: "tax_withholding_amount_after")
+    var taxWithholdingAmountAfter: Double?
     
-//     init(id: UUID? = nil,         
-//          month: Int = 1,
-//          year: Int = 2024,
-//          number: Int = 1,
-//          reference: String? = nil,   
-//          items: [PurchaseOrderItem] = [],
-//          orderDate: Date = .init(),
-//          deliveryDate: Date = .init(),
-//          paymentTermsDays: Int = 30,
-//          supplierId: UUID,
-//          customerId: UUID,
-//          status: PurchaseOrderStatus = .pending,
-//          currency: String = "THB",
-//          productAndServiceAreVatExcluded: Bool,
-//          vatIncluded: Bool = false,
-//          taxWithholdingIncluded: Bool = false,
-//          internalNote: String = "",
-//          createdAt: Date? = nil,
-//          updatedAt: Date? = nil,
-//          deletedAt: Date? = nil,
-//          voidedAt: Date? = nil,
-//          rejectedAt: Date? = nil,
-//          logs: [ActionLog] = []) {        
+//    @Field(key: "payment_amount")
+//    var paymentAmount: Double
+    
+    @Field(key: "currency")
+    var currency: String
+    
+    @Field(key: "internal_note")
+    var note: String
+    
+    @Field(key: "display_item_id_order")
+    var displayItemIdOrder: [UUID] // orderItemId
+    
+    @Timestamp(key: "created_at",
+               on: .create,
+               format: .iso8601)
+    var createdAt: Date?
+    
+    @Timestamp(key: "updated_at",
+               on: .update,
+               format: .iso8601)
+    var updatedAt: Date?
+    
+    @Timestamp(key: "deleted_at",
+               on: .delete,
+               format: .iso8601)
+    var deletedAt: Date?
+    
+    @Timestamp(key: "approved_at",
+               on: .create,
+               format: .iso8601)
+    var approvedAt: Date?
+    
+    @Timestamp(key: "voided_at",
+               on: .create,
+               format: .iso8601)
+    var voidedAt: Date?
+    
+    @Timestamp(key: "rejected_at",
+               on: .create,
+               format: .iso8601)
+    var rejectedAt: Date?
+    
+    @Field(key: "logs")
+    var logs: [ActionLog]
+    
+    init() { }
+    
+    init(id: UUID? = nil,
+         month: Int,
+         year: Int,
+         number: Int = 1,
+         reference: String? = nil,
+         items: [PurchaseOrderItem],
+         orderDate: Date = .init(),
+         deliveryDate: Date = .init(),
+         paymentTermsDays: Int = 30,
+         supplierId: UUID,
+         customerId: UUID,
+         status: PurchaseOrderStatus = .pending,
+         currency: String,
+         note: String,
+         displayItemIdOrder: [UUID],
+         createdAt: Date? = nil,
+         updatedAt: Date? = nil,
+         deletedAt: Date? = nil,
+         approvedAt: Date? = nil,
+         voidedAt: Date? = nil,
+         rejectedAt: Date? = nil,
+         logs: [ActionLog] = []) {
+        self.id = id
+        self.month = month
+        self.year = year
+        self.number = number
+        self.reference = reference
+        self.items = items
+        self.orderDate = orderDate
+        self.deliveryDate = deliveryDate
+        self.paymentTermsDays = paymentTermsDays
+        self.supplierId = supplierId
+        self.customerId = customerId
+        self.status = status
+        self.currency = currency
+        self.note = note
+        self.displayItemIdOrder = displayItemIdOrder
+        self.createdAt = createdAt ?? .init()
+        self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
+        self.approvedAt = approvedAt
+        self.voidedAt = voidedAt
+        self.rejectedAt = rejectedAt
+        self.logs = logs
         
-//         self.id = id ?? .init()
-//         self.month = month
-//         self.year = year        
-//         self.number = number
-//         self.reference = reference
-//         self.items = items
-//         self.orderDate = orderDate
-//         self.deliveryDate = deliveryDate
-//         self.paymentTermsDays = paymentTermsDays
-//         self.supplierId = supplierId        
-//         self.customerId = customerId
-//         self.status = status
+        self.totalAmount = 0
+        self.totalDiscountAmount = 0
         
-//         //sum of productItems and serviceItems
-//         //self.totalAmount = Self.sum(items: items)
-        
-//         // self.vatAmount = Self.vatAmount(productAndServiceAreVatExcluded: productAndServiceAreVatExcluded,
-//         //                           vatIncluded: vatIncluded,
-//         //                           totalAmount: totalAmount)
-        
-//         // if let totalAmountIncludeVat = self.vatAmount?.amountAfterVat {
-//         //     self.taxWithholding = Self.taxWithholdingAmount(taxWithholdingIncluded: taxWithholdingIncluded,
-//         //                                                     totalAmountIncludeVat: totalAmountIncludeVat)
-//         // } else {
-//         //     self.taxWithholding = Self.taxWithholdingAmount(taxWithholdingIncluded: taxWithholdingIncluded,
-//         //                                                     productAndServiceAreVatExcluded: totalAmount)
-//         // }
+        self.vatAmount = 0
+        self.vatAmountBefore = 0
+        self.vatAmountAfter = 0
 
-//         self.currency = currency
-        
-//         self.note = note
-//         self.createdAt = createdAt ?? .init()
-//         self.updatedAt = updatedAt
-//         self.deletedAt = deletedAt
-//         self.voidedAt = voidedAt
-//         self.rejectedAt = rejectedAt
+        self.taxWithholdingAmount = 0
+        self.taxWithholdingAmountBefore = 0
+        self.taxWithholdingAmountAfter = 0
 
-//         self.logs = logs        
-//     }
+        
+//        self.totalDiscountAmount = Self.sumTotalDiscountAmount(items: items)
+//        self.totalAmount = Self.sumTotalAmount(items: items)
+//        self.vat = Self.sumVat(items: items)
+//        self.taxWithholding = Self.sumTaxWithholding(items: items)
+//        self.paymentAmount = Self.sumTotalPayAmount(items: items)
+    }
     
-//   func ableUpdateStatus() -> [PurchaseOrderStatus] {
-//         switch status {
-//         case .pending:
-//             return [.approved, .rejected, .voided]
-//         case .approved:
-//             return [.voided]
-//         default:
-//             return []
-//         }
-//   }
-
-//   func moveStatus(newStatus: PurchaseOrderStatus) {
-//         switch status {
-//         case .pending:
-//             switch newStatus {
-//             case .approved:
-//                 self.status = newStatus
-//                 self.approvedAt = .init()
-//             case .rejected:
-//                 self.status = newStatus
-//                 self.rejectedAt = .init()
-//             case .voided:
-//                 self.status = newStatus
-//                 self.voidedAt = .init()
-//             default:
-//                 break
-//             }
-
-//         case .approved:
-//             switch newStatus {
-//             case .voided:
-//                 self.status = newStatus
-//                 self.voidedAt = .init()
-//             default:
-//                 break
-//             }
-//         default:
-//             break
-//         }
-//     }
-
-//     // func prepareUpdate() {
-//     //   guard isLastedVersion else { return }
-
-//     //   self.isLastedVersion = false
-//     //   previousVersions.append(self)
-
-//     //   self.revisionNumber += 1
+    static func sumVat(items: [PurchaseOrderItem]) -> Vat? {
+        return nil
+    }
+    
+    static func sumTaxWithholding(items: [PurchaseOrderItem]) -> TaxWithholding? {
+        return nil
+    }
+    
+    static func sumTotalAmount(items: [PurchaseOrderItem]) -> Double {
+        return 0
+    }
+    
+    static func sumTotalDiscountAmount(items: [PurchaseOrderItem]) -> Double {
+        return 0
+    }
+    
+    static func sumTotalPayAmount(items: [PurchaseOrderItem]) -> Double {
+        return 0
+    }
+    
+    func ableUpdateStatus() -> [PurchaseOrderStatus] {
+        switch status {
+        case .pending:
+            return [.approved, .rejected, .voided]
+        case .approved:
+            return [.voided]
+        default:
+            return []
+        }
+    }
+    
+    func moveStatus(newStatus: PurchaseOrderStatus) {
+        switch status {
+        case .pending:
+            switch newStatus {
+            case .approved:
+                self.status = newStatus
+                self.approvedAt = .init()
+            case .rejected:
+                self.status = newStatus
+                self.rejectedAt = .init()
+            case .voided:
+                self.status = newStatus
+                self.voidedAt = .init()
+            default:
+                break
+            }
             
-//     // }
+        case .approved:
+            switch newStatus {
+            case .voided:
+                self.status = newStatus
+                self.voidedAt = .init()
+            default:
+                break
+            }
+        default:
+            break
+        }
+    }
     
- }
+}
 
 
 // extension PurchaseOrder {
-    
+
 //     // static func sum(productItems: [ProductItem], serviceItems: [ServiceItem]) -> Double {
 //     //     let productTotal = productItems.reduce(0) { $0 + $1.totalPrice }
 //     //     let serviceTotal = serviceItems.reduce(0) { $0 + $1.totalPrice }
@@ -243,7 +266,7 @@ enum PurchaseOrderStatus: String, Codable {
 // //    static func sum(items: [PurchaseOrderItem]) -> Double {
 // //        return items.reduce(into: 0) { $0 + $1.totalPrice }
 // //    }
-    
+
 //     static func vatAmount(productAndServiceAreVatExcluded: Bool,
 //                           vatIncluded: Bool,
 //                           totalAmount: Double) -> VatAmount? {
@@ -254,28 +277,28 @@ enum PurchaseOrderStatus: String, Codable {
 //                 return VatAmount(totalAmountIncludeVat: totalAmount)
 //             }
 //         }
-        
+
 //         return  nil
 //     }
-    
+
 //     static func taxWithholdingAmount(taxWithholdingIncluded: Bool,
 //                                      totalAmountIncludeVat: Double) -> TaxWithholding? {
 //         if taxWithholdingIncluded {
 //             return TaxWithholding(totalAmount: totalAmountIncludeVat)
 //         }
-        
+
 //         return  nil
 //     }
-    
+
 //     static func taxWithholdingAmount(taxWithholdingIncluded: Bool,
 //                                      productAndServiceAreVatExcluded: Double) -> TaxWithholding? {
 //         if taxWithholdingIncluded {
 //             return TaxWithholding(totalAmount: productAndServiceAreVatExcluded)
 //         }
-        
+
 //         return  nil
 //     }
-    
+
 // }
 
 // // extension PurchaseOrder {
@@ -297,7 +320,7 @@ enum PurchaseOrderStatus: String, Codable {
 // //         let taxWithholdingIncluded: Bool
 // //         let internalNote: String
 // //         let creatorId: UUID
-        
+
 // //         static func validations(_ validations: inout Validations) {
 // //             validations.add("productItems", as: [ProductItem].self,
 // //                             required: true)
@@ -353,7 +376,7 @@ enum PurchaseOrderStatus: String, Codable {
 // //         let vatIncluded: Bool?
 // //         let taxWithholdingIncluded: Bool?
 // //         let note: String?
-        
+
 // //         static func validations(_ validations: inout Validations) {
 // //             validations.add("productItems", as: [ProductItem].self,
 // //                             required: false)
@@ -394,13 +417,13 @@ enum PurchaseOrderStatus: String, Codable {
 
 // /*
 // extension Product {
-   
+
 //    struct Create: Content, Validatable {
 //        let name: String
 //        let price: Double
 //        let description: String
 //        let unit: String
-       
+
 //        init(name: String,
 //             price: Double,
 //             description: String,
@@ -410,7 +433,7 @@ enum PurchaseOrderStatus: String, Codable {
 //            self.description = description
 //            self.unit = unit
 //        }
-       
+
 //        init(from decoder: Decoder) throws {
 //            let container = try decoder.container(keyedBy: CodingKeys.self)
 //            self.name = try container.decode(String.self,
@@ -422,14 +445,14 @@ enum PurchaseOrderStatus: String, Codable {
 //            self.unit = (try? container.decodeIfPresent(String.self,
 //                                                        forKey: .unit)) ?? ""
 //        }
-       
+
 //        enum CodingKeys: String, CodingKey {
 //            case name = "name"
 //            case price = "price"
 //            case description = "description"
 //            case unit = "unit"
 //        }
-    
+
 //        static func validations(_ validations: inout Validations) {
 //             validations.add("name", as: String.self,
 //                             is: .count(1...400),
@@ -442,16 +465,16 @@ enum PurchaseOrderStatus: String, Codable {
 //                             required: true)
 //             validations.add("unit", as: String.self,
 //                             is: .count(1...),
-//                             required: true)      
+//                             required: true)
 //        }
 //    }
-   
+
 //    struct Update: Content, Validatable {
 //        let name: String?
 //        let price: Double?
 //        let description: String?
 //        let unit: String?
-       
+
 //        init(name: String? = nil,
 //             price: Double? = nil,
 //             description: String? = nil,
@@ -461,14 +484,14 @@ enum PurchaseOrderStatus: String, Codable {
 //            self.description = description
 //            self.unit = unit
 //        }
-       
+
 //        enum CodingKeys: String, CodingKey {
 //            case name = "name"
 //            case price = "price"
 //            case description = "des"
 //            case unit = "unit"
 //        }
-    
+
 //        static func validations(_ validations: inout Validations) {
 //            validations.add("name", as: String.self,
 //                            is: .count(3...),
@@ -487,12 +510,12 @@ enum PurchaseOrderStatus: String, Codable {
 
 // }
 //  struct VatAmount: Content {
- 
+
 //  let amount: Double // vat amount
 //  let rate: Double // vat rate
 //  let amountBeforeVat: Double // total amount before vat
 //  let amountAfterVat: Double // total amount include vat
- 
+
 //  // include vat
 //  init(totalAmountIncludeVat: Double,
 //  rate: Double = 0.07) {
@@ -501,7 +524,7 @@ enum PurchaseOrderStatus: String, Codable {
 //  self.amountBeforeVat = totalAmountIncludeVat / (1 + rate)
 //  self.amountAfterVat = totalAmountIncludeVat
 //  }
- 
+
 //  // exclude vat
 //  init(totalAmountBeforeVat: Double,
 //  rate: Double = 0.07) {
@@ -510,7 +533,7 @@ enum PurchaseOrderStatus: String, Codable {
 //  self.amountBeforeVat = totalAmountBeforeVat
 //  self.amountAfterVat = totalAmountBeforeVat * (1 + rate)
 //  }
- 
+
 //  //decode
 //  init(from decoder: Decoder) throws {
 //  let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -523,7 +546,7 @@ enum PurchaseOrderStatus: String, Codable {
 //  self.amountAfterVat = try container.decode(Double.self,
 //  forKey: .amountAfterVat)
 //  }
- 
+
 //  //encode
 //  func encode(to encoder: Encoder) throws {
 //  var container = encoder.container(keyedBy: CodingKeys.self)
@@ -532,23 +555,23 @@ enum PurchaseOrderStatus: String, Codable {
 //  try container.encode(amountBeforeVat, forKey: .amountBeforeVat)
 //  try container.encode(amountAfterVat, forKey: .amountAfterVat)
 //  }
- 
+
 //  enum CodingKeys: String, CodingKey {
 //  case amount
 //  case rate
 //  case amountBeforeVat = "amount_before_vat"
 //  case amountAfterVat = "amount_after_vat"
 //  }
- 
+
 //  }
- 
- 
+
+
 //  struct TaxWithholding: Content {
- 
+
 //  let amount: Double // tax withholding amount
 //  let rate: Double // tax withholding rate
 //  let amountAfterTaxWithholding: Double // total amount after tax withholding
- 
+
 //  //totalAmount can be 'total amount after vat' or 'total amount without vat'
 //  init(totalAmount: Double,
 //  rate: Double = 0.03) {
@@ -556,7 +579,7 @@ enum PurchaseOrderStatus: String, Codable {
 //  self.rate = rate
 //  self.amountAfterTaxWithholding = totalAmount - (totalAmount * rate)
 //  }
- 
+
 //  //decode
 //  init(from decoder: Decoder) throws {
 //  let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -567,7 +590,7 @@ enum PurchaseOrderStatus: String, Codable {
 //  self.amountAfterTaxWithholding = try container.decode(Double.self,
 //  forKey: .amountAfterTaxWithholding)
 //  }
- 
+
 //  //encode
 //  func encode(to encoder: Encoder) throws {
 //  var container = encoder.container(keyedBy: CodingKeys.self)
@@ -575,20 +598,20 @@ enum PurchaseOrderStatus: String, Codable {
 //  try container.encode(rate, forKey: .rate)
 //  try container.encode(amountAfterTaxWithholding, forKey: .amountAfterTaxWithholding)
 //  }
- 
+
 //  enum CodingKeys: String, CodingKey {
 //  case amount
 //  case rate
 //  case amountAfterTaxWithholding = "amount_after_tax_withholding"
 //  }
 //  }
- 
+
 //  @propertyWrapper
 //  struct RunningNumber {
 //  let prefix: String
 //  let year: Int
 //  let currentValue: Int
- 
+
 //  var wrappedValue: String {
 //  get {
 //  let formattedYear = String(format: "%04d", year)
@@ -601,7 +624,7 @@ enum PurchaseOrderStatus: String, Codable {
 //  // You may need to implement this based on your use case
 //  }
 //  }
- 
+
 //  init(prefix: String,
 //  year: Date = .init(),
 //  initialValue: Int = 1) {
@@ -611,7 +634,7 @@ enum PurchaseOrderStatus: String, Codable {
 //  self.currentValue = initialValue
 //  }
 //  }
- 
+
 //  Purchase Order :json draft of response
 //  {
 //  "id" : "SADASDASD!@#!@#!@#"", // as UUID
@@ -711,51 +734,51 @@ enum PurchaseOrderStatus: String, Codable {
 // /*
 //  final class Service: Model, Content {
 //  static let schema = "Services"
- 
+
 //  @ID(key: .id)
 //  var id: UUID?
- 
+
 //  @Field(key: "name")
 //  var name: String
- 
+
 //  @Field(key: "description")
 //  var description: String
- 
+
 //  @Field(key: "price")
 //  var price: Double
- 
+
 //  @Field(key: "unit")
 //  var unit: String
- 
+
 //  @Field(key: "category_id")
 //  var categoryId: UUID?
- 
+
 //  @Field(key: "images")
 //  var images: [String]
- 
+
 //  @Field(key: "cover_image")
 //  var coverImage: String?
- 
+
 //  @Field(key: "tags")
 //  var tags: [String]
- 
+
 //  @Timestamp(key: "created_at",
 //  on: .create,
 //  format: .iso8601)
 //  var createdAt: Date?
- 
+
 //  @Timestamp(key: "updated_at",
 //  on: .update,
 //  format: .iso8601)
 //  var updatedAt: Date?
- 
+
 //  @Timestamp(key: "deleted_at",
 //  on: .delete,
 //  format: .iso8601)
 //  var deletedAt: Date?
- 
+
 //  init() { }
- 
+
 //  init(id: UUID? = nil,
 //  name: String,
 //  description: String,
@@ -779,58 +802,58 @@ enum PurchaseOrderStatus: String, Codable {
 //  self.updatedAt = updatedAt
 //  self.deletedAt = deletedAt
 //  }
- 
+
 //  }
 //  final class ProductVariant:Model, Content {
 //  static let schema = "ProductVariant"
- 
+
 //  @ID(key: .id)
 //  var id: UUID?
- 
+
 //  @Field(key: "variant_id")
 //  var variantId: String
- 
+
 //  @Field(key: "variant_name")
 //  var name: String
- 
+
 //  @Field(key: "variant_sku")
 //  var sku: String
- 
+
 //  @Field(key: "price")
 //  var sellingPrice: Double
- 
+
 //  @Field(key: "additional_description")
 //  var additionalDescription: String
- 
+
 //  @Field(key: "image")
 //  var image: String?
- 
+
 //  @Field(key: "color")
 //  var color: String?
- 
+
 //  @Field(key: "barcode")
 //  var barcode: String?
- 
+
 //  @Field(key: "dimensions")
 //  var dimensions: ProductDimension?
- 
+
 //  @Timestamp(key: "created_at",
 //  on: .create,
 //  format: .iso8601)
 //  var createdAt: Date?
- 
+
 //  @Timestamp(key: "updated_at",
 //  on: .update,
 //  format: .iso8601)
 //  var updatedAt: Date?
- 
+
 //  @Timestamp(key: "deleted_at",
 //  on: .delete,
 //  format: .iso8601)
 //  var deletedAt: Date?
- 
+
 //  init() { }
- 
+
 //  init(id: UUID? = nil,
 //  variantId: String? = nil,
 //  name: String,
@@ -844,10 +867,10 @@ enum PurchaseOrderStatus: String, Codable {
 //  createdAt: Date? = nil,
 //  updatedAt: Date? = nil,
 //  deletedAt: Date? = nil) {
- 
+
 //  @UniqueVariantId
 //  var _variantId: String
- 
+
 //  self.id = id ?? .init()
 //  self.variantId = variantId ?? _variantId
 //  self.name = name
@@ -862,66 +885,66 @@ enum PurchaseOrderStatus: String, Codable {
 //  self.updatedAt = updatedAt
 //  self.deletedAt = deletedAt
 //  }
- 
+
 //  final class Product: Model, Content {
 //  static let schema = "Products"
- 
+
 //  @ID(key: .id)
 //  var id: UUID?
- 
+
 //  @Field(key: "name")
 //  var name: String
- 
+
 //  @Field(key: "description")
 //  var description: String
- 
+
 //  @Field(key: "unit")
 //  var unit: String
- 
+
 //  @Field(key: "selling_price")
 //  var sellingPrice: Double
- 
+
 //  @Field(key: "category_id")
 //  var categoryId: UUID?
- 
+
 //  @Field(key: "manufacturer")
 //  var manufacturer: String
- 
+
 //  @Field(key: "barcode")
 //  var barcode: String?
- 
+
 //  @Timestamp(key: "created_at",
 //  on: .create,
 //  format: .iso8601)
 //  var createdAt: Date?
- 
+
 //  @Timestamp(key: "updated_at",
 //  on: .update,
 //  format: .iso8601)
 //  var updatedAt: Date?
- 
+
 //  @Timestamp(key: "deleted_at",
 //  on: .delete,
 //  format: .iso8601)
 //  var deletedAt: Date?
- 
+
 //  @Field(key: "images")
 //  var images: [String]
- 
+
 //  @Field(key: "cover_image")
 //  var coverImage: String?
- 
+
 //  @Field(key: "tags")
 //  var tags: [String]
- 
+
 //  @Field(key: "suppliers")
 //  var suppliers: [UUID]
- 
+
 //  @Field(key: "variants")
 //  var variants: [ProductVariant]
- 
+
 //  init() { }
- 
+
 //  init(id: UUID? = nil,
 //  name: String,
 //  description: String,
@@ -955,6 +978,6 @@ enum PurchaseOrderStatus: String, Codable {
 //  self.suppliers = suppliers
 //  self.variants = variants
 //  }
- 
+
 //  }
 //  */
