@@ -25,8 +25,8 @@ struct TaxWithholding: Content {
         
         self.amount = _amount
         self.rate = rate
-        self.amountBefore = vat.amountBefore
-        self.amountAfter = vat.amountBefore - _amount
+        self.amountBefore = vat.amountAfter
+        self.amountAfter = vat.amountAfter - _amount
     }
     
     //decode

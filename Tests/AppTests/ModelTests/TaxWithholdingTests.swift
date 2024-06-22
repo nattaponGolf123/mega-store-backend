@@ -32,8 +32,8 @@ final class TaxWithholdingTests: XCTestCase {
         // Then
         XCTAssertEqual(taxWithholding.amount, 3, accuracy: 0.0001)
         XCTAssertEqual(taxWithholding.rate, 0.03, accuracy: 0.0001)
-        XCTAssertEqual(taxWithholding.amountBefore, 100, accuracy: 0.0001)
-        XCTAssertEqual(taxWithholding.amountAfter, 97, accuracy: 0.0001)
+        XCTAssertEqual(taxWithholding.amountBefore, 107.0, accuracy: 0.0001)
+        XCTAssertEqual(taxWithholding.amountAfter, 104.0, accuracy: 0.0001)
     }
     
     // include vat , product include vat
@@ -49,8 +49,8 @@ final class TaxWithholdingTests: XCTestCase {
         // Then
         XCTAssertEqual(taxWithholding.amount, 2.8037383178, accuracy: 0.0001)
         XCTAssertEqual(taxWithholding.rate, 0.03, accuracy: 0.0001)
-        XCTAssertEqual(taxWithholding.amountBefore, 93.4579439252, accuracy: 0.0001)
-        XCTAssertEqual(taxWithholding.amountAfter, 90.6542056074, accuracy: 0.0001)
+        XCTAssertEqual(taxWithholding.amountBefore, 100, accuracy: 0.0001)
+        XCTAssertEqual(taxWithholding.amountAfter, 97.1962616822, accuracy: 0.0001)
     }
     
     

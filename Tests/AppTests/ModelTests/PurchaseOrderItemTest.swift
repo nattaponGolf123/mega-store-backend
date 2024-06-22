@@ -34,9 +34,8 @@ final class PurchaseOrderItemTests: XCTestCase {
         let expectedTotalAmountBeforeVat = 84.1121495327
         let expectedVatAmount = 5.8878504673
 
-        let expectedTaxWithholdingAmount = 2.7
-
-        let expectedTotalPayAmount = 87.3
+        let expectedTaxWithholdingAmount = 2.523364486 // tax amount
+        let expectedTotalPayAmount = 87.476635514
         
         //test property
         XCTAssertEqual(item.name, name)

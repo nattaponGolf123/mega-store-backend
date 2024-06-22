@@ -97,12 +97,12 @@ final class PurchaseOrderItem: Model, Content {
         if let vat = self.vat {
             self.totalPayAmount = vat.amountAfter
             self.taxWithholding = taxWithholdingRate.map {
-                TaxWithholding(totalAmount: vat.amountAfter, rate: $0)
+                .init(vat: vat, rate: $0)
             }
         } else {
             self.totalPayAmount = totalAmountAfterDiscount
             self.taxWithholding = taxWithholdingRate.map {
-                TaxWithholding(totalAmount: totalAmountAfterDiscount, rate: $0)
+                .init(totalAmount: totalAmountAfterDiscount, rate: $0)
             }
         }
         
