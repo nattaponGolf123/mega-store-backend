@@ -55,7 +55,10 @@ final class PurchaseOrder: Model, Content {
     @Field(key: "total_amount")
     var totalAmount: Double
     
-    // sum(discountPerUnit x qty)
+    @Field(key: "additional_discount_amount")
+    var additionalDiscountAmount: Double
+    
+    // sum(discountPerUnit x qty) +
     @Field(key: "total_discount_amount")
     var totalDiscountAmount: Double
     
@@ -132,6 +135,7 @@ final class PurchaseOrder: Model, Content {
          number: Int = 1,
          reference: String? = nil,
          items: [PurchaseOrderItem],
+         additionalDiscount: Double = 0,
          orderDate: Date = .init(),
          deliveryDate: Date = .init(),
          paymentTermsDays: Int = 30,
@@ -173,7 +177,9 @@ final class PurchaseOrder: Model, Content {
         let sumVat = Self.sumVat(items: items)
         let sumTaxWithholding = Self.sumTaxWithholding(items: items)
         
-        self.totalDiscountAmount = Self.sumTotalDiscountAmount(items: items)
+        self.additionalDiscountAmount = additionalDiscount
+        self.totalDiscountAmount = Self.sumTotalDiscountAmount(items: items,
+                                                               additionalDiscount: additionalDiscount)
         
         self.vatAmount = sumVat?.vatAmount
         self.vatAmountBefore = sumVat?.vatAmountBefore
@@ -197,7 +203,8 @@ final class PurchaseOrder: Model, Content {
                 self.totalAmount = sumTaxWithholding.amountBefore
                 self.paymentAmount = sumTaxWithholding.amountAfter
             } else {
-                self.totalAmount = Self.sumTotalAmountAfteDiscount(items: items)
+                self.totalAmount = Self.sumTotalAmountAfteDiscount(items: items,
+                                                                   additionalDiscount: additionalDiscount)
                 self.paymentAmount = self.totalAmount
             }
         }
@@ -242,17 +249,19 @@ final class PurchaseOrder: Model, Content {
         return sum
     }
     
-    static func sumTotalAmountAfteDiscount(items: [PurchaseOrderItem]) -> Double {
+    static func sumTotalAmountAfteDiscount(items: [PurchaseOrderItem],
+                                           additionalDiscount: Double) -> Double {
         return items.reduce(0.0, { result, item in
             let sum = item.qty * item.pricePerUnit
             return result + (sum - item.totalDiscountAmount)
-        })
+        }) - additionalDiscount
     }
     
-    static func sumTotalDiscountAmount(items: [PurchaseOrderItem]) -> Double {
+    static func sumTotalDiscountAmount(items: [PurchaseOrderItem],
+                                       additionalDiscount: Double) -> Double {
         return items.reduce(0.0, { result, item in
             return result + item.totalDiscountAmount
-        })
+        }) + additionalDiscount
     }
     
     func ableUpdateStatus() -> [PurchaseOrderStatus] {
@@ -323,6 +332,12 @@ extension PurchaseOrder {
                           vatAmountBefore: vatAmountBefore + sumVat.vatAmountBefore,
                           vatAmountAfter: vatAmountAfter + sumVat.vatAmountAfter)
         }
+        
+//        func discount(additional: Double) -> SumVat {
+//            return SumVat(vatAmount: vatAmount - additional,
+//                          vatAmountBefore: vatAmountBefore - additional,
+//                          vatAmountAfter: vatAmountAfter - additional)
+//        }
     }
     
     struct SumTaxWithholding {

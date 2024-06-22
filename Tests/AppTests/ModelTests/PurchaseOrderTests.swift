@@ -577,6 +577,109 @@ final class PurchaseOrderTests: XCTestCase {
         XCTAssertEqual(order.paymentAmount, 180.0, accuracy: 0.01)
     }
     
+    // Additional Discount
+    func testCalculationProperties_WithItems_AdditionalDiscount_IncludedVAT_TaxWithholding() {
+        let items: [PurchaseOrderItem] = [
+            .init(id: nil,
+                  itemId: .init(),
+                  name: "Item 1",
+                  description: "",
+                  variant: nil,
+                  qty: 10,
+                  pricePerUnit: 10,
+                  discountPerUnit: 1,
+                  vatRate: 0.07,
+                  taxWithholdingRate: 0.03,
+                  isVatIncluded: true),
+            .init(id: nil,
+                  itemId: .init(),
+                  name: "Item 2",
+                  description: "",
+                  variant: nil,
+                  qty: 10,
+                  pricePerUnit: 10,
+                  discountPerUnit: 1,
+                  vatRate: 0.07,
+                  taxWithholdingRate: 0.03,
+                  isVatIncluded: true)
+        ]
+        
+        let order = PurchaseOrder(month: 1,
+                                  year: 2024,
+                                  items: items,
+                                  additionalDiscount: 50,
+                                  supplierId: .init(),
+                                  customerId: .init())
+        
+        XCTAssertNotNil(order.vatAmount)
+        XCTAssertNotNil(order.vatAmountBefore)
+        XCTAssertNotNil(order.vatAmountAfter)
+        
+        XCTAssertEqual(order.vatAmount!, 8.50, accuracy: 0.01)
+        XCTAssertEqual(order.vatAmountBefore!, 121.50, accuracy: 0.01)
+        XCTAssertEqual(order.vatAmountAfter!, 130.0, accuracy: 0.01)
+        
+        XCTAssertNotNil(order.taxWithholdingAmount)
+        XCTAssertNotNil(order.taxWithholdingAmountBefore)
+        XCTAssertNotNil(order.taxWithholdingAmountAfter)
+        
+        XCTAssertEqual(order.taxWithholdingAmount!, 3.64, accuracy: 0.01)
+        XCTAssertEqual(order.taxWithholdingAmountBefore!, 130, accuracy: 0.01)
+        XCTAssertEqual(order.taxWithholdingAmountAfter!, 126.36, accuracy: 0.01)
+        
+        XCTAssertEqual(order.totalAmount, 130, accuracy: 0.01)
+        XCTAssertEqual(order.totalDiscountAmount, 70.0, accuracy: 0.01)
+        XCTAssertEqual(order.additionalDiscountAmount, 50.0, accuracy: 0.01)
+        XCTAssertEqual(order.paymentAmount, 126.3, accuracy: 0.01)
+    }
+    
+    func testCalculationProperties_WithItems_AdditionalDiscount_NoVAT_NoTaxWithholding() {
+        let items: [PurchaseOrderItem] = [
+            .init(id: nil,
+                  itemId: .init(),
+                  name: "Item 1",
+                  description: "",
+                  variant: nil,
+                  qty: 10,
+                  pricePerUnit: 10,
+                  discountPerUnit: 1,
+                  vatRate: nil,
+                  taxWithholdingRate: nil,
+                  isVatIncluded: false),
+            .init(id: nil,
+                  itemId: .init(),
+                  name: "Item 2",
+                  description: "",
+                  variant: nil,
+                  qty: 10,
+                  pricePerUnit: 10,
+                  discountPerUnit: 1,
+                  vatRate: nil,
+                  taxWithholdingRate: nil,
+                  isVatIncluded: false)
+        ]
+        
+        let order = PurchaseOrder(month: 1,
+                                  year: 2024,
+                                  items: items,
+                                  additionalDiscount: 50.0,
+                                  supplierId: .init(),
+                                  customerId: .init())
+        
+        XCTAssertNil(order.vatAmount)
+        XCTAssertNil(order.vatAmountBefore)
+        XCTAssertNil(order.vatAmountAfter)
+        
+        XCTAssertNil(order.taxWithholdingAmount)
+        XCTAssertNil(order.taxWithholdingAmountBefore)
+        XCTAssertNil(order.taxWithholdingAmountAfter)
+        
+        XCTAssertEqual(order.totalAmount, 130.0, accuracy: 0.01)
+        XCTAssertEqual(order.totalDiscountAmount, 70.0, accuracy: 0.01)
+        XCTAssertEqual(order.additionalDiscountAmount, 50.0, accuracy: 0.01)
+        XCTAssertEqual(order.paymentAmount, 130.0, accuracy: 0.01)
+    }
+    
     // Test ableUpdateStatus
     func testAbleUpdateStatus_WithPendingStatus_ShouldReturnExpectedStatuses() {
         let po = createPurchaseOrderWithStatus(.pending,
