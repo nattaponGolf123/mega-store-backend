@@ -3,6 +3,7 @@ import XCTVapor
 
 final class TaxWithholdingTests: XCTestCase {
 
+    // no vat
     func testInit_WithTotalAmount_ShouldCalculateAmountBeforeAndAfter() {
         // Given
         let totalAmount: Double = 100.0
@@ -17,7 +18,42 @@ final class TaxWithholdingTests: XCTestCase {
         XCTAssertEqual(taxWithholding.amountBefore, 100, accuracy: 0.0001)
         XCTAssertEqual(taxWithholding.amountAfter, 97, accuracy: 0.0001)
     }
-
+    
+    // include vat , product exclude vat
+    func testInit_WithExcludedVat_ShouldCalculateAmountBeforeAndAfter() {
+        // Given
+        let vatRate: Double = 0.07
+        
+        // When
+        let vat = Vat(totalAmountExcludeVat: 100,
+                      rate: vatRate)
+        let taxWithholding = TaxWithholding(vat: vat)
+        
+        // Then
+        XCTAssertEqual(taxWithholding.amount, 3, accuracy: 0.0001)
+        XCTAssertEqual(taxWithholding.rate, 0.03, accuracy: 0.0001)
+        XCTAssertEqual(taxWithholding.amountBefore, 100, accuracy: 0.0001)
+        XCTAssertEqual(taxWithholding.amountAfter, 97, accuracy: 0.0001)
+    }
+    
+    // include vat , product include vat
+    func testInit_WithIncludedVat_ShouldCalculateAmountBeforeAndAfter() {
+        // Given
+        let vatRate: Double = 0.07
+        
+        // When
+        let vat = Vat(totalAmountIncludeVat: 100,
+                      rate: vatRate)
+        let taxWithholding = TaxWithholding(vat: vat)
+        
+        // Then
+        XCTAssertEqual(taxWithholding.amount, 2.8037383178, accuracy: 0.0001)
+        XCTAssertEqual(taxWithholding.rate, 0.03, accuracy: 0.0001)
+        XCTAssertEqual(taxWithholding.amountBefore, 93.4579439252, accuracy: 0.0001)
+        XCTAssertEqual(taxWithholding.amountAfter, 90.6542056074, accuracy: 0.0001)
+    }
+    
+    
     func testDecode_WithValidJson_ShouldReturnTaxWithholdingInstance() throws {
         // Given
         let json = """

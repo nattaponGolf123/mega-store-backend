@@ -11,9 +11,11 @@ struct Vat: Content {
     // include vat
     init(totalAmountIncludeVat: Double,
          rate: Double = 0.07) {
-        self.amount = totalAmountIncludeVat
+        let _amountBefore = totalAmountIncludeVat / (1 + rate)
+        
+        self.amount = totalAmountIncludeVat - _amountBefore
         self.rate = rate
-        self.amountBefore = totalAmountIncludeVat / (1 + rate)
+        self.amountBefore = _amountBefore
         self.amountAfter = totalAmountIncludeVat
     }
     

@@ -7,7 +7,7 @@ struct TaxWithholding: Content {
     let rate: Double // tax withholding rate
     let amountAfter: Double // total amount after tax withholding
     
-    //totalAmount can be 'total amount after vat' or 'total amount without vat'
+    // no vat
     init(totalAmount: Double,
          rate: Double = 0.03) {  
         let _amount = totalAmount * rate
@@ -16,6 +16,17 @@ struct TaxWithholding: Content {
         self.rate = rate
         self.amountBefore = totalAmount
         self.amountAfter = totalAmount - _amount
+    }
+    
+    // with vat
+    init(vat: Vat,
+         rate: Double = 0.03) {
+        let _amount = vat.amountBefore * rate
+        
+        self.amount = _amount
+        self.rate = rate
+        self.amountBefore = vat.amountBefore
+        self.amountAfter = vat.amountBefore - _amount
     }
     
     //decode

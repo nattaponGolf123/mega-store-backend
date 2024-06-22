@@ -85,15 +85,13 @@ final class PurchaseOrderItem: Model, Content {
         let totalAmountAfterDiscount = totalAmountBeforeDiscount - totalAmountDiscount
         
         // Vat
-        if isVatIncluded {
-
-
-            self.totalAmount = totalAmountAfterDiscount
-            self.vat = vatRate.map { Vat(totalAmountIncludeVat: totalAmountAfterDiscount, rate: $0) }
-        } else {
-            self.totalAmount = totalAmountAfterDiscount
-            self.vat = vatRate.map { Vat(totalAmountExcludeVat: 0, rate: $0) }
+        if isVatIncluded {            
+            self.vat = vatRate.map { Vat(totalAmountIncludeVat: totalAmountAfterDiscount, rate: $0) }            
+        } else {            
+            self.vat = vatRate.map { Vat(totalAmountExcludeVat: totalAmountAfterDiscount, rate: $0) }            
         }
+
+        self.totalAmount = self.vat?.amountAfter ?? totalAmountAfterDiscount
         
         // TaxWithholding
         if let vat = self.vat {
