@@ -49,6 +49,8 @@ func routes(_ app: Application) throws {
     try protected.register(collection: ProductCategoryController())
     try protected.register(collection: ProductController())
     
+    try protected.register(collection: PurchaseOrderController())
+    
 }
 
 // func registerTestingRoutes(_ app: Application) throws {

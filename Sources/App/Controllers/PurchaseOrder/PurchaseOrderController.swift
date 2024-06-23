@@ -9,8 +9,8 @@ class PurchaseOrderController: RouteCollection {
     private(set) var repository: PurchaseOrderRepositoryProtocol
     private(set) var validator: PurchaseOrderValidatorProtocol
     
-    init(repository: PurchaseOrderRepositoryProtocol,
-         validator: PurchaseOrderValidatorProtocol) {
+    init(repository: PurchaseOrderRepositoryProtocol = PurchaseOrderRepository(),
+         validator: PurchaseOrderValidatorProtocol = PurchaseOrderValidator()) {
         self.repository = repository
         self.validator = validator
     }
@@ -41,7 +41,11 @@ class PurchaseOrderController: RouteCollection {
             }
             
             withID.group("replace_items") { withReplaceItem in
-                //withVariant.post(use: createVariant)
+                withReplaceItem.put(use: replaceItems)
+            }
+            
+            withID.group("reorder_items") { withReorderItem in
+                withReorderItem.put(use: reorderItems)
             }
         }
         
@@ -69,12 +73,6 @@ class PurchaseOrderController: RouteCollection {
         
         return try await repository.create(content: content,
                                            on: req.db)
-    }
-    
-    func find(req: Request) async throws -> PurchaseOrder {
-        let id = try req.parameters.require("id", as: UUID.self)
-        return try await repository.find(id: id,
-                                         on: req.db)
     }
     
     func update(req: Request) async throws -> PurchaseOrder {
@@ -116,6 +114,15 @@ class PurchaseOrderController: RouteCollection {
         return try await repository.replaceItems(id: id,
                                                 with: content,
                                                 on: req.db)
+    }
+    
+    func reorderItems(req: Request) async throws -> PurchaseOrder {
+        let id = try req.parameters.require("id", as: UUID.self)
+        let content = try req.content.decode(PurchaseOrderRepository.ReorderItems.self)
+        
+        return try await repository.itemsReorder(id: id,
+                                                 itemsOrder: content.itemIdOrder,
+                                                 on: req.db)
     }
     
     func search(req: Request) async throws -> PaginatedResponse<PurchaseOrder> {

@@ -38,7 +38,7 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
                              year: 2024,
                              vatOption: .noVat,
                              includedVat: false,
-                             vatRate: nil,
+                             vatRate: ._7,
                              items: [],
                              supplierId: .init(),
                              customerId: .init())

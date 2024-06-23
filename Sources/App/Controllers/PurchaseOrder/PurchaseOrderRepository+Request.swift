@@ -254,7 +254,7 @@ extension PurchaseOrderRepository {
                 
     }
     
-    struct replaceItemOrder: Content, Validatable {
+    struct ReorderItems: Content, Validatable {
         let itemIdOrder: [UUID]
         
         init(itemIdOrder: [UUID]) {

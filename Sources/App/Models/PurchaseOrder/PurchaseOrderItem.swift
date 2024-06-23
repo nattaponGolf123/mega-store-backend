@@ -46,9 +46,11 @@ struct PurchaseOrderItem: Content {
          pricePerUnit: Double,
          discountPricePerUnit: Double,
          additionalDiscount: Double,
-         vatRate: Double? = nil,
+         vatRate: VatRate,
+//         vatRate: Double? = nil,
          vatIncluded: Bool,
-         taxWithholdingRate: Double? = nil) {
+         taxWithholdingRate: TaxWithholdingRate) {
+         //taxWithholdingRate: Double? = nil) {
         self.id = id
         self.itemId = itemId
         self.kind = kind
@@ -59,17 +61,17 @@ struct PurchaseOrderItem: Content {
         self.pricePerUnit = pricePerUnit
         self.discountPricePerUnit = discountPricePerUnit
         
-        self.vatRate = vatRate
+        self.vatRate = vatRate.value
         self.vatIncluded = vatIncluded
-        self.taxWithholdingRate = taxWithholdingRate
+        self.taxWithholdingRate = taxWithholdingRate.value
         self.additionalDiscount = additionalDiscount
         
         let item = BillItem(description: description,
                             quantity: qty,
                             pricePerUnit: pricePerUnit,
                             discountPerUnit: discountPricePerUnit,
-                            vatRate: vatRate,
-                            withholdingTaxRate: taxWithholdingRate,
+                            vatRate: self.vatRate,
+                            withholdingTaxRate: self.taxWithholdingRate,
                             vatIncluded: vatIncluded)
         
         self.baseDiscountPerUnit = item.baseDiscountPerUnit

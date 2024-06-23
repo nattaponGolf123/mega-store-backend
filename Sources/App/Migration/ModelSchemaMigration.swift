@@ -50,6 +50,9 @@ struct ModelSchemaMigration: AsyncMigration {
             try await ProductSchema.createBuilder(database: database).create()
             try await Product.Stub.steel.save(on: database)
             
+            // Purchase Order
+            
+            
         } catch {
             print(error)
         }
