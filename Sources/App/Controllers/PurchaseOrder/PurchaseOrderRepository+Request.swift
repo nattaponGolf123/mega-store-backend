@@ -7,9 +7,11 @@ extension PurchaseOrderRepository {
     enum SortBy: String, Codable {
         case name
         case number
-        case price
-        case categoryId = "category_id"
+        case status
+        case orderDate = "order_date"
         case createdAt = "created_at"
+        case supplierId = "supplier_id"
+        case totalAmount = "total_amount"
     }
     
     enum SortOrder: String, Codable {
@@ -17,49 +19,78 @@ extension PurchaseOrderRepository {
         case desc
     }
     
+    enum Status: String, Codable {
+        case all
+        case draft
+        case pending
+        case approved
+        case voided
+    }
+    
+//    enum PeriodBy: String, Codable {
+//        case year
+//        case month
+//        case day
+//        
+//        case thisYear = "this_year"
+//    }
+    
     struct Fetch: Content {
-        let showDeleted: Bool
+        let status: Status
         let page: Int
         let perPage: Int
         let sortBy: SortBy
         let sortOrder: SortOrder
+        let periodDate: PeriodDate
         
-        init(showDeleted: Bool = false,
+        init(status: Status = .all,
              page: Int = 1,
              perPage: Int = 20,
              sortBy: SortBy = .number,
-             sortOrder: SortOrder = .asc) {
-            self.showDeleted = showDeleted
+             sortOrder: SortOrder = .asc,
+             periodDate: PeriodDate) {
+            self.status = status
             self.page = page
             self.perPage = perPage
             self.sortBy = sortBy
             self.sortOrder = sortOrder
+            self.periodDate = periodDate
         }
         
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.showDeleted = (try? container.decode(Bool.self, forKey: .showDeleted)) ?? false
+            self.status = (try? container.decode(Status.self, forKey: .status)) ?? .all
             self.page = (try? container.decode(Int.self, forKey: .page)) ?? 1
             self.perPage = (try? container.decode(Int.self, forKey: .perPage)) ?? 20
             self.sortBy = (try? container.decode(SortBy.self, forKey: .sortBy)) ?? .number
             self.sortOrder = (try? container.decode(SortOrder.self, forKey: .sortOrder)) ?? .asc
+            
+            let dateFormat = "yyyy-MM-dd"
+            let from = try container.decode(String.self, forKey: .from).tryToDate(dateFormat)
+            let to = try container.decode(String.self, forKey: .to).tryToDate(dateFormat)
+            self.periodDate = .init(from: from,
+                                    to: to)
         }
         
         func encode(to encoder: Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
-            try container.encode(showDeleted, forKey: .showDeleted)
+            try container.encode(status, forKey: .status)
             try container.encode(page, forKey: .page)
             try container.encode(perPage, forKey: .perPage)
             try container.encode(sortBy, forKey: .sortBy)
             try container.encode(sortOrder, forKey: .sortOrder)
+            try container.encode(periodDate.fromDateFormat, forKey: .from)
+            try container.encode(periodDate.toDateFormat, forKey: .to)
         }
         
         enum CodingKeys: String, CodingKey {
-            case showDeleted = "show_deleted"
+            case status = "status"
             case page
             case perPage = "per_page"
             case sortBy = "sort_by"
             case sortOrder = "sort_order"
+            case from
+            case to
         }
     }
     

@@ -2,10 +2,12 @@ import Foundation
 import Vapor
 import Fluent
 
+// statuc flow : draft -> pending
+// statuc flow : draft -> voided
 // status flow : pending -> approved -> voided
-// status flow : pending -> rejected
 // status flow : pending -> voided
 enum PurchaseOrderStatus: String, Codable {
+    case draft
     case pending
     case approved
     case rejected
@@ -141,6 +143,9 @@ final class PurchaseOrder: Model, Content {
                format: .iso8601)
     var deletedAt: Date?
     
+    @Field(key: "pended_at")
+    var pendedAt: Date?
+    
     @Timestamp(key: "approved_at",
                on: .create,
                format: .iso8601)
@@ -150,11 +155,6 @@ final class PurchaseOrder: Model, Content {
                on: .create,
                format: .iso8601)
     var voidedAt: Date?
-    
-    @Timestamp(key: "rejected_at",
-               on: .create,
-               format: .iso8601)
-    var rejectedAt: Date?
     
     @Field(key: "logs")
     var logs: [ActionLog]
@@ -181,10 +181,10 @@ final class PurchaseOrder: Model, Content {
          note: String = "",
          createdAt: Date? = nil,
          updatedAt: Date? = nil,
+         pendedAt: Date? = nil,
          deletedAt: Date? = nil,
          approvedAt: Date? = nil,
          voidedAt: Date? = nil,
-         rejectedAt: Date? = nil,
          logs: [ActionLog] = []) {
         self.id = id
         self.month = month
@@ -202,10 +202,10 @@ final class PurchaseOrder: Model, Content {
         self.note = note
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+        self.pendedAt = pendedAt
         self.deletedAt = deletedAt
         self.approvedAt = approvedAt
         self.voidedAt = voidedAt
-        self.rejectedAt = rejectedAt
         self.logs = logs
         self.vatOption = vatOption
         self.includedVat = includedVat
@@ -235,8 +235,10 @@ final class PurchaseOrder: Model, Content {
     
     func ableUpdateStatus() -> [PurchaseOrderStatus] {
         switch status {
+        case .draft:
+            return [.pending, .voided]
         case .pending:
-            return [.approved, .rejected, .voided]
+            return [.approved, .voided]
         case .approved:
             return [.voided]
         default:
@@ -244,16 +246,30 @@ final class PurchaseOrder: Model, Content {
         }
     }
     
+    /*
+     / statuc flow : draft -> pending
+     // statuc flow : draft -> voided
+     // status flow : pending -> approved -> voided
+     // status flow : pending -> voided
+     */
     func moveStatus(newStatus: PurchaseOrderStatus) {
         switch status {
+        case .draft:
+            switch newStatus {
+            case .pending:
+                self.status = newStatus
+                self.pendedAt = .init()
+            case .voided:
+                self.status = newStatus
+                self.voidedAt = .init()
+            default:
+                break
+            }
         case .pending:
             switch newStatus {
             case .approved:
                 self.status = newStatus
                 self.approvedAt = .init()
-            case .rejected:
-                self.status = newStatus
-                self.rejectedAt = .init()
             case .voided:
                 self.status = newStatus
                 self.voidedAt = .init()
