@@ -34,6 +34,8 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
     let stub = PurchaseOrder(month: 1,
                              year: 2024,
                              vatOption: .noVat,
+                             includedVat: false,
+                             vatRate: nil,
                              items: [],
                              supplierId: .init(),
                              customerId: .init())

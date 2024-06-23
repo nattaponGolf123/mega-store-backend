@@ -54,48 +54,77 @@ final class PurchaseOrder: Model, Content {
     @Enum(key: "vat_option")
     var vatOption: VatOption
     
-    // sum(pricePerUnit x qty)
-    @Field(key: "total_amount")
-    var totalAmount: Double
+    // includedVat
+    @Field(key: "included_vat")
+    var includedVat: Bool
     
+    //vat_rate
+    @Field(key: "vat_rate")
+    var vatRate: Double?
+    
+    //totalAmountBeforeDiscount
+    @Field(key: "total_amount_before_discount")
+    var totalAmountBeforeDiscount: Double
+    
+    //totalAmountBeforeVat
+    @Field(key: "total_amount_before_vat")
+    var totalAmountBeforeVat: Double
+    
+    //totalVatAmount
+    @Field(key: "total_vat_amount")
+    var totalVatAmount: Double?
+    
+    //totalAmountAfterVat
+    @Field(key: "total_amount_after_vat")
+    var totalAmountAfterVat: Double
+    
+    //totalWithholdingTaxAmount
+    @Field(key: "total_withholding_tax_amount")
+    var totalWithholdingTaxAmount: Double?
+    
+    //totalAmountDue
+    @Field(key: "total_amount_due")
+    var totalAmountDue: Double
+    
+    // sum(pricePerUnit x qty)
+//    @Field(key: "total_amount")
+//    var totalAmount: Double
+//    
     @Field(key: "additional_discount_amount")
     var additionalDiscountAmount: Double
-    
-    // sum(discountPerUnit x qty) +
-    @Field(key: "total_discount_amount")
-    var totalDiscountAmount: Double
-    
-    // MARK: VAT
-    @Field(key: "vat_amount")
-    var vatAmount: Double?
-    
-    @Field(key: "vat_amount_before")
-    var vatAmountBefore: Double?
-    
-    @Field(key: "vat_amount_after")
-    var vatAmountAfter: Double?
-    
-    // MARK: TAX WITHHOLDING
-    @Field(key: "tax_withholding_amount")
-    var taxWithholdingAmount: Double?
-    
-    @Field(key: "tax_withholding_amount_before")
-    var taxWithholdingAmountBefore: Double?
-    
-    @Field(key: "tax_withholding_amount_after")
-    var taxWithholdingAmountAfter: Double?
-    
-    @Field(key: "payment_amount")
-    var paymentAmount: Double
+//    
+//    // sum(discountPerUnit x qty) +
+//    @Field(key: "total_discount_amount")
+//    var totalDiscountAmount: Double
+//    
+//    // MARK: VAT
+//    @Field(key: "vat_amount")
+//    var vatAmount: Double?
+//    
+//    @Field(key: "vat_amount_before")
+//    var vatAmountBefore: Double?
+//    
+//    @Field(key: "vat_amount_after")
+//    var vatAmountAfter: Double?
+//    
+//    // MARK: TAX WITHHOLDING
+//    @Field(key: "tax_withholding_amount")
+//    var taxWithholdingAmount: Double?
+//    
+//    @Field(key: "tax_withholding_amount_before")
+//    var taxWithholdingAmountBefore: Double?
+//    
+//    @Field(key: "tax_withholding_amount_after")
+//    var taxWithholdingAmountAfter: Double?
+//    
+//    @Field(key: "payment_amount")
+//    var paymentAmount: Double
     
     @Field(key: "currency")
     var currency: String
     
     @Field(key: "internal_note")
     var note: String
-    
-    @Field(key: "display_item_id_order")
-    var displayItemIdOrder: [UUID] // orderItemId
     
     @Timestamp(key: "created_at",
                on: .create,
@@ -136,16 +165,18 @@ final class PurchaseOrder: Model, Content {
          month: Int,
          year: Int,
          number: Int = 1,
+         status: PurchaseOrderStatus = .pending,
          reference: String? = nil,
          vatOption: VatOption,
-         additionalDiscount: Double = 0,
+         includedVat: Bool,
+         vatRate: Double?,
          items: [PurchaseOrderItem],
+         additionalDiscountAmount: Double = 0,
          orderDate: Date = .init(),
          deliveryDate: Date = .init(),
          paymentTermsDays: Int = 30,
          supplierId: UUID,
          customerId: UUID,
-         status: PurchaseOrderStatus = .pending,
          currency: String = "THB",
          note: String = "",
          createdAt: Date? = nil,
@@ -169,135 +200,205 @@ final class PurchaseOrder: Model, Content {
         self.status = status
         self.currency = currency
         self.note = note
-        self.displayItemIdOrder = items.map({ $0.itemId })
-        self.createdAt = createdAt ?? .init()
+        self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.deletedAt = deletedAt
         self.approvedAt = approvedAt
         self.voidedAt = voidedAt
         self.rejectedAt = rejectedAt
         self.logs = logs
+        self.vatOption = vatOption
+        self.includedVat = includedVat
+        self.vatRate = vatRate
+        self.additionalDiscountAmount = additionalDiscountAmount
         
-        var sumVat = Self.sumVat(items: items)
+        let billItems: [BillItem] = items.map({ .init(description: $0.description,
+                                                      quantity: $0.qty,
+                                                      pricePerUnit: $0.pricePerUnit,
+                                                      discountPerUnit: $0.discountPricePerUnit,
+                                                      vatRate: $0.vatRate,
+                                                      withholdingTaxRate: $0.taxWithholdingRate,
+                                                      vatIncluded: $0.vatIncluded) })
+        let summary = BillSummary(items: billItems,
+                                  additionalDiscountAmount: additionalDiscountAmount,
+                                  vatRate: vatRate,
+                                  vatIncluded: includedVat)
         
-        // after discount
-//        sumVat = Self.applySumVatDiscount(sumVat: sumVat,
-//                                          discountAmount: additionalDiscount,
-//                                          vatOption: vatOption,
-//                                          vatRate: 0.07)
         
-        let sumTaxWithholding = Self.sumTaxWithholding(items: items)
-        
-        self.additionalDiscountAmount = additionalDiscount
-        self.totalDiscountAmount = Self.sumTotalDiscountAmount(items: items)
-        
-        self.vatAmount = sumVat?.vatAmount
-        self.vatAmountBefore = sumVat?.vatAmountBefore
-        self.vatAmountAfter = sumVat?.vatAmountAfter
-
-        self.taxWithholdingAmount = sumTaxWithholding?.amount
-        self.taxWithholdingAmountBefore = sumTaxWithholding?.amountBefore
-        self.taxWithholdingAmountAfter = sumTaxWithholding?.amountAfter
-
-        if let sumVat {
-            if let sumTaxWithholding {
-                self.totalAmount = sumTaxWithholding.amountBefore
-                self.paymentAmount = sumTaxWithholding.amountAfter
-            } else {
-                self.totalAmount = sumVat.vatAmountAfter
-                self.paymentAmount = sumVat.vatAmountAfter
-            }
-        }
-        else {
-            if let sumTaxWithholding {
-                self.totalAmount = sumTaxWithholding.amountBefore
-                self.paymentAmount = sumTaxWithholding.amountAfter
-            } else {
-                self.totalAmount = Self.sumTotalAmountAfteDiscount(items: items)
-                self.paymentAmount = self.totalAmount
-            }
-        }
-        
+        self.totalAmountBeforeDiscount = summary.totalAmountBeforeDiscount
+        self.totalAmountBeforeVat = summary.totalAmountBeforeVat
+        self.totalAmountAfterVat = summary.totalAmountAfterVat
+        self.totalAmountDue = summary.totalAmountDue
+        self.totalVatAmount = summary.totalVatAmount
+        self.totalWithholdingTaxAmount = summary.totalWithholdingTaxAmount
     }
     
-    static func sumVat(items: [PurchaseOrderItem]) -> SumVat? {
-        let sumVats: [SumVat] = items.compactMap({
-            if let vat = $0.vat {
-                return SumVat(vat: vat)
-            }
-            return nil
-        })
-        
-        if sumVats.isEmpty {
-            return nil
-        }
-        
-        let sum = sumVats.reduce(SumVat()) { partialResult, sumVat in
-            return partialResult.append(sumVat: sumVat)
-        }
-        
-        return sum
-    }
-    
-    static func applySumVatDiscount(sumVat: SumVat?,
-                                    discountAmount: Double,
-                                    vatOption: VatOption,
-                                    vatRate: Double) -> SumVat? {
-        guard let sumVat = sumVat else { return nil }
-        
-        switch vatOption {
-        case .vatExcluded:
-            return sumVat.applyDiscount(amountExcludeVat: discountAmount,
-                                        rate: vatRate)
-        case .vatIncluded:
-            return sumVat.applyDiscount(amountIncludeVat: discountAmount,
-                                        rate: vatRate)
-        case .noVat:
-            return nil
-        }
-    }
-    
-    static func applySumTaxWithholding(sumTaxWithholding: SumTaxWithholding, additionDiscountAvg: Double) -> SumTaxWithholding? {
-        nil
-    }
-    
-    //sumVat after discount amount
-    static func sumTaxWithholdingDiscount(sumTaxWithholding: SumTaxWithholding,
-                                          sumVat: SumVat?) -> SumTaxWithholding? {
-        nil
-    }
-    
-    static func sumTaxWithholding(items: [PurchaseOrderItem]) -> SumTaxWithholding? {
-        let sumTaxWithholdings: [SumTaxWithholding] = items.compactMap({
-            if let taxWithholding = $0.taxWithholding {
-                return SumTaxWithholding(taxWithholding: taxWithholding)
-            }
-            return nil
-        })
-        
-        if sumTaxWithholdings.isEmpty {
-            return nil
-        }
-        
-        let sum = sumTaxWithholdings.reduce(SumTaxWithholding()) { partialResult, sumTaxWithholding in
-            return partialResult.append(sumTaxWithholding: sumTaxWithholding)
-        }
-        
-        return sum
-    }
-    
-    static func sumTotalAmountAfteDiscount(items: [PurchaseOrderItem]) -> Double {
-        return items.reduce(0.0, { result, item in
-            let sum = item.qty * item.pricePerUnit
-            return result + (sum - item.totalDiscountAmount)
-        })
-    }
-    
-    static func sumTotalDiscountAmount(items: [PurchaseOrderItem]) -> Double {
-        return items.reduce(0.0, { result, item in
-            return result + item.totalDiscountAmount
-        })
-    }
+//    init(id: UUID? = nil,
+//         month: Int,
+//         year: Int,
+//         number: Int = 1,
+//         reference: String? = nil,
+//         vatOption: VatOption,
+//         additionalDiscount: Double = 0,
+//         items: [PurchaseOrderItem],
+//         orderDate: Date = .init(),
+//         deliveryDate: Date = .init(),
+//         paymentTermsDays: Int = 30,
+//         supplierId: UUID,
+//         customerId: UUID,
+//         status: PurchaseOrderStatus = .pending,
+//         currency: String = "THB",
+//         note: String = "",
+//         createdAt: Date? = nil,
+//         updatedAt: Date? = nil,
+//         deletedAt: Date? = nil,
+//         approvedAt: Date? = nil,
+//         voidedAt: Date? = nil,
+//         rejectedAt: Date? = nil,
+//         logs: [ActionLog] = []) {
+//        self.id = id
+//        self.month = month
+//        self.year = year
+//        self.number = number
+//        self.reference = reference
+//        self.items = items
+//        self.orderDate = orderDate
+//        self.deliveryDate = deliveryDate
+//        self.paymentTermsDays = paymentTermsDays
+//        self.supplierId = supplierId
+//        self.customerId = customerId
+//        self.status = status
+//        self.currency = currency
+//        self.note = note
+//        self.displayItemIdOrder = items.map({ $0.itemId })
+//        self.createdAt = createdAt ?? .init()
+//        self.updatedAt = updatedAt
+//        self.deletedAt = deletedAt
+//        self.approvedAt = approvedAt
+//        self.voidedAt = voidedAt
+//        self.rejectedAt = rejectedAt
+//        self.logs = logs
+//        
+//        var sumVat = Self.sumVat(items: items)
+//        
+//        // after discount
+////        sumVat = Self.applySumVatDiscount(sumVat: sumVat,
+////                                          discountAmount: additionalDiscount,
+////                                          vatOption: vatOption,
+////                                          vatRate: 0.07)
+//        
+//        let sumTaxWithholding = Self.sumTaxWithholding(items: items)
+//        
+//        self.additionalDiscountAmount = additionalDiscount
+//        self.totalDiscountAmount = Self.sumTotalDiscountAmount(items: items)
+//        
+//        self.vatAmount = sumVat?.vatAmount
+//        self.vatAmountBefore = sumVat?.vatAmountBefore
+//        self.vatAmountAfter = sumVat?.vatAmountAfter
+//
+//        self.taxWithholdingAmount = sumTaxWithholding?.amount
+//        self.taxWithholdingAmountBefore = sumTaxWithholding?.amountBefore
+//        self.taxWithholdingAmountAfter = sumTaxWithholding?.amountAfter
+//
+//        if let sumVat {
+//            if let sumTaxWithholding {
+//                self.totalAmount = sumTaxWithholding.amountBefore
+//                self.paymentAmount = sumTaxWithholding.amountAfter
+//            } else {
+//                self.totalAmount = sumVat.vatAmountAfter
+//                self.paymentAmount = sumVat.vatAmountAfter
+//            }
+//        }
+//        else {
+//            if let sumTaxWithholding {
+//                self.totalAmount = sumTaxWithholding.amountBefore
+//                self.paymentAmount = sumTaxWithholding.amountAfter
+//            } else {
+//                self.totalAmount = Self.sumTotalAmountAfteDiscount(items: items)
+//                self.paymentAmount = self.totalAmount
+//            }
+//        }
+//        
+//    }
+//    
+//    static func sumVat(items: [PurchaseOrderItem]) -> SumVat? {
+//        let sumVats: [SumVat] = items.compactMap({
+//            if let vat = $0.vat {
+//                return SumVat(vat: vat)
+//            }
+//            return nil
+//        })
+//        
+//        if sumVats.isEmpty {
+//            return nil
+//        }
+//        
+//        let sum = sumVats.reduce(SumVat()) { partialResult, sumVat in
+//            return partialResult.append(sumVat: sumVat)
+//        }
+//        
+//        return sum
+//    }
+//    
+//    static func applySumVatDiscount(sumVat: SumVat?,
+//                                    discountAmount: Double,
+//                                    vatOption: VatOption,
+//                                    vatRate: Double) -> SumVat? {
+//        guard let sumVat = sumVat else { return nil }
+//        
+//        switch vatOption {
+//        case .vatExcluded:
+//            return sumVat.applyDiscount(amountExcludeVat: discountAmount,
+//                                        rate: vatRate)
+//        case .vatIncluded:
+//            return sumVat.applyDiscount(amountIncludeVat: discountAmount,
+//                                        rate: vatRate)
+//        case .noVat:
+//            return nil
+//        }
+//    }
+//    
+//    static func applySumTaxWithholding(sumTaxWithholding: SumTaxWithholding, additionDiscountAvg: Double) -> SumTaxWithholding? {
+//        nil
+//    }
+//    
+//    //sumVat after discount amount
+//    static func sumTaxWithholdingDiscount(sumTaxWithholding: SumTaxWithholding,
+//                                          sumVat: SumVat?) -> SumTaxWithholding? {
+//        nil
+//    }
+//    
+//    static func sumTaxWithholding(items: [PurchaseOrderItem]) -> SumTaxWithholding? {
+//        let sumTaxWithholdings: [SumTaxWithholding] = items.compactMap({
+//            if let taxWithholding = $0.taxWithholding {
+//                return SumTaxWithholding(taxWithholding: taxWithholding)
+//            }
+//            return nil
+//        })
+//        
+//        if sumTaxWithholdings.isEmpty {
+//            return nil
+//        }
+//        
+//        let sum = sumTaxWithholdings.reduce(SumTaxWithholding()) { partialResult, sumTaxWithholding in
+//            return partialResult.append(sumTaxWithholding: sumTaxWithholding)
+//        }
+//        
+//        return sum
+//    }
+//    
+//    static func sumTotalAmountAfteDiscount(items: [PurchaseOrderItem]) -> Double {
+//        return items.reduce(0.0, { result, item in
+//            let sum = item.qty * item.pricePerUnit
+//            return result + (sum - item.totalDiscountAmount)
+//        })
+//    }
+//    
+//    static func sumTotalDiscountAmount(items: [PurchaseOrderItem]) -> Double {
+//        return items.reduce(0.0, { result, item in
+//            return result + item.totalDiscountAmount
+//        })
+//    }
     
     func ableUpdateStatus() -> [PurchaseOrderStatus] {
         switch status {

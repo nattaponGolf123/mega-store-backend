@@ -1,6 +1,6 @@
 //
 //  BillSummaryTests.swift
-//  
+//
 //
 //  Created by IntrodexMac on 23/6/2567 BE.
 //
@@ -12,12 +12,12 @@ class BillSummaryTests: XCTestCase {
     
     func testInit_WithValidValues_ShouldCreateInstance() {
         let item1 = BillItem(description: "Test Item",
-                            quantity: 10.0,
-                            pricePerUnit: 10.0,
-                            discountPerUnit: 1.0,
-                            vatRate: 0.07,
-                            withholdingTaxRate: 0.03,
-                            vatIncluded: true)
+                             quantity: 10.0,
+                             pricePerUnit: 10.0,
+                             discountPerUnit: 1.0,
+                             vatRate: 0.07,
+                             withholdingTaxRate: 0.03,
+                             vatIncluded: true)
         
         let item2 = BillItem(description: "Test Item",
                              quantity: 10.0,
@@ -26,7 +26,7 @@ class BillSummaryTests: XCTestCase {
                              vatRate: 0.07,
                              withholdingTaxRate: 0.03,
                              vatIncluded: true)
-                
+        
         let summary = BillSummary(items: [item1, item2],
                                   additionalDiscountAmount: 5.0,
                                   vatRate: 0.07,
@@ -34,18 +34,18 @@ class BillSummaryTests: XCTestCase {
         
         XCTAssertEqual(summary.items.count, 2)
         XCTAssertEqual(summary.additionalDiscountAmount, 5, accuracy: 0.01)
-             
+        
     }
     
     // All item price included VAT , All item tax withholding included
     func testInit_WithPriceIncludedVat_WithTaxWithholdingIncluded_ShouldCalculateCorrectValues() {
         let item1 = BillItem(description: "Test Item",
-                            quantity: 10.0,
-                            pricePerUnit: 10.0,
-                            discountPerUnit: 1.0,
-                            vatRate: 0.07,
-                            withholdingTaxRate: 0.03,
-                            vatIncluded: true)
+                             quantity: 10.0,
+                             pricePerUnit: 10.0,
+                             discountPerUnit: 1.0,
+                             vatRate: 0.07,
+                             withholdingTaxRate: 0.03,
+                             vatIncluded: true)
         
         let item2 = BillItem(description: "Test Item",
                              quantity: 10.0,
@@ -72,12 +72,12 @@ class BillSummaryTests: XCTestCase {
     // All item price excluded VAT , All item tax withholding included
     func testInit_WithPriceExcludedVat_WithTaxWithholdingIncluded_ShouldCalculateCorrectValues() {
         let item1 = BillItem(description: "Test Item",
-                            quantity: 10.0,
-                            pricePerUnit: 10.0,
-                            discountPerUnit: 1.0,
-                            vatRate: 0.07,
-                            withholdingTaxRate: 0.03,
-                            vatIncluded: false)
+                             quantity: 10.0,
+                             pricePerUnit: 10.0,
+                             discountPerUnit: 1.0,
+                             vatRate: 0.07,
+                             withholdingTaxRate: 0.03,
+                             vatIncluded: false)
         
         let item2 = BillItem(description: "Test Item",
                              quantity: 10.0,
@@ -100,16 +100,16 @@ class BillSummaryTests: XCTestCase {
         XCTAssertEqual(summary.totalAmountDue, 187.20, accuracy: 0.01)
         
     }
-
+    
     // All item price included 0 VAT , All item tax withholding included
     func testInit_WithVatZeroIncluded_WithTaxWithholdingIncluded_ShouldCalculateCorrectValues() {
         let item1 = BillItem(description: "Test Item",
-                            quantity: 10.0,
-                            pricePerUnit: 10.0,
-                            discountPerUnit: 1.0,
-                            vatRate: 0.0,
+                             quantity: 10.0,
+                             pricePerUnit: 10.0,
+                             discountPerUnit: 1.0,
+                             vatRate: 0.0,
                              withholdingTaxRate: 0.03,
-                            vatIncluded: true)
+                             vatIncluded: true)
         
         let item2 = BillItem(description: "Test Item",
                              quantity: 10.0,
@@ -131,16 +131,16 @@ class BillSummaryTests: XCTestCase {
         XCTAssertEqual(summary.totalWithholdingTaxAmount, 5.4, accuracy: 0.01)
         XCTAssertEqual(summary.totalAmountDue, 174.60, accuracy: 0.01)
     }
-
+    
     // All item price included VAT , All item tax withholding excluded
     func testInit_WithPriceIncludedVat_WithNoTaxWithholding_ShouldCalculateCorrectValues() {
         let item1 = BillItem(description: "Test Item",
-                            quantity: 10.0,
-                            pricePerUnit: 10.0,
-                            discountPerUnit: 1.0,
-                            vatRate: 0.07,
-                            withholdingTaxRate: nil,
-                            vatIncluded: true)
+                             quantity: 10.0,
+                             pricePerUnit: 10.0,
+                             discountPerUnit: 1.0,
+                             vatRate: 0.07,
+                             withholdingTaxRate: nil,
+                             vatIncluded: true)
         
         let item2 = BillItem(description: "Test Item",
                              quantity: 10.0,
@@ -162,16 +162,16 @@ class BillSummaryTests: XCTestCase {
         XCTAssertEqual(summary.totalWithholdingTaxAmount, 0, accuracy: 0.01)
         XCTAssertEqual(summary.totalAmountDue, 180, accuracy: 0.01)
     }
-
+    
     // All item price excluded VAT , All item tax withholding excluded
     func testInit_WithPriceExcludedVat_WithNoTaxWithholding_ShouldCalculateCorrectValues() {
         let item1 = BillItem(description: "Test Item",
-                            quantity: 10.0,
-                            pricePerUnit: 10.0,
-                            discountPerUnit: 1.0,
-                            vatRate: 0.07,
-                            withholdingTaxRate: nil,
-                            vatIncluded: false)
+                             quantity: 10.0,
+                             pricePerUnit: 10.0,
+                             discountPerUnit: 1.0,
+                             vatRate: 0.07,
+                             withholdingTaxRate: nil,
+                             vatIncluded: false)
         
         let item2 = BillItem(description: "Test Item",
                              quantity: 10.0,
@@ -193,16 +193,16 @@ class BillSummaryTests: XCTestCase {
         XCTAssertEqual(summary.totalWithholdingTaxAmount, 0, accuracy: 0.01)
         XCTAssertEqual(summary.totalAmountDue, 192.6, accuracy: 0.01)
     }
-
+    
     // All item price No VAT , All item tax withholding included
     func testInit_WithNoVat_WithTaxWithholding_ShouldCalculateCorrectValues() {
         let item1 = BillItem(description: "Test Item",
-                            quantity: 10.0,
-                            pricePerUnit: 10.0,
-                            discountPerUnit: 1.0,
-                            vatRate: nil,
-                            withholdingTaxRate: 0.03,
-                            vatIncluded: false)
+                             quantity: 10.0,
+                             pricePerUnit: 10.0,
+                             discountPerUnit: 1.0,
+                             vatRate: nil,
+                             withholdingTaxRate: 0.03,
+                             vatIncluded: false)
         
         let item2 = BillItem(description: "Test Item",
                              quantity: 10.0,
@@ -224,18 +224,18 @@ class BillSummaryTests: XCTestCase {
         XCTAssertEqual(summary.totalWithholdingTaxAmount, 5.4, accuracy: 0.01)
         XCTAssertEqual(summary.totalAmountDue, 174.6, accuracy: 0.01)
     }
-
+    
     //MARK: additional discount
-
+    
     // All item price included VAT , All item tax withholding included , additional discount
     func testInit_WithPriceIncludedVat_WithTaxWithholdingIncluded_WithAdditionalDiscount_ShouldCalculateCorrectValues() {
         let item1 = BillItem(description: "Test Item",
-                            quantity: 10.0,
-                            pricePerUnit: 10.0,
-                            discountPerUnit: 1.0,
-                            vatRate: 0.07,
-                            withholdingTaxRate: 0.03,
-                            vatIncluded: true)
+                             quantity: 10.0,
+                             pricePerUnit: 10.0,
+                             discountPerUnit: 1.0,
+                             vatRate: 0.07,
+                             withholdingTaxRate: 0.03,
+                             vatIncluded: true)
         
         let item2 = BillItem(description: "Test Item",
                              quantity: 10.0,
@@ -261,12 +261,12 @@ class BillSummaryTests: XCTestCase {
     // All item price excluded VAT , All item tax withholding included , additional discount
     func testInit_WithPriceExcludedVat_WithTaxWithholdingIncluded_WithAdditionalDiscount_ShouldCalculateCorrectValues() {
         let item1 = BillItem(description: "Test Item",
-                            quantity: 10.0,
-                            pricePerUnit: 10.0,
-                            discountPerUnit: 1.0,
-                            vatRate: 0.07,
-                            withholdingTaxRate: 0.03,
-                            vatIncluded: false)
+                             quantity: 10.0,
+                             pricePerUnit: 10.0,
+                             discountPerUnit: 1.0,
+                             vatRate: 0.07,
+                             withholdingTaxRate: 0.03,
+                             vatIncluded: false)
         
         let item2 = BillItem(description: "Test Item",
                              quantity: 10.0,
@@ -288,16 +288,16 @@ class BillSummaryTests: XCTestCase {
         XCTAssertEqual(summary.totalWithholdingTaxAmount, 5.1, accuracy: 0.01)
         XCTAssertEqual(summary.totalAmountDue, 176.8, accuracy: 0.01)
     }
-
+    
     // All item price included 0 VAT , All item tax withholding included , additional discount
     func testInit_WithVatZeroIncluded_WithTaxWithholdingZeroIncluded_WithAdditionalDiscount_ShouldCalculateCorrectValues() {
         let item1 = BillItem(description: "Test Item",
-                            quantity: 10.0,
-                            pricePerUnit: 10.0,
-                            discountPerUnit: 1.0,
-                            vatRate: 0.0,
-                            withholdingTaxRate: 0.03,
-                            vatIncluded: true)
+                             quantity: 10.0,
+                             pricePerUnit: 10.0,
+                             discountPerUnit: 1.0,
+                             vatRate: 0.0,
+                             withholdingTaxRate: 0.03,
+                             vatIncluded: true)
         
         let item2 = BillItem(description: "Test Item",
                              quantity: 10.0,
@@ -323,12 +323,12 @@ class BillSummaryTests: XCTestCase {
     // All item price included VAT , All item tax withholding excluded , additional discount
     func testInit_WithPriceIncludedVat_WithNoTaxWithholding_WithAdditionalDiscount_ShouldCalculateCorrectValues() {
         let item1 = BillItem(description: "Test Item",
-                            quantity: 10.0,
-                            pricePerUnit: 10.0,
-                            discountPerUnit: 1.0,
-                            vatRate: 0.07,
-                            withholdingTaxRate: nil,
-                            vatIncluded: true)
+                             quantity: 10.0,
+                             pricePerUnit: 10.0,
+                             discountPerUnit: 1.0,
+                             vatRate: 0.07,
+                             withholdingTaxRate: nil,
+                             vatIncluded: true)
         
         let item2 = BillItem(description: "Test Item",
                              quantity: 10.0,
@@ -350,16 +350,16 @@ class BillSummaryTests: XCTestCase {
         XCTAssertEqual(summary.totalWithholdingTaxAmount, 0, accuracy: 0.01)
         XCTAssertEqual(summary.totalAmountDue, 170, accuracy: 0.01)
     }
-
+    
     // All item price excluded VAT , All item tax withholding excluded , additional discount
     func testInit_WithPriceExcludedVat_WithNoTaxWithholding_WithAdditionalDiscount_ShouldCalculateCorrectValues() {
         let item1 = BillItem(description: "Test Item",
-                            quantity: 10.0,
-                            pricePerUnit: 10.0,
-                            discountPerUnit: 1.0,
-                            vatRate: 0.07,
-                            withholdingTaxRate: nil,
-                            vatIncluded: false)
+                             quantity: 10.0,
+                             pricePerUnit: 10.0,
+                             discountPerUnit: 1.0,
+                             vatRate: 0.07,
+                             withholdingTaxRate: nil,
+                             vatIncluded: false)
         
         let item2 = BillItem(description: "Test Item",
                              quantity: 10.0,
@@ -381,16 +381,16 @@ class BillSummaryTests: XCTestCase {
         XCTAssertEqual(summary.totalWithholdingTaxAmount, 0, accuracy: 0.01)
         XCTAssertEqual(summary.totalAmountDue, 181.9, accuracy: 0.01)
     }
-
+    
     // All item price No VAT , All item tax withholding included , additional discount
     func testInit_WithNoVat_WithTaxWithholding_WithAdditionalDiscount_ShouldCalculateCorrectValues() {
         let item1 = BillItem(description: "Test Item",
-                            quantity: 10.0,
-                            pricePerUnit: 10.0,
-                            discountPerUnit: 1.0,
-                            vatRate: nil,
-                            withholdingTaxRate: 0.03,
-                            vatIncluded: false)
+                             quantity: 10.0,
+                             pricePerUnit: 10.0,
+                             discountPerUnit: 1.0,
+                             vatRate: nil,
+                             withholdingTaxRate: 0.03,
+                             vatIncluded: false)
         
         let item2 = BillItem(description: "Test Item",
                              quantity: 10.0,
