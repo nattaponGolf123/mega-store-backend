@@ -86,7 +86,7 @@ final class VatTests: XCTestCase {
         XCTAssertEqual(vat.amountAfter, 107, accuracy: 0.01)
         
         // When
-        let newVat = vat.applyDiscount(discountAmountExcludeVat: 20)
+        let newVat = vat.applyDiscount(amountExcludeVat: 20)
         
         // Then
         XCTAssertEqual(newVat.amount, 5.6, accuracy: 0.01)
@@ -105,7 +105,7 @@ final class VatTests: XCTestCase {
         XCTAssertEqual(vat.amountAfter, 100, accuracy: 0.01)
         
         // When
-        let newVat = vat.applyDiscount(discountAmountIncludeVat: 20)
+        let newVat = vat.applyDiscount(amountIncludeVat: 20)
         
         // Then
         XCTAssertEqual(newVat.amount, 5.23, accuracy: 0.01)

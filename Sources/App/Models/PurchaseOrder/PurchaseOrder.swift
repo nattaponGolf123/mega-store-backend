@@ -332,12 +332,22 @@ extension PurchaseOrder {
                           vatAmountBefore: vatAmountBefore + sumVat.vatAmountBefore,
                           vatAmountAfter: vatAmountAfter + sumVat.vatAmountAfter)
         }
+          
+        func applyDiscount(amountExcludeVat: Double,
+                           rate: Double) -> Self {
+            let newAmount = vatAmountBefore - amountExcludeVat
+            let vat = Vat(totalAmountExcludeVat: newAmount,
+                          rate: rate)
+            return .init(vat: vat)
+        }
         
-//        func discount(additional: Double) -> SumVat {
-//            return SumVat(vatAmount: vatAmount - additional,
-//                          vatAmountBefore: vatAmountBefore - additional,
-//                          vatAmountAfter: vatAmountAfter - additional)
-//        }
+        func applyDiscount(amountIncludeVat: Double,
+                           rate: Double) -> Self {
+            let newAmount = vatAmountAfter - amountIncludeVat
+            let vat = Vat(totalAmountIncludeVat: newAmount,
+                          rate: rate)
+            return .init(vat: vat)
+        }
     }
     
     struct SumTaxWithholding {

@@ -28,14 +28,14 @@ struct Vat: Content {
         self.amountAfter = totalAmountExcludeVat * (1 + rate)
     }
     
-    func applyDiscount(discountAmountExcludeVat: Double) -> Self {
-        let newAmount = amountBefore - discountAmountExcludeVat
+    func applyDiscount(amountExcludeVat: Double) -> Self {
+        let newAmount = amountBefore - amountExcludeVat
         return Vat(totalAmountExcludeVat: newAmount,
                    rate: rate)
     }
     
-    func applyDiscount(discountAmountIncludeVat: Double) -> Self {
-        let newAmount = amountAfter - discountAmountIncludeVat
+    func applyDiscount(amountIncludeVat: Double) -> Self {
+        let newAmount = amountAfter - amountIncludeVat
         return Vat(totalAmountIncludeVat: newAmount,
                    rate: rate)
     }
