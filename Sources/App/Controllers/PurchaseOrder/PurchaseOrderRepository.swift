@@ -22,6 +22,9 @@ protocol PurchaseOrderRepositoryProtocol {
     func cancel(id: UUID, on db: Database) async throws -> PurchaseOrder
     func void(id: UUID, on db: Database) async throws -> PurchaseOrder
     
+    func replaceItems(id: UUID, items: [PurchaseOrderItem], on db: Database) async throws -> PurchaseOrder
+    func itemsReorder(id: UUID, itemsOrder: [UUID], on db: Database) async throws -> PurchaseOrder
+    
     func search(name: String, on db: Database) async throws -> PaginatedResponse<PurchaseOrder>
     func lastedItemNumber(year: Int,
                           month: Int,
@@ -80,6 +83,14 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
         return self.stub
     }
     
+    func replaceItems(id: UUID, items: [PurchaseOrderItem], on db: Database) async throws -> PurchaseOrder {
+        return self.stub
+    }
+    
+    func itemsReorder(id: UUID, itemsOrder: [UUID], on db: Database) async throws -> PurchaseOrder {
+        return self.stub
+    }
+    
     func search(name: String, on db: any FluentKit.Database) async throws -> PaginatedResponse<PurchaseOrder> {
         return .init(page: 1,
                      perPage: 20,
@@ -95,19 +106,3 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
     
     
 }
-
-// protocol ProductCategoryRepositoryProtocol {
-//     func fetchAll(showDeleted: Bool,
-//                   on db: Database) async throws -> [ProductCategory]
-//     func create(content: ProductCategory.Create,
-//                 on db: Database) async throws -> ProductCategory
-//     func find(id: UUID,
-//               on db: Database) async throws -> ProductCategory
-//     func find(name: String,
-//               on db: Database) async throws -> ProductCategory
-//     func update(id: UUID,
-//                 with content: ProductCategory.Update,
-//                 on db: Database) async throws -> ProductCategory
-//     func delete(id: UUID, on db: Database) async throws -> ProductCategory
-//     func search(name: String, on db: Database) async throws -> [ProductCategory]
-// }
