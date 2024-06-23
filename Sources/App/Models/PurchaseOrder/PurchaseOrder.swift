@@ -51,6 +51,9 @@ final class PurchaseOrder: Model, Content {
     @Field(key: "status")
     var status: PurchaseOrderStatus
     
+    @Enum(key: "vat_option")
+    var vatOption: VatOption
+    
     // sum(pricePerUnit x qty)
     @Field(key: "total_amount")
     var totalAmount: Double
@@ -134,8 +137,9 @@ final class PurchaseOrder: Model, Content {
          year: Int,
          number: Int = 1,
          reference: String? = nil,
-         items: [PurchaseOrderItem],
+         vatOption: VatOption,
          additionalDiscount: Double = 0,
+         items: [PurchaseOrderItem],
          orderDate: Date = .init(),
          deliveryDate: Date = .init(),
          paymentTermsDays: Int = 30,
@@ -174,12 +178,18 @@ final class PurchaseOrder: Model, Content {
         self.rejectedAt = rejectedAt
         self.logs = logs
         
-        let sumVat = Self.sumVat(items: items)
+        var sumVat = Self.sumVat(items: items)
+        
+        // after discount
+//        sumVat = Self.applySumVatDiscount(sumVat: sumVat,
+//                                          discountAmount: additionalDiscount,
+//                                          vatOption: vatOption,
+//                                          vatRate: 0.07)
+        
         let sumTaxWithholding = Self.sumTaxWithholding(items: items)
         
         self.additionalDiscountAmount = additionalDiscount
-        self.totalDiscountAmount = Self.sumTotalDiscountAmount(items: items,
-                                                               additionalDiscount: additionalDiscount)
+        self.totalDiscountAmount = Self.sumTotalDiscountAmount(items: items)
         
         self.vatAmount = sumVat?.vatAmount
         self.vatAmountBefore = sumVat?.vatAmountBefore
@@ -203,8 +213,7 @@ final class PurchaseOrder: Model, Content {
                 self.totalAmount = sumTaxWithholding.amountBefore
                 self.paymentAmount = sumTaxWithholding.amountAfter
             } else {
-                self.totalAmount = Self.sumTotalAmountAfteDiscount(items: items,
-                                                                   additionalDiscount: additionalDiscount)
+                self.totalAmount = Self.sumTotalAmountAfteDiscount(items: items)
                 self.paymentAmount = self.totalAmount
             }
         }
@@ -230,6 +239,34 @@ final class PurchaseOrder: Model, Content {
         return sum
     }
     
+    static func applySumVatDiscount(sumVat: SumVat?,
+                                    discountAmount: Double,
+                                    vatOption: VatOption,
+                                    vatRate: Double) -> SumVat? {
+        guard let sumVat = sumVat else { return nil }
+        
+        switch vatOption {
+        case .vatExcluded:
+            return sumVat.applyDiscount(amountExcludeVat: discountAmount,
+                                        rate: vatRate)
+        case .vatIncluded:
+            return sumVat.applyDiscount(amountIncludeVat: discountAmount,
+                                        rate: vatRate)
+        case .noVat:
+            return nil
+        }
+    }
+    
+    static func applySumTaxWithholding(sumTaxWithholding: SumTaxWithholding, additionDiscountAvg: Double) -> SumTaxWithholding? {
+        nil
+    }
+    
+    //sumVat after discount amount
+    static func sumTaxWithholdingDiscount(sumTaxWithholding: SumTaxWithholding,
+                                          sumVat: SumVat?) -> SumTaxWithholding? {
+        nil
+    }
+    
     static func sumTaxWithholding(items: [PurchaseOrderItem]) -> SumTaxWithholding? {
         let sumTaxWithholdings: [SumTaxWithholding] = items.compactMap({
             if let taxWithholding = $0.taxWithholding {
@@ -249,19 +286,17 @@ final class PurchaseOrder: Model, Content {
         return sum
     }
     
-    static func sumTotalAmountAfteDiscount(items: [PurchaseOrderItem],
-                                           additionalDiscount: Double) -> Double {
+    static func sumTotalAmountAfteDiscount(items: [PurchaseOrderItem]) -> Double {
         return items.reduce(0.0, { result, item in
             let sum = item.qty * item.pricePerUnit
             return result + (sum - item.totalDiscountAmount)
-        }) - additionalDiscount
+        })
     }
     
-    static func sumTotalDiscountAmount(items: [PurchaseOrderItem],
-                                       additionalDiscount: Double) -> Double {
+    static func sumTotalDiscountAmount(items: [PurchaseOrderItem]) -> Double {
         return items.reduce(0.0, { result, item in
             return result + item.totalDiscountAmount
-        }) + additionalDiscount
+        })
     }
     
     func ableUpdateStatus() -> [PurchaseOrderStatus] {
@@ -308,6 +343,13 @@ final class PurchaseOrder: Model, Content {
 }
 
 extension PurchaseOrder {
+    
+    enum VatOption: String,Codable {
+        case vatIncluded = "VAT_INCLUDED"
+        case vatExcluded = "VAT_EXCLUDED"
+        case noVat = "NO_VAT"
+    }
+    
     struct SumVat {
         let vatAmount: Double
         let vatAmountBefore: Double
