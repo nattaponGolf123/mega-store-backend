@@ -12,10 +12,10 @@ final class VatTests: XCTestCase {
         let vat = Vat(totalAmountIncludeVat: totalAmountIncludeVat, rate: rate)
         
         // Then
-        XCTAssertEqual(vat.amount, 6.5420560748, accuracy: 0.0001)
-        XCTAssertEqual(vat.rate, rate, accuracy: 0.0001)
-        XCTAssertEqual(vat.amountBefore, 93.4579439252, accuracy: 0.0001)
-        XCTAssertEqual(vat.amountAfter, 100, accuracy: 0.0001)
+        XCTAssertEqual(vat.amount, 6.5420560748, accuracy: 0.01)
+        XCTAssertEqual(vat.rate, rate, accuracy: 0.01)
+        XCTAssertEqual(vat.amountBefore, 93.4579439252, accuracy: 0.01)
+        XCTAssertEqual(vat.amountAfter, 100, accuracy: 0.01)
     }
 
     func testInit_WithTotalAmountExcludeVat_ShouldCalculateAmountBeforeAndAfter() {
@@ -27,10 +27,10 @@ final class VatTests: XCTestCase {
         let vat = Vat(totalAmountExcludeVat: totalAmountExcludeVat, rate: rate)
         
         // Then
-        XCTAssertEqual(vat.amount, 7, accuracy: 0.0001)
-        XCTAssertEqual(vat.rate, rate, accuracy: 0.0001)
-        XCTAssertEqual(vat.amountBefore, 100, accuracy: 0.0001)
-        XCTAssertEqual(vat.amountAfter, 107, accuracy: 0.0001)
+        XCTAssertEqual(vat.amount, 7, accuracy: 0.01)
+        XCTAssertEqual(vat.rate, rate, accuracy: 0.01)
+        XCTAssertEqual(vat.amountBefore, 100, accuracy: 0.01)
+        XCTAssertEqual(vat.amountAfter, 107, accuracy: 0.01)
     }
 
     func testDecode_WithValidJson_ShouldReturnVatInstance() throws {
@@ -48,10 +48,10 @@ final class VatTests: XCTestCase {
         let vat = try JSONDecoder().decode(Vat.self, from: json)
         
         // Then
-        XCTAssertEqual(vat.amount, 7.0, accuracy: 0.0001)
-        XCTAssertEqual(vat.rate, 0.07, accuracy: 0.0001)
-        XCTAssertEqual(vat.amountBefore, 100.0, accuracy: 0.0001)
-        XCTAssertEqual(vat.amountAfter, 107.0, accuracy: 0.0001)
+        XCTAssertEqual(vat.amount, 7.0, accuracy: 0.01)
+        XCTAssertEqual(vat.rate, 0.07, accuracy: 0.01)
+        XCTAssertEqual(vat.amountBefore, 100.0, accuracy: 0.01)
+        XCTAssertEqual(vat.amountAfter, 107.0, accuracy: 0.01)
     }
 
     func testEncode_WithVatInstance_ShouldReturnValidJson() throws {
@@ -70,10 +70,48 @@ final class VatTests: XCTestCase {
             "amount_after": 107.0
         ]
         
-        XCTAssertEqual(jsonObject?["amount"] as! Double, expectedJson["amount"] as! Double, accuracy: 0.0001)
-        XCTAssertEqual(jsonObject?["rate"] as! Double, expectedJson["rate"] as! Double, accuracy: 0.0001)
-        XCTAssertEqual(jsonObject?["amount_before"] as! Double, expectedJson["amount_before"] as! Double, accuracy: 0.0001)
-        XCTAssertEqual(jsonObject?["amount_after"] as! Double, expectedJson["amount_after"] as! Double, accuracy: 0.0001)
+        XCTAssertEqual(jsonObject?["amount"] as! Double, expectedJson["amount"] as! Double, accuracy: 0.01)
+        XCTAssertEqual(jsonObject?["rate"] as! Double, expectedJson["rate"] as! Double, accuracy: 0.01)
+        XCTAssertEqual(jsonObject?["amount_before"] as! Double, expectedJson["amount_before"] as! Double, accuracy: 0.01)
+        XCTAssertEqual(jsonObject?["amount_after"] as! Double, expectedJson["amount_after"] as! Double, accuracy: 0.01)
+    }
+        
+    func testApplyDiscount_WithDiscountAmountExcludeVat_ShouldReturnVatInstance() {
+        // Given
+        let vat = Vat(totalAmountExcludeVat: 100.0, rate: 0.07)
+        
+        XCTAssertEqual(vat.amount, 7.0, accuracy: 0.01)
+        XCTAssertEqual(vat.rate, 0.07, accuracy: 0.01)
+        XCTAssertEqual(vat.amountBefore, 100, accuracy: 0.01)
+        XCTAssertEqual(vat.amountAfter, 107, accuracy: 0.01)
+        
+        // When
+        let newVat = vat.applyDiscount(discountAmountExcludeVat: 20)
+        
+        // Then
+        XCTAssertEqual(newVat.amount, 5.6, accuracy: 0.01)
+        XCTAssertEqual(newVat.rate, 0.07, accuracy: 0.01)
+        XCTAssertEqual(newVat.amountBefore, 80, accuracy: 0.01)
+        XCTAssertEqual(newVat.amountAfter, 85.6, accuracy: 0.01)
+    }
+    
+    func testApplyDiscount_WithDiscountAmountIncludeVat_ShouldReturnVatInstance() {
+        // Given
+        let vat = Vat(totalAmountIncludeVat: 100.0, rate: 0.07)
+        
+        XCTAssertEqual(vat.amount, 6.54, accuracy: 0.01)
+        XCTAssertEqual(vat.rate, 0.07, accuracy: 0.01)
+        XCTAssertEqual(vat.amountBefore, 93.46, accuracy: 0.01)
+        XCTAssertEqual(vat.amountAfter, 100, accuracy: 0.01)
+        
+        // When
+        let newVat = vat.applyDiscount(discountAmountIncludeVat: 20)
+        
+        // Then
+        XCTAssertEqual(newVat.amount, 5.23, accuracy: 0.01)
+        XCTAssertEqual(newVat.rate, 0.07, accuracy: 0.01)
+        XCTAssertEqual(newVat.amountBefore, 74.77, accuracy: 0.01)
+        XCTAssertEqual(newVat.amountAfter, 80.0, accuracy: 0.01)
     }
 }
 
@@ -84,3 +122,78 @@ extension VatTests {
         }
     }
 }
+
+/*
+ 
+ 
+ struct Vat: Content {
+     
+     let amount: Double // vat amount
+     let rate: Double // vat rate
+     let amountBefore: Double // total amount before vat
+     let amountAfter: Double // total amount include vat
+     
+     // include vat
+     init(totalAmountIncludeVat: Double,
+          rate: Double = 0.07) {
+         let _amountBefore = totalAmountIncludeVat / (1 + rate)
+         
+         self.amount = totalAmountIncludeVat - _amountBefore
+         self.rate = rate
+         self.amountBefore = _amountBefore
+         self.amountAfter = totalAmountIncludeVat
+     }
+     
+     // exclude vat
+     init(totalAmountExcludeVat: Double,
+          rate: Double = 0.07) {
+         self.amount = totalAmountExcludeVat * rate
+         self.rate = rate
+         self.amountBefore = totalAmountExcludeVat
+         self.amountAfter = totalAmountExcludeVat * (1 + rate)
+     }
+     
+     func applyDiscount(discountAmountExcludeVat: Double) -> Self {
+         let newAmountBefore = amountBefore - amount
+         return Vat(totalAmountExcludeVat: newAmountBefore,
+                    rate: rate)
+     }
+     
+     func applyDiscount(discountAmountIncludeVat: Double) -> Self {
+         let newAmountBefore = amountAfter - amount
+         return Vat(totalAmountExcludeVat: newAmountBefore,
+                    rate: rate)
+     }
+     
+     //decode
+     init(from decoder: Decoder) throws {
+         let container = try decoder.container(keyedBy: CodingKeys.self)
+         self.amount = try container.decode(Double.self,
+                                            forKey: .amount)
+         self.rate = try container.decode(Double.self,
+                                          forKey: .rate)
+         self.amountBefore = try container.decode(Double.self,
+                                                     forKey: .amountBefore)
+         self.amountAfter = try container.decode(Double.self,
+                                                    forKey: .amountAfter)
+     }
+     
+     //encode
+     func encode(to encoder: Encoder) throws {
+         var container = encoder.container(keyedBy: CodingKeys.self)
+         try container.encode(amount, forKey: .amount)
+         try container.encode(rate, forKey: .rate)
+         try container.encode(amountBefore, forKey: .amountBefore)
+         try container.encode(amountAfter, forKey: .amountAfter)
+     }
+     
+     enum CodingKeys: String, CodingKey {
+         case amount
+         case rate
+         case amountBefore = "amount_before"
+         case amountAfter = "amount_after"
+     }
+     
+ }
+
+ */

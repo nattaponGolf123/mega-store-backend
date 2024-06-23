@@ -13,10 +13,14 @@ protocol PurchaseOrderRepositoryProtocol {
     func update(id: UUID,
                 with content: PurchaseOrderRepository.Update,
                 on db: Database) async throws -> PurchaseOrder
+    func replaceItems(id: UUID,
+                      with content: PurchaseOrderRepository.ReplaceItems,
+                      on db: Database) async throws -> PurchaseOrder
     
     func approve(id: UUID, on db: Database) async throws -> PurchaseOrder
     func reject(id: UUID, on db: Database) async throws -> PurchaseOrder
     func cancel(id: UUID, on db: Database) async throws -> PurchaseOrder
+    func void(id: UUID, on db: Database) async throws -> PurchaseOrder
     
     func search(name: String, on db: Database) async throws -> PaginatedResponse<PurchaseOrder>
     func lastedItemNumber(year: Int,
@@ -25,6 +29,8 @@ protocol PurchaseOrderRepositoryProtocol {
 }
 
 class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
+   
+    
     let stub = PurchaseOrder(month: 1,
                              year: 2024,
                              items: [],
@@ -51,6 +57,10 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
         return self.stub
     }
     
+    func replaceItems(id: UUID, with content: ReplaceItems, on db: any FluentKit.Database) async throws -> PurchaseOrder {
+        return self.stub
+    }
+    
     func approve(id: UUID, on db: any FluentKit.Database) async throws -> PurchaseOrder {
         return self.stub
     }
@@ -60,6 +70,10 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
     }
     
     func cancel(id: UUID, on db: any FluentKit.Database) async throws -> PurchaseOrder {
+        return self.stub
+    }
+    
+    func void(id: UUID, on db: Database) async throws -> PurchaseOrder {
         return self.stub
     }
     

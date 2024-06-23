@@ -16,18 +16,39 @@ class PurchaseOrderController: RouteCollection {
     }
     
     func boot(routes: RoutesBuilder) throws {
-        let purchaseOrders = routes.grouped("purchase-orders")
+        let groups = routes.grouped("purchase_orders")
+        groups.get(use: fetchAll)
+        groups.post(use: create)
         
-        purchaseOrders.get(use: fetchAll)
-        purchaseOrders.post(use: create)
-        purchaseOrders.get(":id", use: find)
-        purchaseOrders.put(":id", use: update)
+        groups.group(":id") { withID in
+            withID.get(use: getByID)
+            withID.put(use: update)
+            
+            withID.group("void") { withVoid in
+                withVoid.post(use: void)
+            }
+            
+            withID.group("cancel") { withVoid in
+                withVoid.post(use: cancel)
+            }
+            
+            withID.group("approve") { withVoid in
+                withVoid.post(use: approve)
+            }
+            
+            withID.group("reject") { withVoid in
+                withVoid.post(use: reject)
+            }
+            
+            withID.group("replace_items") { withReplaceItem in
+                //withVariant.post(use: createVariant)
+            }
+        }
         
-        purchaseOrders.post(":id", "approve", use: approve)
-        purchaseOrders.post(":id", "reject", use: reject)
-        purchaseOrders.post(":id", "cancel", use: cancel)
-        
-        purchaseOrders.get("search", use: search)    }
+        groups.group("search") { withSearch in
+            withSearch.get(use: search)
+        }
+    }
     
     func fetchAll(req: Request) async throws -> PaginatedResponse<PurchaseOrder> {
         let fetch = try req.content.decode(PurchaseOrderRepository.Fetch.self)
@@ -36,6 +57,13 @@ class PurchaseOrderController: RouteCollection {
                                              on: req.db)
     }
     
+    // GET /purchase_orders/:id
+    func getByID(req: Request) async throws -> PurchaseOrder {
+        let uuid = try validator.validateID(req)
+        
+        return try await repository.find(id: uuid, on: req.db)
+    }
+        
     func create(req: Request) async throws -> PurchaseOrder {
         let content = try validator.validateCreate(req)
         
@@ -73,6 +101,12 @@ class PurchaseOrderController: RouteCollection {
         let id = try req.parameters.require("id", as: UUID.self)
         return try await repository.cancel(id: id,
                                           on: req.db)
+    }
+    
+    func void(req: Request) async throws -> PurchaseOrder {
+        let id = try req.parameters.require("id", as: UUID.self)
+        return try await repository.void(id: id,
+                                        on: req.db)
     }
     
     func search(req: Request) async throws -> PaginatedResponse<PurchaseOrder> {

@@ -231,6 +231,29 @@ extension PurchaseOrderRepository {
         }
     }
     
+    struct ReplaceItems: Content, Validatable {
+        let items: [PurchaseOrderItem]
+        
+        init(items: [PurchaseOrderItem]) {
+            self.items = items
+        }
+        
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            self.items = try container.decode([PurchaseOrderItem].self,
+                                              forKey: .items)
+        }
+        
+        enum CodingKeys: String, CodingKey {
+            case items
+        }
+        
+        static func validations(_ validations: inout Validations) {
+            validations.add("items", as: [PurchaseOrderItem].self, is: !.empty)
+        }
+                
+    }
+    
 //    struct AddContact: Content {
 //        let contactId: UUID
 //        

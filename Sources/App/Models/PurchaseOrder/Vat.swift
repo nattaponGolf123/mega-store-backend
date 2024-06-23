@@ -28,6 +28,18 @@ struct Vat: Content {
         self.amountAfter = totalAmountExcludeVat * (1 + rate)
     }
     
+    func applyDiscount(discountAmountExcludeVat: Double) -> Self {
+        let newAmount = amountBefore - discountAmountExcludeVat
+        return Vat(totalAmountExcludeVat: newAmount,
+                   rate: rate)
+    }
+    
+    func applyDiscount(discountAmountIncludeVat: Double) -> Self {
+        let newAmount = amountAfter - discountAmountIncludeVat
+        return Vat(totalAmountIncludeVat: newAmount,
+                   rate: rate)
+    }
+    
     //decode
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
