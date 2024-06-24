@@ -3,9 +3,13 @@ import Vapor
 import Fluent
 
 protocol PurchaseOrderRepositoryProtocol {
-    func fetchAll(page: Int,
-                  offset: Int,
-                  on db: Database) async throws -> PaginatedResponse<PurchaseOrder>
+    func all(page: Int,
+             offset: Int,
+             status: PurchaseOrderRepository.Status,
+             sortBy: PurchaseOrderRepository.SortBy,
+             sortOrder: PurchaseOrderRepository.SortOrder,
+             periodDate: PeriodDate,
+             on db: Database) async throws -> PaginatedResponse<PurchaseOrder>
     func create(content: PurchaseOrderRepository.Create,
                 on db: Database) async throws -> PurchaseOrder
     func find(id: UUID,
@@ -25,14 +29,20 @@ protocol PurchaseOrderRepositoryProtocol {
     func replaceItems(id: UUID, items: [PurchaseOrderItem], on db: Database) async throws -> PurchaseOrder
     func itemsReorder(id: UUID, itemsOrder: [UUID], on db: Database) async throws -> PurchaseOrder
     
-    func search(name: String, on db: Database) async throws -> PaginatedResponse<PurchaseOrder>
+    func search(q: String,
+                offset: Int,
+                status: PurchaseOrderRepository.Status,
+                sortBy: PurchaseOrderRepository.SortBy,
+                sortOrder: PurchaseOrderRepository.SortOrder,
+                periodDate: PeriodDate,
+                on db: Database) async throws -> PaginatedResponse<PurchaseOrder>
     func lastedItemNumber(year: Int,
                           month: Int,
                           on db: Database) async throws -> Int
 }
 
 class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
-   
+    
     
     let stub = PurchaseOrder(month: 1,
                              year: 2024,
@@ -43,7 +53,15 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
                              supplierId: .init(),
                              customerId: .init())
     
-    func fetchAll(page: Int, offset: Int, on db: any FluentKit.Database) async throws -> PaginatedResponse<PurchaseOrder> {
+    func all(page: Int,
+             offset: Int,
+             status: PurchaseOrderRepository.Status,
+             sortBy: PurchaseOrderRepository.SortBy,
+             sortOrder: PurchaseOrderRepository.SortOrder,
+             periodDate: PeriodDate,
+             on db: any FluentKit.Database) async throws -> PaginatedResponse<PurchaseOrder> {
+        
+        
         return .init(page: 1,
                      perPage: 20,
                      total: 0,
@@ -91,7 +109,13 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
         return self.stub
     }
     
-    func search(name: String, on db: any FluentKit.Database) async throws -> PaginatedResponse<PurchaseOrder> {
+    func search(q: String,
+                offset: Int,
+                status: PurchaseOrderRepository.Status,
+                sortBy: PurchaseOrderRepository.SortBy,
+                sortOrder: PurchaseOrderRepository.SortOrder,
+                periodDate: PeriodDate,
+                on db: any FluentKit.Database) async throws -> PaginatedResponse<PurchaseOrder> {
         return .init(page: 1,
                      perPage: 20,
                      total: 0,

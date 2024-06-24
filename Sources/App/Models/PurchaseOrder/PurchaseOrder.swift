@@ -56,72 +56,33 @@ final class PurchaseOrder: Model, Content {
     @Enum(key: "vat_option")
     var vatOption: VatOption
     
-    // includedVat
     @Field(key: "included_vat")
     var includedVat: Bool
     
-    //vat_rate
     @Field(key: "vat_rate")
     var vatRate: Double?
     
-    //totalAmountBeforeDiscount
     @Field(key: "total_amount_before_discount")
     var totalAmountBeforeDiscount: Double
     
-    //totalAmountBeforeVat
     @Field(key: "total_amount_before_vat")
     var totalAmountBeforeVat: Double
     
-    //totalVatAmount
     @Field(key: "total_vat_amount")
     var totalVatAmount: Double?
     
-    //totalAmountAfterVat
     @Field(key: "total_amount_after_vat")
     var totalAmountAfterVat: Double
     
-    //totalWithholdingTaxAmount
     @Field(key: "total_withholding_tax_amount")
     var totalWithholdingTaxAmount: Double?
     
-    //totalAmountDue
     @Field(key: "total_amount_due")
     var totalAmountDue: Double
     
-    // sum(pricePerUnit x qty)
-//    @Field(key: "total_amount")
-//    var totalAmount: Double
-//    
     @Field(key: "additional_discount_amount")
     var additionalDiscountAmount: Double
-//    
-//    // sum(discountPerUnit x qty) +
-//    @Field(key: "total_discount_amount")
-//    var totalDiscountAmount: Double
-//    
-//    // MARK: VAT
-//    @Field(key: "vat_amount")
-//    var vatAmount: Double?
-//    
-//    @Field(key: "vat_amount_before")
-//    var vatAmountBefore: Double?
-//    
-//    @Field(key: "vat_amount_after")
-//    var vatAmountAfter: Double?
-//    
-//    // MARK: TAX WITHHOLDING
-//    @Field(key: "tax_withholding_amount")
-//    var taxWithholdingAmount: Double?
-//    
-//    @Field(key: "tax_withholding_amount_before")
-//    var taxWithholdingAmountBefore: Double?
-//    
-//    @Field(key: "tax_withholding_amount_after")
-//    var taxWithholdingAmountAfter: Double?
-//    
-//    @Field(key: "payment_amount")
-//    var paymentAmount: Double
-    
+
     @Field(key: "currency")
     var currency: String
     
@@ -138,21 +99,18 @@ final class PurchaseOrder: Model, Content {
                format: .iso8601)
     var updatedAt: Date?
     
-    @Timestamp(key: "deleted_at",
-               on: .delete,
+    @Timestamp(key: "pended_at",
+                on: .none,
                format: .iso8601)
-    var deletedAt: Date?
-    
-    @Field(key: "pended_at")
     var pendedAt: Date?
     
     @Timestamp(key: "approved_at",
-               on: .create,
+               on: .none,
                format: .iso8601)
     var approvedAt: Date?
     
     @Timestamp(key: "voided_at",
-               on: .create,
+               on: .none,
                format: .iso8601)
     var voidedAt: Date?
     
@@ -182,7 +140,6 @@ final class PurchaseOrder: Model, Content {
          createdAt: Date? = nil,
          updatedAt: Date? = nil,
          pendedAt: Date? = nil,
-         deletedAt: Date? = nil,
          approvedAt: Date? = nil,
          voidedAt: Date? = nil,
          logs: [ActionLog] = []) {
@@ -200,10 +157,9 @@ final class PurchaseOrder: Model, Content {
         self.status = status
         self.currency = currency
         self.note = note
-        self.createdAt = createdAt
+        self.createdAt = createdAt ?? .now
         self.updatedAt = updatedAt
         self.pendedAt = pendedAt
-        self.deletedAt = deletedAt
         self.approvedAt = approvedAt
         self.voidedAt = voidedAt
         self.logs = logs
@@ -231,6 +187,48 @@ final class PurchaseOrder: Model, Content {
         self.totalAmountDue = summary.totalAmountDue
         self.totalVatAmount = summary.totalVatAmount
         self.totalWithholdingTaxAmount = summary.totalWithholdingTaxAmount
+    }
+    
+    convenience init(id: UUID? = nil,
+                     month: Int,
+                     year: Int,
+                     number: Int = 1,
+                     reference: String? = nil,
+                     vatOption: VatOption,
+                     includedVat: Bool,
+                     vatRate: VatRate,
+                     items: [PurchaseOrderItem],
+                     additionalDiscountAmount: Double = 0,
+                     orderDate: Date = .init(),
+                     deliveryDate: Date = .init(),
+                     paymentTermsDays: Int = 30,
+                     supplierId: UUID,
+                     customerId: UUID,
+                     currency: String = "THB",
+                     note: String = "",
+                     userId: UUID) {
+        let actionLog: [ActionLog] = [.init(userId: userId, 
+                                            action: .created,
+                                            date: .now)]
+        self.init(id: id,
+                  month: month,
+                  year: year,
+                  number: number,
+                  status: .pending,
+                  reference: reference,
+                  vatOption: vatOption,
+                  includedVat: includedVat,
+                  vatRate: vatRate,
+                  items: items,
+                  additionalDiscountAmount: additionalDiscountAmount,
+                  orderDate: orderDate,
+                  deliveryDate: deliveryDate,
+                  paymentTermsDays: paymentTermsDays,
+                  supplierId: supplierId,
+                  customerId: customerId,
+                  currency: currency,
+                  note: note,
+                  logs: actionLog)
     }
     
     func ableUpdateStatus() -> [PurchaseOrderStatus] {

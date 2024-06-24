@@ -13,8 +13,7 @@ extension ActionLog {
         case created = "CREATED"
         case updated = "UPDATED"
         case deleted = "DELETED"
-        case approved = "APPROVED"
-        case rejected = "REJECTED"
+        case approved = "APPROVED"        
         case voided = "VOIDED"
     }
 }

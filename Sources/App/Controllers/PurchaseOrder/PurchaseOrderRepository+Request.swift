@@ -98,37 +98,53 @@ extension PurchaseOrderRepository {
         let q: String
         let page: Int
         let perPage: Int
+        let status: Status
         let sortBy: SortBy
         let sortOrder: SortOrder
-        
+        let periodDate: PeriodDate
+
         init(q: String,
              page: Int = 1,
              perPage: Int = 20,
-             sortBy: SortBy = .number,
-             sortOrder: SortOrder = .asc) {
+             status: Status = .all,
+             sortBy: SortBy = .createdAt,
+             sortOrder: SortOrder = .asc,
+             periodDate: PeriodDate) {
             self.q = q
             self.page = page
             self.perPage = perPage
+            self.status = status
             self.sortBy = sortBy
             self.sortOrder = sortOrder
+            self.periodDate = periodDate
         }
         
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             self.q = try container.decode(String.self, forKey: .q)
-            self.page = (try? container.decode(Int.self, forKey: .page)) ?? 1
-            self.perPage = (try? container.decode(Int.self, forKey: .perPage)) ?? 20
-            self.sortBy = (try? container.decode(SortBy.self, forKey: .sortBy)) ?? .number
-            self.sortOrder = (try? container.decode(SortOrder.self, forKey: .sortOrder)) ?? .asc
+            self.page = try container.decode(Int.self, forKey: .page)
+            self.perPage = try container.decode(Int.self, forKey: .perPage)
+            self.status = try container.decode(Status.self, forKey: .status)
+            self.sortBy = try container.decode(SortBy.self, forKey: .sortBy)
+            self.sortOrder = try container.decode(SortOrder.self, forKey: .sortOrder)
+            
+            let dateFormat = "yyyy-MM-dd"
+            let from = try container.decode(String.self, forKey: .from).tryToDate(dateFormat)
+            let to = try container.decode(String.self, forKey: .to).tryToDate(dateFormat)
+            self.periodDate = .init(from: from,
+                                    to: to)
         }
-        
+
         func encode(to encoder: Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encode(q, forKey: .q)
             try container.encode(page, forKey: .page)
             try container.encode(perPage, forKey: .perPage)
+            try container.encode(status, forKey: .status)
             try container.encode(sortBy, forKey: .sortBy)
             try container.encode(sortOrder, forKey: .sortOrder)
+            try container.encode(periodDate.fromDateFormat, forKey: .from)
+            try container.encode(periodDate.toDateFormat, forKey: .to)
         }
         
         enum CodingKeys: String, CodingKey {
@@ -137,6 +153,9 @@ extension PurchaseOrderRepository {
             case perPage = "per_page"
             case sortBy = "sort_by"
             case sortOrder = "sort_order"
+            case status
+            case from
+            case to
         }
     }
     
