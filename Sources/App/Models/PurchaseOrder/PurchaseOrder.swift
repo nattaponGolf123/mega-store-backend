@@ -7,11 +7,11 @@ import Fluent
 // status flow : pending -> approved -> voided
 // status flow : pending -> voided
 enum PurchaseOrderStatus: String, Codable {
-    case draft
-    case pending
-    case approved
-    case rejected
-    case voided
+    case draft = "DRAFT"
+    case pending = "PENDING"
+    case approved = "APPROVED"
+    case rejected = "REJECTED"
+    case voided = "VOIDED"
 }
 
 final class PurchaseOrder: Model, Content {
@@ -143,7 +143,7 @@ final class PurchaseOrder: Model, Content {
          approvedAt: Date? = nil,
          voidedAt: Date? = nil,
          logs: [ActionLog] = []) {
-        self.id = id
+        self.id = id ?? .init()
         self.month = month
         self.year = year
         self.number = number
@@ -210,7 +210,7 @@ final class PurchaseOrder: Model, Content {
         let actionLog: [ActionLog] = [.init(userId: userId, 
                                             action: .created,
                                             date: .now)]
-        self.init(id: id,
+        self.init(id: id ?? .init(),
                   month: month,
                   year: year,
                   number: number,
@@ -312,12 +312,11 @@ extension PurchaseOrder {
                   vatOption: .vatIncluded,
                   includedVat: true,
                   vatRate: ._7,
-                  items: [.init(id: nil,
+                  items: [.init(id: .init(),
                                 itemId: .init(),
                                 kind: .product,
                                 name: "Product 1",
                                 description: "Product 1",
-                                variant: nil,
                                 qty: 10,
                                 pricePerUnit: 10,
                                 discountPricePerUnit: 1,

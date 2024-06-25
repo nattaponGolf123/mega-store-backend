@@ -55,22 +55,15 @@ class PurchaseOrderController: RouteCollection {
     }
     
     // GET /purchase_orders?page=1&per_page=10&status=all&sort_by=created_at&sort_order=asc&fromt=2024-01-01&to=2024-12-31
-    func all(req: Request) async throws -> PaginatedResponse<PurchaseOrder> {
-        //let fetch = try req.content.decode(PurchaseOrderRepository.Fetch.self)
-        
+    func all(req: Request) async throws -> PaginatedResponse<PurchaseOrderResponse> {
         let content: PurchaseOrderRepository.Fetch = try validator.validateFetchQuery(req)
         
-        return try await repository.all(page: content.page,
-                                       offset: content.perPage,
-                                       status: content.status,
-                                       sortBy: content.sortBy,
-                                       sortOrder: content.sortOrder,
-                                       periodDate: content.periodDate,
-                                       on: req.db)
+        return try await repository.all(req: content,
+                                        on: req.db)
     }
     
     // GET /purchase_orders/:id
-    func getByID(req: Request) async throws -> PurchaseOrder {
+    func getByID(req: Request) async throws -> PurchaseOrderResponse {
         let uuid = try validator.validateID(req)
         
         return try await repository.find(id: uuid, on: req.db)

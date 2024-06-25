@@ -34,10 +34,11 @@ class PurchaseOrderValidator: PurchaseOrderValidatorProtocol {
     }
 
     func validateUpdate(_ req: Request) throws -> (uuid: UUID, content: UpdateContent) {
-        do {
+        do {            
+            try UpdateContent.validate(content: req)
+                        
             // Decode the incoming PurchaseOrder and validate it
             let content: UpdateContent = try req.content.decode(UpdateContent.self)
-            try UpdateContent.validate(content: req)
             
             // Extract the ID from the request's parameters
             guard let id = req.parameters.get("id", as: UUID.self) else { throw DefaultError.invalidInput }
@@ -72,7 +73,13 @@ class PurchaseOrderValidator: PurchaseOrderValidatorProtocol {
     //  validate from with "yyyy-MM-dd" , to with "yyyy-MM-dd" 
     func validateFetchQuery(_ req: Request) throws -> PurchaseOrderRepository.Fetch {
         do {
-            let content: PurchaseOrderRepository.Fetch = try req.content.decode(PurchaseOrderRepository.Fetch.self)            
+            typealias Fetch = PurchaseOrderRepository.Fetch
+            
+            // decode ftom req.parameters
+            try Fetch.validate(query: req)
+            
+            let content = try req.query.decode(PurchaseOrderRepository.Fetch.self)
+            
             return content
         } catch let error as ValidationsError {
             let errors = InputError.parse(failures: error.failures)

@@ -47,10 +47,12 @@ struct ModelSchemaMigration: AsyncMigration {
             // try await ProductCategory.Stub.steel.save(on: database)
 
             // Product
-            try await ProductSchema.createBuilder(database: database).create()
-            try await Product.Stub.steel.save(on: database)
+//            try await ProductSchema.createBuilder(database: database).create()
+//            try await Product.Stub.steel.save(on: database)
             
             // Purchase Order
+            try await PurchaseOrderSchema.createBuilder(database: database).create()
+            try await PurchaseOrder.Stub.po1.save(on: database)
             
             
         } catch {
@@ -83,6 +85,9 @@ struct ModelSchemaMigration: AsyncMigration {
         // try await database.schema(ProductCategorySchema.schema).delete()
 
         // Product
-        try await database.schema(ProductSchema.schema).delete()
+        //try await database.schema(ProductSchema.schema).delete()
+        
+        // Purchase Order
+        try await database.schema(PurchaseOrderSchema.schema).delete()
     }
 }

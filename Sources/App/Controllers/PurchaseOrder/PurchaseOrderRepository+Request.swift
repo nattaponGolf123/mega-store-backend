@@ -4,8 +4,7 @@ import Fluent
 
 extension PurchaseOrderRepository {
     
-    enum SortBy: String, Codable {
-        case name
+    enum SortBy: String, Codable {        
         case number
         case status
         case orderDate = "order_date"
@@ -27,15 +26,7 @@ extension PurchaseOrderRepository {
         case voided
     }
     
-//    enum PeriodBy: String, Codable {
-//        case year
-//        case month
-//        case day
-//        
-//        case thisYear = "this_year"
-//    }
-    
-    struct Fetch: Content {
+    struct Fetch: Content, Validatable {
         let status: Status
         let page: Int
         let perPage: Int
@@ -72,6 +63,21 @@ extension PurchaseOrderRepository {
                                     to: to)
         }
         
+        func purchaseOrderStatus() -> PurchaseOrderStatus? {
+            switch status {
+            case .all:
+                return nil
+            case .pending:
+                return .pending
+            case .approved:
+                return .approved
+            case .draft:
+                return .draft
+            case .voided:
+                return .voided
+            }
+        }
+        
         func encode(to encoder: Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encode(status, forKey: .status)
@@ -81,6 +87,14 @@ extension PurchaseOrderRepository {
             try container.encode(sortOrder, forKey: .sortOrder)
             try container.encode(periodDate.fromDateFormat, forKey: .from)
             try container.encode(periodDate.toDateFormat, forKey: .to)
+        }
+        
+        static func validations(_ validations: inout Validations) {
+            let dateFormat = "yyyy-MM-dd"
+            validations.add("from", as: String.self, is: .date(format: dateFormat), required: false)
+            validations.add("to", as: String.self, is: .date(format: dateFormat), required: false)
+            validations.add("page", as: Int.self, is: .range(1...), required: false)
+            validations.add("per_page", as: Int.self, is: .range(1...100), required: false)
         }
         
         enum CodingKeys: String, CodingKey {
@@ -94,7 +108,7 @@ extension PurchaseOrderRepository {
         }
     }
     
-    struct Search: Content {
+    struct Search: Content, Validatable{
         let q: String
         let page: Int
         let perPage: Int
@@ -145,6 +159,14 @@ extension PurchaseOrderRepository {
             try container.encode(sortOrder, forKey: .sortOrder)
             try container.encode(periodDate.fromDateFormat, forKey: .from)
             try container.encode(periodDate.toDateFormat, forKey: .to)
+        }
+        
+        static func validations(_ validations: inout Validations) {
+            let dateFormat = "yyyy-MM-dd"
+            validations.add("from", as: String.self, is: .date(format: dateFormat), required: false)
+            validations.add("to", as: String.self, is: .date(format: dateFormat), required: false)
+            validations.add("page", as: Int.self, is: .range(1...), required: false)
+            validations.add("per_page", as: Int.self, is: .range(1...100), required: false)
         }
         
         enum CodingKeys: String, CodingKey {
