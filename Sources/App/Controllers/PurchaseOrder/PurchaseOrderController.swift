@@ -58,7 +58,7 @@ class PurchaseOrderController: RouteCollection {
     func all(req: Request) async throws -> PaginatedResponse<PurchaseOrderResponse> {
         let content: PurchaseOrderRepository.Fetch = try validator.validateFetchQuery(req)
         
-        return try await repository.all(req: content,
+        return try await repository.all(content: content,
                                         on: req.db)
     }
     
@@ -71,65 +71,81 @@ class PurchaseOrderController: RouteCollection {
 
     // POST /purchase_orders   
     func create(req: Request) async throws -> PurchaseOrderResponse {
+        let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
         let content = try validator.validateCreate(req)
         
         return try await repository.create(content: content,
+                                           userId: userPayload.userID,
                                            on: req.db)
     }
     
     // PUT /purchase_orders/:id
     func update(req: Request) async throws -> PurchaseOrder {
+        let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
         let (uuid, content) = try validator.validateUpdate(req)
         
         return try await repository.update(id: uuid,
                                            with: content,
+                                           userId: userPayload.userID,
                                            on: req.db)
     }
     
     // POST /purchase_orders/:id/approve
     func approve(req: Request) async throws -> PurchaseOrder {
+        let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
         let uuid = try validator.validateID(req)
         return try await repository.approve(id: uuid,
+         userId: userPayload.userID,
                                             on: req.db)
     }
     
     // POST /purchase_orders/:id/reject
     func reject(req: Request) async throws -> PurchaseOrder {        
+        let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
         let uuid = try validator.validateID(req)
         return try await repository.reject(id: uuid,
+                                            userId: userPayload.userID,
                                            on: req.db)
     }
     
     // POST /purchase_orders/:id/cancel
     func cancel(req: Request) async throws -> PurchaseOrder {
+        let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
         let uuid = try validator.validateID(req)
         return try await repository.cancel(id: uuid,
+                                             userId: userPayload.userID,
                                           on: req.db)
     }
     
     // POST /purchase_orders/:id/void
     func void(req: Request) async throws -> PurchaseOrder {
+        let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
         let uuid = try validator.validateID(req)
         return try await repository.void(id: uuid,
+                                            userId: userPayload.userID,
                                         on: req.db)
     }
     
     // PUT /purchase_orders/:id/replace_items
     func replaceItems(req: Request) async throws -> PurchaseOrder {
+        let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
         let uuid = try validator.validateID(req)
         let content = try req.content.decode(PurchaseOrderRepository.ReplaceItems.self)
         
         return try await repository.replaceItems(id: uuid,
                                                 with: content,
+                                                userId: userPayload.userID,
                                                 on: req.db)
     }
     
     // PUT /purchase_orders/:id/reorder_items
     func reorderItems(req: Request) async throws -> PurchaseOrder {
+        let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
         let uuid = try validator.validateID(req)
         let content = try req.content.decode(PurchaseOrderRepository.ReorderItems.self)
         
         return try await repository.itemsReorder(id: uuid,
+                                                 userId: userPayload.userID, 
                                                  itemsOrder: content.itemIdOrder,
                                                  on: req.db)
     }
@@ -138,12 +154,7 @@ class PurchaseOrderController: RouteCollection {
     func search(req: Request) async throws -> PaginatedResponse<PurchaseOrder> {
         let content = try validator.validateSearchQuery(req)
         
-        return try await repository.search(q: content.q,
-                                           offset: content.page,
-                                           status: content.status,
-                                           sortBy: content.sortBy,
-                                           sortOrder: content.sortOrder,
-                                           periodDate: content.periodDate,
+        return try await repository.search(content: content,
                                            on: req.db)
     }
         
@@ -151,41 +162,54 @@ class PurchaseOrderController: RouteCollection {
     
 }
     /*
-    
-   
-protocol PurchaseOrderRepositoryProtocol {
-    func all(page: Int,
-                  offset: Int,
-                  status: PurchaseOrderRepository.Status,
-                  sortBy: PurchaseOrderRepository.SortBy,
-                  sortOrder: PurchaseOrderRepository.SortOrder,
-                  periodDate: PeriodDate,
-                  on db: Database) async throws -> PaginatedResponse<PurchaseOrder>
-    func create(content: PurchaseOrderRepository.Create,
-                on db: Database) async throws -> PurchaseOrder
-    func find(id: UUID,
-              on db: Database) async throws -> PurchaseOrder
-    func update(id: UUID,
-                with content: PurchaseOrderRepository.Update,
-                on db: Database) async throws -> PurchaseOrder
-    func replaceItems(id: UUID,
-                      with content: PurchaseOrderRepository.ReplaceItems,
+     protocol PurchaseOrderRepositoryProtocol {
+         func all(req: PurchaseOrderRepository.Fetch,
+                  on db: Database) async throws -> PaginatedResponse<PurchaseOrderResponse>
+         func create(content: PurchaseOrderRepository.Create,
+                     userId: UUID,
+                     on db: Database) async throws -> PurchaseOrderResponse
+         func find(id: UUID,
+                   on db: Database) async throws -> PurchaseOrderResponse
+         func update(id: UUID,
+                     with content: PurchaseOrderRepository.Update,
+                     userId: UUID,
+                     on db: Database) async throws -> PurchaseOrder
+         func replaceItems(id: UUID,
+                           with content: PurchaseOrderRepository.ReplaceItems,
+                           userId: UUID,
+                           on db: Database) async throws -> PurchaseOrder
+         
+         func approve(id: UUID,
+                      userId: UUID,
                       on db: Database) async throws -> PurchaseOrder
-    
-    func approve(id: UUID, on db: Database) async throws -> PurchaseOrder
-    func reject(id: UUID, on db: Database) async throws -> PurchaseOrder
-    func cancel(id: UUID, on db: Database) async throws -> PurchaseOrder
-    func void(id: UUID, on db: Database) async throws -> PurchaseOrder
-    
-    func replaceItems(id: UUID, items: [PurchaseOrderItem], on db: Database) async throws -> PurchaseOrder
-    func itemsReorder(id: UUID, itemsOrder: [UUID], on db: Database) async throws -> PurchaseOrder
-    
-    func search(name: String, on db: Database) async throws -> PaginatedResponse<PurchaseOrder>
-    func lastedItemNumber(year: Int,
-                          month: Int,
-                          on db: Database) async throws -> Int
-}
-
+         func reject(id: UUID,
+                     userId: UUID,
+                     on db: Database) async throws -> PurchaseOrder
+         func cancel(id: UUID,
+                     userId: UUID,
+                     on db: Database) async throws -> PurchaseOrder
+         func void(id: UUID,
+                   userId: UUID,
+                   on db: Database) async throws -> PurchaseOrder
+         
+         func replaceItems(id: UUID,
+                           userId: UUID,
+                           items: [PurchaseOrderItem], on db: Database) async throws -> PurchaseOrder
+         func itemsReorder(id: UUID,
+                           userId: UUID,
+                           itemsOrder: [UUID], on db: Database) async throws -> PurchaseOrder
+         
+         func search(q: String,
+                     offset: Int,
+                     status: PurchaseOrderRepository.Status,
+                     sortBy: PurchaseOrderRepository.SortBy,
+                     sortOrder: PurchaseOrderRepository.SortOrder,
+                     periodDate: PeriodDate,
+                     on db: Database) async throws -> PaginatedResponse<PurchaseOrder>
+         func fetchLastedNumber(year: Int,
+                                month: Int,
+                                on db: Database) async throws -> Int
+     }
      */
     /*
      class ProductController: RouteCollection {

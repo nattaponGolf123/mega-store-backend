@@ -3,33 +3,41 @@ import Vapor
 import Fluent
 
 protocol PurchaseOrderRepositoryProtocol {
-    func all(req: PurchaseOrderRepository.Fetch,
+    func all(content: PurchaseOrderRepository.Fetch,
              on db: Database) async throws -> PaginatedResponse<PurchaseOrderResponse>
     func create(content: PurchaseOrderRepository.Create,
+                userId: UUID,
                 on db: Database) async throws -> PurchaseOrderResponse
     func find(id: UUID,
               on db: Database) async throws -> PurchaseOrderResponse
     func update(id: UUID,
                 with content: PurchaseOrderRepository.Update,
+                userId: UUID,
                 on db: Database) async throws -> PurchaseOrder
     func replaceItems(id: UUID,
                       with content: PurchaseOrderRepository.ReplaceItems,
+                      userId: UUID,
                       on db: Database) async throws -> PurchaseOrder
+ 
+    func itemsReorder(id: UUID,
+                      userId: UUID,
+                      itemsOrder: [UUID],
+                      on db: Database) async throws -> PurchaseOrder    
     
-    func approve(id: UUID, on db: Database) async throws -> PurchaseOrder
-    func reject(id: UUID, on db: Database) async throws -> PurchaseOrder
-    func cancel(id: UUID, on db: Database) async throws -> PurchaseOrder
-    func void(id: UUID, on db: Database) async throws -> PurchaseOrder
+    func approve(id: UUID,
+                 userId: UUID,
+                 on db: Database) async throws -> PurchaseOrder
+    func reject(id: UUID,
+                userId: UUID,
+                on db: Database) async throws -> PurchaseOrder
+    func cancel(id: UUID,
+                userId: UUID,
+                on db: Database) async throws -> PurchaseOrder
+    func void(id: UUID,
+              userId: UUID,
+              on db: Database) async throws -> PurchaseOrder
     
-    func replaceItems(id: UUID, items: [PurchaseOrderItem], on db: Database) async throws -> PurchaseOrder
-    func itemsReorder(id: UUID, itemsOrder: [UUID], on db: Database) async throws -> PurchaseOrder
-    
-    func search(q: String,
-                offset: Int,
-                status: PurchaseOrderRepository.Status,
-                sortBy: PurchaseOrderRepository.SortBy,
-                sortOrder: PurchaseOrderRepository.SortOrder,
-                periodDate: PeriodDate,
+    func search(content: PurchaseOrderRepository.Search,
                 on db: Database) async throws -> PaginatedResponse<PurchaseOrder>
     func fetchLastedNumber(year: Int,
                            month: Int,
@@ -37,7 +45,7 @@ protocol PurchaseOrderRepositoryProtocol {
 }
 
 class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
-    
+   
     typealias CreateContent = PurchaseOrderRepository.Create
     
     let stub = PurchaseOrder(month: 1,
@@ -49,13 +57,13 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
                              supplierId: .init(),
                              customerId: .init())
     
-    func all(req: PurchaseOrderRepository.Fetch,
+    func all(content: PurchaseOrderRepository.Fetch,
              on db: any FluentKit.Database) async throws -> PaginatedResponse<PurchaseOrderResponse> {
         do {
-            let page = req.page
-            let perPage = req.perPage
-            let from = req.periodDate.from
-            let to = req.periodDate.to
+            let page = content.page
+            let perPage = content.perPage
+            let from = content.periodDate.from
+            let to = content.periodDate.to
             
             guard
                 page > 0,
@@ -64,17 +72,17 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
             
             let query = queryBuilder(from: from,
                                      to: to,
-                                     status: req.purchaseOrderStatus(),
+                                     status: content.purchaseOrderStatus(),
                                      on: db)
             
             let total = try await query.count()
             
             //query sorted by name
             let items = try await sortQuery(query: query,
-                                            sortBy: req.sortBy,
-                                            sortOrder: req.sortOrder,
-                                            status: req.status,
-                                            periodDate: req.periodDate,
+                                            sortBy: content.sortBy,
+                                            sortOrder: content.sortOrder,
+                                            status: content.status,
+                                            periodDate: content.periodDate,
                                             page: page,
                                             perPage: perPage)
             let itemResponses: [PurchaseOrderResponse] = items.map { PurchaseOrderResponse(po: $0) }
@@ -92,75 +100,49 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
     }
     
     func create(content: PurchaseOrderRepository.Create,
+                userId: UUID,
                 on db: any FluentKit.Database) async throws -> PurchaseOrderResponse {
         do {
+            guard
+                let supplier = try await Contact.query(on: db).filter(\.$id == content.supplierId).first(),
+                let myBusinese = try await MyBusinese.query(on: db).filter(\.$id == content.customerId).first()
+            else { throw DefaultError.error(message: "supplier or customer not found") }
             
-            
+            let yearNumber = content.yearNumber()
+            let monthNumber = content.monthNumber()
             let lastedNumber = try await fetchLastedNumber(year: content.yearNumber(),
                                                            month: content.monthNumber(),
                                                            on: db)
             let nextNumber = lastedNumber + 1
             
-            //        let items = content.items.map({
-//            PurchaseOrderItem(id: UUID(),
-//                              itemId: $0.itemId,
-//                              kind: $0.kind,
-//                              name: $0.name,
-//                              description: $0.description,
-//                              qty: $0.qty,
-//                              pricePerUnit: $0.pricePerUnit,
-//                              discountPricePerUnit: $0.discountPricePerUnit,
-//                              additionalDiscount: 0,
-//                              vatRate: $0.vatRate.rate,
-//                              vatIncluded: $0.vatIncluded,
-//                              taxWithholdingRate: $0.taxWithholdingRate.rate)
-//        
-//        })
-//
-//        let newModel = PurchaseOrder(month: content.monthNumber(),
-//                                     year: content.yearNumber(),
-//                                     number: nextNumber,
-//                                     reference: content.reference,
-//                                     items: content.items,
-//                                     orderDate: content.orderDate,
-//                                     deliveryDate: content.deliveryDate,
-//                                     paymentTermsDays: content.paymentTermsDays,
-//                                     supplierId: content.supplierId,
-//                                     customerId: content.customerId,
-//                                     status: .pending,
-//                                     vatOption: content.vatOption,
-//                                     includedVat: content.includedVat,
-//                                     vatRate: content.vatRate.rate,
-//                                     totalAmountBeforeDiscount: 0,
-//                                     totalAmountBeforeVat: 0,
-//                                     totalVatAmount: 0,
-//                                     totalAmountAfterVat: 0,
-//                                     totalWithholdingTaxAmount: 0,
-//                                     totalAmountDue: 0,
-//                                     additionalDiscountAmount: 0,
-//                                     currency: content.currency.rawValue,
-//                                     note: content.note)
-           
-        //    let lastedNumber = try await fetchLastedNumber(year: content.year,
-        //                                                   month: content.month,
-        //                                                   on: db)
-        //    let nextNumber = lastedNumber + 1
-        //    let newModel = Product(number: nextNumber,
-        //                           name: content.name,
-        //                           description: content.description,
-        //                           price: content.price,
-        //                           images: content.images)
-           
-        //    try await newModel.save(on: db)
-           
-           return PurchaseOrderResponse(po: self.stub)
-       } catch {
-           throw DefaultError.error(message: error.localizedDescription)
-       }
-        //return PurchaseOrderResponse(po: stub)
+            let newModel = PurchaseOrder(month: monthNumber,
+                                         year: yearNumber,
+                                         number: nextNumber,
+                                         reference: content.reference,
+                                         vatOption: content.vatOption,
+                                         includedVat: content.includedVat,
+                                         vatRate: content.vatRateOption.vatRate,
+                                         items: content.poItems(),
+                                         additionalDiscountAmount: content.additionalDiscountAmount,
+                                         orderDate: content.orderDate,
+                                         deliveryDate: content.deliveryDate,
+                                         paymentTermsDays: content.paymentTermsDays,
+                                         supplierId: content.supplierId,
+                                         customerId: content.customerId,
+                                         currency: content.currency,
+                                         note: content.note,
+                                         userId: userId)
+            
+            try await newModel.save(on: db)
+            
+            return PurchaseOrderResponse(po: newModel)
+        } catch {
+            throw DefaultError.error(message: error.localizedDescription)
+        }
     }
     
-    func find(id: UUID, on db: any FluentKit.Database) async throws -> PurchaseOrderResponse {
+    func find(id: UUID,
+              on db: any FluentKit.Database) async throws -> PurchaseOrderResponse {
         guard
             let model = try await PurchaseOrder.query(on: db).filter(\.$id == id).first()
         else { throw DefaultError.notFound }
@@ -168,44 +150,57 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
         return PurchaseOrderResponse(po: model)
     }
     
-    func update(id: UUID, with content: PurchaseOrderRepository.Update, on db: any FluentKit.Database) async throws -> PurchaseOrder {
+    func update(id: UUID,
+                with content: PurchaseOrderRepository.Update,
+                userId: UUID,
+                on db: any FluentKit.Database) async throws -> PurchaseOrder {
         return self.stub
     }
     
-    func replaceItems(id: UUID, with content: ReplaceItems, on db: any FluentKit.Database) async throws -> PurchaseOrder {
+    func replaceItems(id: UUID,
+                      userId: UUID,
+                      with content: ReplaceItems, on db: any FluentKit.Database) async throws -> PurchaseOrder {
         return self.stub
     }
     
-    func approve(id: UUID, on db: any FluentKit.Database) async throws -> PurchaseOrder {
+    func approve(id: UUID,
+                 userId: UUID,
+                 on db: any FluentKit.Database) async throws -> PurchaseOrder {
         return self.stub
     }
     
-    func reject(id: UUID, on db: any FluentKit.Database) async throws -> PurchaseOrder {
+    func reject(id: UUID, 
+                userId: UUID,
+                on db: any FluentKit.Database) async throws -> PurchaseOrder {
         return self.stub
     }
     
-    func cancel(id: UUID, on db: any FluentKit.Database) async throws -> PurchaseOrder {
+    func cancel(id: UUID, 
+                userId: UUID,
+                on db: any FluentKit.Database) async throws -> PurchaseOrder {
         return self.stub
     }
     
-    func void(id: UUID, on db: Database) async throws -> PurchaseOrder {
+    func void(id: UUID,
+              userId: UUID,
+              on db: Database) async throws -> PurchaseOrder {
         return self.stub
     }
     
-    func replaceItems(id: UUID, items: [PurchaseOrderItem], on db: Database) async throws -> PurchaseOrder {
+    func replaceItems(id: UUID, 
+                      with content: ReplaceItems,
+                      userId: UUID,
+                      on db: any FluentKit.Database) async throws -> PurchaseOrder {
+        return stub
+    }
+    
+    func itemsReorder(id: UUID,
+                      userId: UUID,
+                      itemsOrder: [UUID], on db: Database) async throws -> PurchaseOrder {
         return self.stub
     }
     
-    func itemsReorder(id: UUID, itemsOrder: [UUID], on db: Database) async throws -> PurchaseOrder {
-        return self.stub
-    }
-    
-    func search(q: String,
-                offset: Int,
-                status: PurchaseOrderRepository.Status,
-                sortBy: PurchaseOrderRepository.SortBy,
-                sortOrder: PurchaseOrderRepository.SortOrder,
-                periodDate: PeriodDate,
+    func search(content: PurchaseOrderRepository.Search,
                 on db: any FluentKit.Database) async throws -> PaginatedResponse<PurchaseOrder> {
         return .init(page: 1,
                      perPage: 20,

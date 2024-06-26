@@ -76,7 +76,7 @@ final class PurchaseOrderItem: Model, Content {
         
     }
     
-    init(id: UUID?,
+    init(id: UUID? = nil,
          itemId: UUID,
          kind: Kind,
          name: String,
@@ -89,7 +89,7 @@ final class PurchaseOrderItem: Model, Content {
          vatRate: VatRate,
          vatIncluded: Bool,
          taxWithholdingRate: TaxWithholdingRate) {
-        self.id = id
+        self.id = id ?? .init()
         self.itemId = itemId
         self.kind = kind
         self.name = name

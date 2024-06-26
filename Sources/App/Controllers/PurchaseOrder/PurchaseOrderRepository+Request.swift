@@ -41,6 +41,18 @@ extension PurchaseOrderRepository {
                 return 0
             }
         }
+        
+        var vatRate: VatRate {
+            switch self {
+            case .none:
+                return .none
+            case .vat7:
+                return ._7
+            case .vat0:
+                return ._0
+            }
+        }
+        
     }
 
     enum TaxWithholdingRateOption: String, Codable {
@@ -76,6 +88,30 @@ extension PurchaseOrderRepository {
                 return 0.15
             }
         }
+        
+        var taxRate: TaxWithholdingRate {
+            switch self {
+            case .none:
+                return .none
+            case .tax0_75:
+                return ._0_75
+            case .tax1:
+                return ._1
+            case .tax1_5:
+                return ._1_5
+            case .tax2:
+                return ._2
+            case .tax3:
+                return ._3
+            case .tax5:
+                return ._5
+            case .tax10:
+                return ._10
+            case .tax15:
+                return ._15
+            }
+        }
+        
     }
 
     struct Fetch: Content, Validatable {
@@ -407,6 +443,28 @@ extension PurchaseOrderRepository {
         func monthNumber() -> Int {
             Calendar.current.component(.month,
                                        from: orderDate)
+        }
+        
+        func poItems() -> [PurchaseOrderItem] {
+            let additionalDiscountPerItem: Double = additionalDiscountAmount / Double(items.count)
+            
+            let items: [PurchaseOrderItem] = items.map({
+                .init(itemId: $0.itemId,
+                      kind: $0.kind,
+                      name: $0.name,
+                      description: $0.description,
+                      variantId: $0.variantId,
+                      qty: $0.qty,
+                      pricePerUnit: $0.pricePerUnit,
+                      discountPricePerUnit: $0.discountPricePerUnit,
+                      additionalDiscount: 0,//additionalDiscountPerItem,
+                      vatRate: $0.vatRateOption.vatRate,
+                      vatIncluded: $0.vatIncluded,
+                      taxWithholdingRate: $0.withholdingTaxRateOption.taxRate)
+            })
+            
+            return items
+            
         }
 
 
