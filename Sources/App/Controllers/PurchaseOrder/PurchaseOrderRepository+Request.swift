@@ -233,7 +233,7 @@ extension PurchaseOrderRepository {
         }
     }
 
-    struct CreatePurchaseOrderItem: Content, Validatable {
+    struct CreateItem: Content, Validatable {
         let itemId: UUID
         let kind: PurchaseOrderItem.Kind
         let name: String
@@ -316,7 +316,7 @@ extension PurchaseOrderRepository {
         let supplierId: UUID        
         let deliveryDate: Date
         let customerId: UUID
-        let items: [CreatePurchaseOrderItem]
+        let items: [CreateItem]
         let vatOption: PurchaseOrder.VatOption
         let orderDate: Date
         let additionalDiscountAmount: Double
@@ -332,7 +332,7 @@ extension PurchaseOrderRepository {
              orderDate: Date,
              deliveryDate: Date,
              paymentTermsDays: Int,
-             items: [CreatePurchaseOrderItem],
+             items: [CreateItem],
              additionalDiscountAmount: Double,
              vatOption: PurchaseOrder.VatOption,
              includedVat: Bool,
@@ -366,7 +366,7 @@ extension PurchaseOrderRepository {
             self.supplierId = try container.decode(UUID.self, forKey: .supplierId)
             self.customerId = try container.decode(UUID.self, forKey: .customerId)
             
-            self.items = try container.decode([CreatePurchaseOrderItem].self, forKey: .items)
+            self.items = try container.decode([CreateItem].self, forKey: .items)
             self.additionalDiscountAmount = (try? container.decode(Double.self, forKey: .additionalDiscountAmount)) ?? 0
             
             let dateFormat = "yyyy-MM-dd"
@@ -414,16 +414,24 @@ extension PurchaseOrderRepository {
             validations.add("reference", as: String.self, is: .count(1...200))
             validations.add("note", as: String.self, is: .count(0...200))            
             validations.add("payment_terms_days", as: Int.self, is: .range(0...))
-            validations.add("supplier_id", as: UUID.self, required: true)            
-            validations.add("delivery_date", as: Date.self, required: true)
+            
+            validations.add("supplier_id", as: UUID.self, required: true)
             validations.add("customer_id", as: UUID.self, required: true)
-            validations.add("items", as: [CreatePurchaseOrderItem].self, is: !.empty)
+            
             validations.add("vat_option", as: PurchaseOrder.VatOption.self, required: true)
-            validations.add("order_date", as: Date.self, required: true)
+            
+            validations.add("delivery_date", as: String.self, required: true)
+            validations.add("order_date", as: String.self, required: true)
+            
             validations.add("additional_discount_amount", as: Double.self, is: .range(0...))
             validations.add("currency", as: CurrencySupported.self, required: true)     
             validations.add("included_vat", as: Bool.self, required: true)
-            validations.add("vat_rate_option", as: VatRateOption.self, required: true)             
+            validations.add("vat_rate_option", as: VatRateOption.self, required: true)
+            
+            validations.add("items", required: true) { (itemsValidations: inout Validations) in
+                CreateItem.validations(&itemsValidations)
+            }
+            validations.add("items", as: [CreateItem].self, is: !.empty)
         }
 
         enum CodingKeys: String, CodingKey {

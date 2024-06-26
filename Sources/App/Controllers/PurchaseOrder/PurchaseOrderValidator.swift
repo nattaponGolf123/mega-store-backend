@@ -11,19 +11,24 @@ protocol PurchaseOrderValidatorProtocol {
 
 class PurchaseOrderValidator: PurchaseOrderValidatorProtocol {
     typealias CreateContent = PurchaseOrderRepository.Create
+    typealias CreateItem = PurchaseOrderRepository.CreateItem
     typealias UpdateContent = PurchaseOrderRepository.Update
 
     func validateCreate(_ req: Request) throws -> CreateContent {
         
         do {
-            // Decode the incoming PurchaseOrder
-            let content: PurchaseOrderValidator.CreateContent = try req.content.decode(CreateContent.self)
-
-            // validate items
-
             // Validate the PurchaseOrder directly
             try CreateContent.validate(content: req)
             
+            // Decode the incoming PurchaseOrder
+            let content: CreateContent = try req.content.decode(CreateContent.self)
+            
+            // validate items
+//            content.items.forEach {
+//                try CreateItem.validate(item: $0)
+//            }
+//            
+//            
             return content
         } catch let error as ValidationsError {
             // Parse and throw a more specific input validation error if validation fails

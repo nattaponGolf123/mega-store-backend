@@ -38,6 +38,7 @@ protocol PurchaseOrderRepositoryProtocol {
 
 class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
     
+    typealias CreateContent = PurchaseOrderRepository.Create
     
     let stub = PurchaseOrder(month: 1,
                              year: 2024,
@@ -92,15 +93,15 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
     
     func create(content: PurchaseOrderRepository.Create,
                 on db: any FluentKit.Database) async throws -> PurchaseOrderResponse {
-       do {
-
-        
-        let lastedNumber = try await fetchLastedNumber(year: content.yearNumber(),
-                                                       month: content.monthNumber(),
-                                                       on: db)
-        let nextNumber = lastedNumber + 1
-           
-//        let items = content.items.map({
+        do {
+            
+            
+            let lastedNumber = try await fetchLastedNumber(year: content.yearNumber(),
+                                                           month: content.monthNumber(),
+                                                           on: db)
+            let nextNumber = lastedNumber + 1
+            
+            //        let items = content.items.map({
 //            PurchaseOrderItem(id: UUID(),
 //                              itemId: $0.itemId,
 //                              kind: $0.kind,
