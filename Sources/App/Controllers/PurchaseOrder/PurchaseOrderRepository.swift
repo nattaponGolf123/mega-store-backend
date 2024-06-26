@@ -13,32 +13,32 @@ protocol PurchaseOrderRepositoryProtocol {
     func update(id: UUID,
                 with content: PurchaseOrderRepository.Update,
                 userId: UUID,
-                on db: Database) async throws -> PurchaseOrder
+                on db: Database) async throws -> PurchaseOrderResponse
     func replaceItems(id: UUID,
                       with content: PurchaseOrderRepository.ReplaceItems,
                       userId: UUID,
-                      on db: Database) async throws -> PurchaseOrder
+                      on db: Database) async throws -> PurchaseOrderResponse
  
     func itemsReorder(id: UUID,
                       userId: UUID,
                       itemsOrder: [UUID],
-                      on db: Database) async throws -> PurchaseOrder    
+                      on db: Database) async throws -> PurchaseOrderResponse    
     
     func approve(id: UUID,
                  userId: UUID,
-                 on db: Database) async throws -> PurchaseOrder
+                 on db: Database) async throws -> PurchaseOrderResponse
     func reject(id: UUID,
                 userId: UUID,
-                on db: Database) async throws -> PurchaseOrder
+                on db: Database) async throws -> PurchaseOrderResponse
     func cancel(id: UUID,
                 userId: UUID,
-                on db: Database) async throws -> PurchaseOrder
+                on db: Database) async throws -> PurchaseOrderResponse
     func void(id: UUID,
               userId: UUID,
-              on db: Database) async throws -> PurchaseOrder
+              on db: Database) async throws -> PurchaseOrderResponse
     
     func search(content: PurchaseOrderRepository.Search,
-                on db: Database) async throws -> PaginatedResponse<PurchaseOrder>
+                on db: Database) async throws -> PaginatedResponse<PurchaseOrderResponse>
     func fetchLastedNumber(year: Int,
                            month: Int,
                            on db: Database) async throws -> Int
@@ -48,6 +48,11 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
    
     typealias CreateContent = PurchaseOrderRepository.Create
     
+    private var productRepository: ProductRepositoryProtocol
+    private var serviceRepository: ServiceRepositoryProtocol
+    private var myBusineseRepository: MyBusineseRepositoryProtocol
+    private var contactRepository: ContactRepositoryProtocol
+    
     let stub = PurchaseOrder(month: 1,
                              year: 2024,
                              vatOption: .noVat,
@@ -56,6 +61,16 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
                              items: [],
                              supplierId: .init(),
                              customerId: .init())
+    
+    init(productRepository: ProductRepositoryProtocol = ProductRepository(),
+         serviceRepository: ServiceRepositoryProtocol = ServiceRepository(),
+         myBusineseRepository: MyBusineseRepositoryProtocol = MyBusineseRepository(),
+         contactRepository: ContactRepositoryProtocol = ContactRepository()) {
+        self.productRepository = productRepository
+        self.serviceRepository = serviceRepository
+        self.myBusineseRepository = myBusineseRepository
+        self.contactRepository = contactRepository
+    }
     
     func all(content: PurchaseOrderRepository.Fetch,
              on db: any FluentKit.Database) async throws -> PaginatedResponse<PurchaseOrderResponse> {
@@ -103,10 +118,33 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
                 userId: UUID,
                 on db: any FluentKit.Database) async throws -> PurchaseOrderResponse {
         do {
-            guard
-                let supplier = try await Contact.query(on: db).filter(\.$id == content.supplierId).first(),
-                let myBusinese = try await MyBusinese.query(on: db).filter(\.$id == content.customerId).first()
-            else { throw DefaultError.error(message: "supplier or customer not found") }
+            // validate exist supplierId , customerId
+            do {
+                let _ = try await contactRepository.find(id: content.supplierId,
+                                               on: db)
+                let _ = try await myBusineseRepository.find(id: content.customerId,
+                                               on: db)
+            } catch {
+                throw DefaultError.error(message: "supplier or customer not found")
+            }
+            
+            // validate exist productId
+            do {
+                for uuid in content.productUUIDs() {
+                    let _ = try await productRepository.find(id: uuid, on: db)
+                }
+            } catch {
+                throw DefaultError.error(message: "product not found")
+            }
+            
+            // validate exist serviceId
+            do {
+                for uuid in content.serviceUUIDs() {
+                    let _ = try await serviceRepository.find(id: uuid, on: db)
+                }
+            } catch {
+                throw DefaultError.error(message: "service not found")
+            }
             
             let yearNumber = content.yearNumber()
             let monthNumber = content.monthNumber()
@@ -115,6 +153,7 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
                                                            on: db)
             let nextNumber = lastedNumber + 1
             
+            let poItems = content.poItems()
             let newModel = PurchaseOrder(month: monthNumber,
                                          year: yearNumber,
                                          number: nextNumber,
@@ -122,7 +161,7 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
                                          vatOption: content.vatOption,
                                          includedVat: content.includedVat,
                                          vatRate: content.vatRateOption.vatRate,
-                                         items: content.poItems(),
+                                         items: poItems,
                                          additionalDiscountAmount: content.additionalDiscountAmount,
                                          orderDate: content.orderDate,
                                          deliveryDate: content.deliveryDate,
@@ -153,65 +192,67 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
     func update(id: UUID,
                 with content: PurchaseOrderRepository.Update,
                 userId: UUID,
-                on db: any FluentKit.Database) async throws -> PurchaseOrder {
-        return self.stub
+                on db: any FluentKit.Database) async throws -> PurchaseOrderResponse {
+        guard
+            let model = try await PurchaseOrder.query(on: db).filter(\.$id == id).first()
+        else { throw DefaultError.notFound }
+        
+        
+        // update and validate
+        
+        
+        return PurchaseOrderResponse(po: model)
     }
     
     func replaceItems(id: UUID,
                       userId: UUID,
-                      with content: ReplaceItems, on db: any FluentKit.Database) async throws -> PurchaseOrder {
-        return self.stub
+                      with content: ReplaceItems, on db: any FluentKit.Database) async throws -> PurchaseOrderResponse {
+        return .init(po: stub)
     }
     
     func approve(id: UUID,
                  userId: UUID,
-                 on db: any FluentKit.Database) async throws -> PurchaseOrder {
-        return self.stub
+                 on db: any FluentKit.Database) async throws -> PurchaseOrderResponse {
+        return .init(po: stub)
     }
     
     func reject(id: UUID, 
                 userId: UUID,
-                on db: any FluentKit.Database) async throws -> PurchaseOrder {
-        return self.stub
+                on db: any FluentKit.Database) async throws -> PurchaseOrderResponse {
+        return .init(po: stub)
     }
     
     func cancel(id: UUID, 
                 userId: UUID,
-                on db: any FluentKit.Database) async throws -> PurchaseOrder {
-        return self.stub
+                on db: any FluentKit.Database) async throws -> PurchaseOrderResponse {
+        return .init(po: stub)
     }
     
     func void(id: UUID,
               userId: UUID,
-              on db: Database) async throws -> PurchaseOrder {
-        return self.stub
+              on db: Database) async throws -> PurchaseOrderResponse {
+        return .init(po: stub)
     }
     
     func replaceItems(id: UUID, 
                       with content: ReplaceItems,
                       userId: UUID,
-                      on db: any FluentKit.Database) async throws -> PurchaseOrder {
-        return stub
+                      on db: any FluentKit.Database) async throws -> PurchaseOrderResponse {
+        return .init(po: stub)
     }
     
     func itemsReorder(id: UUID,
                       userId: UUID,
-                      itemsOrder: [UUID], on db: Database) async throws -> PurchaseOrder {
-        return self.stub
+                      itemsOrder: [UUID], on db: Database) async throws -> PurchaseOrderResponse {
+        return .init(po: stub)
     }
     
     func search(content: PurchaseOrderRepository.Search,
-                on db: any FluentKit.Database) async throws -> PaginatedResponse<PurchaseOrder> {
+                on db: any FluentKit.Database) async throws -> PaginatedResponse<PurchaseOrderResponse> {
         return .init(page: 1,
                      perPage: 20,
                      total: 0,
                      items: [])
-    }
-    
-    func lastedItemNumber(year: Int,
-                          month: Int,
-                          on db: any FluentKit.Database) async throws -> Int {
-        return 1
     }
     
     func fetchLastedNumber(year: Int,

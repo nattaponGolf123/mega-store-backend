@@ -406,9 +406,12 @@ extension PurchaseOrderRepository {
             self.additionalDiscountAmount = (try? container.decode(Double.self, forKey: .additionalDiscountAmount)) ?? 0
             
             let dateFormat = "yyyy-MM-dd"
-            self.orderDate = try container.decode(String.self, forKey: .orderDate).tryToDate(dateFormat)
-            self.deliveryDate = try container.decode(String.self, forKey: .deliveryDate).tryToDate(dateFormat)
-                        
+            
+            self.orderDate = try container.decode(String.self,
+                                                  forKey: .orderDate).tryToDate(dateFormat)
+            self.deliveryDate = try container.decode(String.self,
+                                                     forKey: .deliveryDate).tryToDate(dateFormat)
+            
             self.currency = (try? container.decode(CurrencySupported.self, forKey: .currency)) ?? .thb
             self.vatOption = try container.decode(PurchaseOrder.VatOption.self, forKey: .vatOption)
             self.includedVat = (try? container.decode(Bool.self, forKey: .includedVat)) ?? false
@@ -431,18 +434,28 @@ extension PurchaseOrderRepository {
             try container.encode(vatRateOption, forKey: .vatRateOption)
             
             let dateFormat = "yyyy-MM-dd"
-            try container.encode(orderDate.toDateString(dateFormat), forKey: .orderDate)
-            try container.encode(deliveryDate.toDateString(dateFormat), forKey: .deliveryDate)            
+            try container.encode(orderDate.toDateString(dateFormat),
+                                 forKey: .orderDate)
+            try container.encode(deliveryDate.toDateString(dateFormat),
+                                 forKey: .deliveryDate)
         }
         
         func yearNumber() -> Int {
-            Calendar.current.component(.year,
-                                       from: orderDate)
+            var calendar = Calendar.gregorian
+            calendar.locale = .englishUS
+            calendar.timeZone = .bangkok
+            
+            return calendar.component(.year,
+                                      from: orderDate)
         }
-
+        
         func monthNumber() -> Int {
-            Calendar.current.component(.month,
-                                       from: orderDate)
+            var calendar = Calendar.gregorian
+            calendar.locale = .englishUS
+            calendar.timeZone = .bangkok
+            
+            return calendar.component(.month,
+                                      from: orderDate)
         }
         
         func poItems() -> [PurchaseOrderItem] {
@@ -466,7 +479,18 @@ extension PurchaseOrderRepository {
             return items
             
         }
-
+        
+        func productUUIDs() -> [UUID] {
+            items.compactMap({
+                $0.kind == .product ? $0.itemId : nil
+            })
+        }
+        
+        func serviceUUIDs() -> [UUID] {
+            items.compactMap({
+                $0.kind == .service ? $0.itemId : nil
+            })
+        }
 
         static func validations(_ validations: inout Validations) {
             validations.add("reference", as: String.self, is: .count(1...200))
@@ -486,9 +510,9 @@ extension PurchaseOrderRepository {
             validations.add("included_vat", as: Bool.self, required: true)
             validations.add("vat_rate_option", as: VatRateOption.self, required: true)
             
-            validations.add("items", required: true) { (itemsValidations: inout Validations) in
-                CreateItem.validations(&itemsValidations)
-            }
+//            validations.add("items", required: true) { (itemsValidations: inout Validations) in
+//                CreateItem.validations(&itemsValidations)
+//            }
             validations.add("items", as: [CreateItem].self, is: !.empty)
         }
 

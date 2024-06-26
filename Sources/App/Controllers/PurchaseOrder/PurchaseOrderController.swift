@@ -80,7 +80,7 @@ class PurchaseOrderController: RouteCollection {
     }
     
     // PUT /purchase_orders/:id
-    func update(req: Request) async throws -> PurchaseOrder {
+    func update(req: Request) async throws -> PurchaseOrderResponse {
         let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
         let (uuid, content) = try validator.validateUpdate(req)
         
@@ -91,7 +91,7 @@ class PurchaseOrderController: RouteCollection {
     }
     
     // POST /purchase_orders/:id/approve
-    func approve(req: Request) async throws -> PurchaseOrder {
+    func approve(req: Request) async throws -> PurchaseOrderResponse {
         let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
         let uuid = try validator.validateID(req)
         return try await repository.approve(id: uuid,
@@ -100,7 +100,7 @@ class PurchaseOrderController: RouteCollection {
     }
     
     // POST /purchase_orders/:id/reject
-    func reject(req: Request) async throws -> PurchaseOrder {        
+    func reject(req: Request) async throws -> PurchaseOrderResponse {
         let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
         let uuid = try validator.validateID(req)
         return try await repository.reject(id: uuid,
@@ -109,7 +109,7 @@ class PurchaseOrderController: RouteCollection {
     }
     
     // POST /purchase_orders/:id/cancel
-    func cancel(req: Request) async throws -> PurchaseOrder {
+    func cancel(req: Request) async throws -> PurchaseOrderResponse {
         let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
         let uuid = try validator.validateID(req)
         return try await repository.cancel(id: uuid,
@@ -118,7 +118,7 @@ class PurchaseOrderController: RouteCollection {
     }
     
     // POST /purchase_orders/:id/void
-    func void(req: Request) async throws -> PurchaseOrder {
+    func void(req: Request) async throws -> PurchaseOrderResponse {
         let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
         let uuid = try validator.validateID(req)
         return try await repository.void(id: uuid,
@@ -127,7 +127,7 @@ class PurchaseOrderController: RouteCollection {
     }
     
     // PUT /purchase_orders/:id/replace_items
-    func replaceItems(req: Request) async throws -> PurchaseOrder {
+    func replaceItems(req: Request) async throws -> PurchaseOrderResponse {
         let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
         let uuid = try validator.validateID(req)
         let content = try req.content.decode(PurchaseOrderRepository.ReplaceItems.self)
@@ -139,7 +139,7 @@ class PurchaseOrderController: RouteCollection {
     }
     
     // PUT /purchase_orders/:id/reorder_items
-    func reorderItems(req: Request) async throws -> PurchaseOrder {
+    func reorderItems(req: Request) async throws -> PurchaseOrderResponse {
         let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
         let uuid = try validator.validateID(req)
         let content = try req.content.decode(PurchaseOrderRepository.ReorderItems.self)
@@ -151,7 +151,7 @@ class PurchaseOrderController: RouteCollection {
     }
     
     // GET /purchase_orders/search?q=xxx
-    func search(req: Request) async throws -> PaginatedResponse<PurchaseOrder> {
+    func search(req: Request) async throws -> PaginatedResponse<PurchaseOrderResponse> {
         let content = try validator.validateSearchQuery(req)
         
         return try await repository.search(content: content,
