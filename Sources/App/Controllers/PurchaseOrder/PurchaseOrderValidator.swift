@@ -19,6 +19,8 @@ class PurchaseOrderValidator: PurchaseOrderValidatorProtocol {
             // Decode the incoming PurchaseOrder
             let content: PurchaseOrderValidator.CreateContent = try req.content.decode(CreateContent.self)
 
+            // validate items
+
             // Validate the PurchaseOrder directly
             try CreateContent.validate(content: req)
             

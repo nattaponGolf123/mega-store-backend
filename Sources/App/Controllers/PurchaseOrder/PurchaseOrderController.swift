@@ -70,7 +70,7 @@ class PurchaseOrderController: RouteCollection {
     }
 
     // POST /purchase_orders   
-    func create(req: Request) async throws -> PurchaseOrder {
+    func create(req: Request) async throws -> PurchaseOrderResponse {
         let content = try validator.validateCreate(req)
         
         return try await repository.create(content: content,
