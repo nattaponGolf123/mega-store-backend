@@ -83,8 +83,8 @@ final class PurchaseOrder: Model, Content {
     @Field(key: "additional_discount_amount")
     var additionalDiscountAmount: Double
 
-    @Field(key: "currency")
-    var currency: String
+    @Enum(key: "currency")
+    var currency: CurrencySupported
     
     @Field(key: "internal_note")
     var note: String
@@ -135,7 +135,7 @@ final class PurchaseOrder: Model, Content {
          paymentTermsDays: Int = 30,
          supplierId: UUID,
          customerId: UUID,
-         currency: String = "THB",
+         currency: CurrencySupported = .thb,
          note: String = "",
          createdAt: Date? = nil,
          updatedAt: Date? = nil,
@@ -204,7 +204,7 @@ final class PurchaseOrder: Model, Content {
                      paymentTermsDays: Int = 30,
                      supplierId: UUID,
                      customerId: UUID,
-                     currency: String = "THB",
+                     currency: CurrencySupported = .thb,
                      note: String = "",
                      userId: UUID) {
         let actionLog: [ActionLog] = [.init(userId: userId, 

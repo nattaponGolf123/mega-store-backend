@@ -36,7 +36,7 @@ struct PurchaseOrderResponse: Content {
     
     let additionalDiscountAmount: Double
 
-    let currency: String
+    let currency: CurrencySupported
     let note: String
     
     let createdAt: Date?
@@ -137,7 +137,7 @@ struct PurchaseOrderResponse: Content {
         totalWithholdingTaxAmount = try container.decode(Double?.self, forKey: .totalWithholdingTaxAmount)
         totalAmountDue = try container.decode(Double.self, forKey: .totalAmountDue)
         additionalDiscountAmount = try container.decode(Double.self, forKey: .additionalDiscountAmount)
-        currency = try container.decode(String.self, forKey: .currency)
+        currency = try container.decode(CurrencySupported.self, forKey: .currency)
         note = try container.decode(String.self, forKey: .note)
         createdAt = try container.decode(Date?.self, forKey: .createdAt)
         updatedAt = try container.decode(Date?.self, forKey: .updatedAt)
