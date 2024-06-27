@@ -29,7 +29,6 @@ class BillSummaryTests: XCTestCase {
         
         let summary = BillSummary(items: [item1, item2],
                                   additionalDiscountAmount: 5.0,
-                                  vatRate: 0.07,
                                   vatIncluded: true)
         
         XCTAssertEqual(summary.items.count, 2)
@@ -57,7 +56,6 @@ class BillSummaryTests: XCTestCase {
         
         let summary = BillSummary(items: [item1, item2],
                                   additionalDiscountAmount: 0.0,
-                                  vatRate: 0.07,
                                   vatIncluded: true)
         
         XCTAssertEqual(summary.totalAmountBeforeDiscount, 186.9158878505, accuracy: 0.01)
@@ -89,7 +87,6 @@ class BillSummaryTests: XCTestCase {
         
         let summary = BillSummary(items: [item1, item2],
                                   additionalDiscountAmount: 0.0,
-                                  vatRate: 0.07,
                                   vatIncluded: false)
         
         XCTAssertEqual(summary.totalAmountBeforeDiscount, 200, accuracy: 0.01)
@@ -121,7 +118,6 @@ class BillSummaryTests: XCTestCase {
         
         let summary = BillSummary(items: [item1, item2],
                                   additionalDiscountAmount: 0.0,
-                                  vatRate: 0.0,
                                   vatIncluded: true)
         
         XCTAssertEqual(summary.totalAmountBeforeDiscount, 200, accuracy: 0.01)
@@ -152,7 +148,6 @@ class BillSummaryTests: XCTestCase {
         
         let summary = BillSummary(items: [item1, item2],
                                   additionalDiscountAmount: 0.0,
-                                  vatRate: 0.07,
                                   vatIncluded: true)
         
         XCTAssertEqual(summary.totalAmountBeforeDiscount, 186.9158878504673, accuracy: 0.01)
@@ -183,7 +178,6 @@ class BillSummaryTests: XCTestCase {
         
         let summary = BillSummary(items: [item1, item2],
                                   additionalDiscountAmount: 0.0,
-                                  vatRate: 0.07,
                                   vatIncluded: false)
         
         XCTAssertEqual(summary.totalAmountBeforeDiscount, 200, accuracy: 0.01)
@@ -214,7 +208,6 @@ class BillSummaryTests: XCTestCase {
         
         let summary = BillSummary(items: [item1, item2],
                                   additionalDiscountAmount: 0.0,
-                                  vatRate: nil,
                                   vatIncluded: false)
         
         XCTAssertEqual(summary.totalAmountBeforeDiscount, 200, accuracy: 0.01)
@@ -247,7 +240,6 @@ class BillSummaryTests: XCTestCase {
         
         let summary = BillSummary(items: [item1, item2],
                                   additionalDiscountAmount: 10.0,
-                                  vatRate: 0.07,
                                   vatIncluded: true)
         
         XCTAssertEqual(summary.totalAmountBeforeDiscount, 186.9158878505, accuracy: 0.01)
@@ -278,7 +270,6 @@ class BillSummaryTests: XCTestCase {
         
         let summary = BillSummary(items: [item1, item2],
                                   additionalDiscountAmount: 10.0,
-                                  vatRate: 0.07,
                                   vatIncluded: false)
         
         XCTAssertEqual(summary.totalAmountBeforeDiscount, 200, accuracy: 0.01)
@@ -309,7 +300,6 @@ class BillSummaryTests: XCTestCase {
         
         let summary = BillSummary(items: [item1, item2],
                                   additionalDiscountAmount: 10.0,
-                                  vatRate: 0.0,
                                   vatIncluded: true)
         
         XCTAssertEqual(summary.totalAmountBeforeDiscount, 200, accuracy: 0.01)
@@ -340,7 +330,6 @@ class BillSummaryTests: XCTestCase {
         
         let summary = BillSummary(items: [item1, item2],
                                   additionalDiscountAmount: 10.0,
-                                  vatRate: 0.07,
                                   vatIncluded: true)
         
         XCTAssertEqual(summary.totalAmountBeforeDiscount, 186.9158878504673, accuracy: 0.01)
@@ -371,7 +360,6 @@ class BillSummaryTests: XCTestCase {
         
         let summary = BillSummary(items: [item1, item2],
                                   additionalDiscountAmount: 10.0,
-                                  vatRate: 0.07,
                                   vatIncluded: false)
         
         XCTAssertEqual(summary.totalAmountBeforeDiscount, 200, accuracy: 0.01)
@@ -402,7 +390,6 @@ class BillSummaryTests: XCTestCase {
         
         let summary = BillSummary(items: [item1, item2],
                                   additionalDiscountAmount: 10.0,
-                                  vatRate: nil,
                                   vatIncluded: false)
         
         XCTAssertEqual(summary.totalAmountBeforeDiscount, 200, accuracy: 0.01)

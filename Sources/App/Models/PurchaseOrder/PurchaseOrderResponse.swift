@@ -25,7 +25,6 @@ struct PurchaseOrderResponse: Content {
     
     let vatOption: PurchaseOrder.VatOption
     let includedVat: Bool
-    let vatRate: Double?
     
     let totalAmountBeforeDiscount: Double
     let totalAmountBeforeVat: Double
@@ -63,7 +62,6 @@ struct PurchaseOrderResponse: Content {
         status = po.status
         vatOption = po.vatOption
         includedVat = po.includedVat
-        vatRate = po.vatRate
         totalAmountBeforeDiscount = po.totalAmountBeforeDiscount
         totalAmountBeforeVat = po.totalAmountBeforeVat
         totalVatAmount = po.totalVatAmount
@@ -95,8 +93,7 @@ struct PurchaseOrderResponse: Content {
         try container.encode(customerId, forKey: .customerId)
         try container.encode(status, forKey: .status)
         try container.encode(vatOption, forKey: .vatOption)
-        try container.encode(includedVat, forKey: .includedVat)
-        try container.encode(vatRate, forKey: .vatRate)
+        try container.encode(includedVat, forKey: .includedVat)        
         try container.encode(totalAmountBeforeDiscount, forKey: .totalAmountBeforeDiscount)
         try container.encode(totalAmountBeforeVat, forKey: .totalAmountBeforeVat)
         try container.encode(totalVatAmount, forKey: .totalVatAmount)
@@ -129,7 +126,6 @@ struct PurchaseOrderResponse: Content {
         status = try container.decode(PurchaseOrderStatus.self, forKey: .status)
         vatOption = try container.decode(PurchaseOrder.VatOption.self, forKey: .vatOption)
         includedVat = try container.decode(Bool.self, forKey: .includedVat)
-        vatRate = try container.decode(Double?.self, forKey: .vatRate)
         totalAmountBeforeDiscount = try container.decode(Double.self, forKey: .totalAmountBeforeDiscount)
         totalAmountBeforeVat = try container.decode(Double.self, forKey: .totalAmountBeforeVat)
         totalVatAmount = try container.decode(Double?.self, forKey: .totalVatAmount)
@@ -161,7 +157,6 @@ struct PurchaseOrderResponse: Content {
         case status
         case vatOption = "vat_option"
         case includedVat = "included_vat"
-        case vatRate = "vat_rate"
         case totalAmountBeforeDiscount = "total_amount_before_discount"
         case totalAmountBeforeVat = "total_amount_before_vat"
         case totalVatAmount = "total_vat_amount"

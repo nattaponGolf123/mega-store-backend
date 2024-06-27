@@ -59,9 +59,6 @@ final class PurchaseOrder: Model, Content {
     @Field(key: "included_vat")
     var includedVat: Bool
     
-    @Field(key: "vat_rate")
-    var vatRate: Double?
-    
     @Field(key: "total_amount_before_discount")
     var totalAmountBeforeDiscount: Double
     
@@ -127,7 +124,6 @@ final class PurchaseOrder: Model, Content {
          reference: String? = nil,
          vatOption: VatOption,
          includedVat: Bool,
-         vatRate: VatRate,
          items: [PurchaseOrderItem],
          additionalDiscountAmount: Double = 0,
          orderDate: Date = .init(),
@@ -165,19 +161,31 @@ final class PurchaseOrder: Model, Content {
         self.logs = logs
         self.vatOption = vatOption
         self.includedVat = includedVat
-        self.vatRate = vatRate.value
         self.additionalDiscountAmount = additionalDiscountAmount
         
-        let billItems: [BillItem] = items.map({ .init(description: $0.description,
-                                                      quantity: $0.qty,
-                                                      pricePerUnit: $0.pricePerUnit,
-                                                      discountPerUnit: $0.discountPricePerUnit,
-                                                      vatRate: $0.vatRate,
-                                                      withholdingTaxRate: $0.taxWithholdingRate,
-                                                      vatIncluded: $0.vatIncluded) })
+        //check vatOption
+        let billItems: [BillItem] = items.map({
+            var vatRate: Double? = nil
+            
+            switch vatOption {
+            case .vatExcluded,
+                 .vatIncluded:
+                vatRate = $0.vatRate
+            default:
+                break
+            }
+            
+            return .init(description: $0.description,
+                         quantity: $0.qty,
+                         pricePerUnit: $0.pricePerUnit,
+                         discountPerUnit: $0.discountPricePerUnit,
+                         vatRate: vatRate,
+                         withholdingTaxRate: $0.taxWithholdingRate,
+                         vatIncluded: $0.vatIncluded)
+        })
+        
         let summary = BillSummary(items: billItems,
                                   additionalDiscountAmount: additionalDiscountAmount,
-                                  vatRate: self.vatRate,
                                   vatIncluded: includedVat)
         
         
@@ -196,7 +204,6 @@ final class PurchaseOrder: Model, Content {
                      reference: String? = nil,
                      vatOption: VatOption,
                      includedVat: Bool,
-                     vatRate: VatRate,
                      items: [PurchaseOrderItem],
                      additionalDiscountAmount: Double = 0,
                      orderDate: Date = .init(),
@@ -218,7 +225,6 @@ final class PurchaseOrder: Model, Content {
                   reference: reference,
                   vatOption: vatOption,
                   includedVat: includedVat,
-                  vatRate: vatRate,
                   items: items,
                   additionalDiscountAmount: additionalDiscountAmount,
                   orderDate: orderDate,
@@ -229,6 +235,29 @@ final class PurchaseOrder: Model, Content {
                   currency: currency,
                   note: note,
                   logs: actionLog)
+    }
+    
+    func replaceItems(items: [PurchaseOrderItem]) -> Self {
+        let billItems: [BillItem] = items.map({ .init(description: $0.description,
+                                                      quantity: $0.qty,
+                                                      pricePerUnit: $0.pricePerUnit,
+                                                      discountPerUnit: $0.discountPricePerUnit,
+                                                      vatRate: $0.vatRate,
+                                                      withholdingTaxRate: $0.taxWithholdingRate,
+                                                      vatIncluded: $0.vatIncluded) })
+        let summary = BillSummary(items: billItems,
+                                  additionalDiscountAmount: additionalDiscountAmount,
+                                  vatIncluded: includedVat)
+        
+        
+        self.totalAmountBeforeDiscount = summary.totalAmountBeforeDiscount
+        self.totalAmountBeforeVat = summary.totalAmountBeforeVat
+        self.totalAmountAfterVat = summary.totalAmountAfterVat
+        self.totalAmountDue = summary.totalAmountDue
+        self.totalVatAmount = summary.totalVatAmount
+        self.totalWithholdingTaxAmount = summary.totalWithholdingTaxAmount
+        
+        return self
     }
     
     func ableUpdateStatus() -> [PurchaseOrderStatus] {
@@ -311,7 +340,6 @@ extension PurchaseOrder {
                   reference: "PO-2021-01-01",
                   vatOption: .vatIncluded,
                   includedVat: true,
-                  vatRate: ._7,
                   items: [.init(id: .init(),
                                 itemId: .init(),
                                 kind: .product,

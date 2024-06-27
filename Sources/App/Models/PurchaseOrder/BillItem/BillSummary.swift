@@ -14,8 +14,7 @@ struct BillSummary {
     let totalDiscountPerItem: Double
     
     init(items: [BillItem],
-         additionalDiscountAmount: Double = 0,
-         vatRate: Double? = nil,
+         additionalDiscountAmount: Double = 0,         
          vatIncluded: Bool) {
         self.items = items
         self.additionalDiscountAmount = additionalDiscountAmount

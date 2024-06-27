@@ -345,26 +345,104 @@ extension PurchaseOrderRepository {
         }
     }
     
+    struct UpdateItem: Content, Validatable {
+        let id: UUID
+        let itemId: UUID
+        let kind: PurchaseOrderItem.Kind
+        let name: String
+        let description: String
+        let variantId: UUID?
+        let qty: Double
+        let pricePerUnit: Double
+        let discountPricePerUnit: Double
+        let vatRateOption: VatRateOption
+        let vatIncluded: Bool
+        let withholdingTaxRateOption: TaxWithholdingRateOption
+
+        init(id: UUID,
+             itemId: UUID,
+             kind: PurchaseOrderItem.Kind,
+             name: String,
+             description: String,
+             variantId: UUID?,
+             qty: Double,
+             pricePerUnit: Double,
+             discountPricePerUnit: Double,
+             vatRateOption: VatRateOption,
+             vatIncluded: Bool,
+             withholdingTaxRateOption: TaxWithholdingRateOption) {
+            self.id = id
+            self.itemId = itemId
+            self.kind = kind
+            self.name = name
+            self.description = description
+            self.variantId = variantId
+            self.qty = qty
+            self.pricePerUnit = pricePerUnit
+            self.discountPricePerUnit = discountPricePerUnit
+            self.vatRateOption = vatRateOption
+            self.vatIncluded = vatIncluded
+            self.withholdingTaxRateOption = withholdingTaxRateOption
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            self.id = try container.decode(UUID.self, forKey: .id)
+            self.itemId = try container.decode(UUID.self, forKey: .itemId)
+            self.kind = try container.decode(PurchaseOrderItem.Kind.self, forKey: .kind)
+            self.name = try container.decode(String.self, forKey: .name)
+            self.description = try container.decode(String.self, forKey: .description)
+            self.variantId = try? container.decode(UUID.self, forKey: .variantId)
+            self.qty = try container.decode(Double.self, forKey: .qty)
+            self.pricePerUnit = try container.decode(Double.self, forKey: .pricePerUnit)
+            self.discountPricePerUnit = (try? container.decode(Double.self, forKey: .discountPricePerUnit)) ?? 0
+            self.vatRateOption = try container.decode(VatRateOption.self, forKey: .vatRateOption)
+            self.vatIncluded = try container.decode(Bool.self, forKey: .vatIncluded)
+            self.withholdingTaxRateOption = try container.decode(TaxWithholdingRateOption.self, forKey: .withholdingTaxRateOption)
+        }
+
+        static func validations(_ validations: inout Validations) {
+            validations.add("id", as: UUID.self, required: true)
+            validations.add("qty", as: Double.self, is: .range(0...))
+            validations.add("price_per_unit", as: Double.self, is: .range(0...))
+            validations.add("discount_price_per_unit", as: Double.self, is: .range(0...))
+            validations.add("vat_rate_option", as: VatRateOption.self, required: true)
+            validations.add("vat_included", as: Bool.self, required: true)
+            validations.add("withholding_tax_rate_option", as: TaxWithholdingRateOption.self, required: true)
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case id
+            case itemId = "item_id"
+            case kind
+            case name
+            case description
+            case variantId = "variant_id"
+            case qty
+            case pricePerUnit = "price_per_unit"
+            case discountPricePerUnit = "discount_price_per_unit"
+            case vatRateOption = "vat_rate_option"
+            case vatIncluded = "vat_included"
+            case withholdingTaxRateOption = "withholding_tax_rate_option"
+        }
+    }
+    
     struct Create: Content, Validatable {
         let reference: String
         let note: String
         let paymentTermsDays: Int
         let supplierId: UUID        
         let deliveryDate: Date
-        let customerId: UUID
         let items: [CreateItem]
         let vatOption: PurchaseOrder.VatOption
         let orderDate: Date
         let additionalDiscountAmount: Double
         let currency: CurrencySupported
         let includedVat: Bool
-        let vatRateOption: VatRateOption
-
        
         init(reference: String,
              note: String,                          
              supplierId: UUID,
-             customerId: UUID,
              orderDate: Date,
              deliveryDate: Date,
              paymentTermsDays: Int,
@@ -372,7 +450,6 @@ extension PurchaseOrderRepository {
              additionalDiscountAmount: Double,
              vatOption: PurchaseOrder.VatOption,
              includedVat: Bool,
-             vatRateOption: VatRateOption,
              currency: CurrencySupported) {
             self.reference = reference
             self.note = note
@@ -382,7 +459,6 @@ extension PurchaseOrderRepository {
             self.orderDate = orderDate
 
             self.supplierId = supplierId
-            self.customerId = customerId            
             
             self.items = items
             self.additionalDiscountAmount = additionalDiscountAmount
@@ -390,7 +466,6 @@ extension PurchaseOrderRepository {
             self.currency = currency
             self.vatOption = vatOption
             self.includedVat = includedVat
-            self.vatRateOption = vatRateOption            
         }
 
         init(from decoder: Decoder) throws {
@@ -400,7 +475,6 @@ extension PurchaseOrderRepository {
             self.paymentTermsDays = try container.decode(Int.self, forKey: .paymentTermsDays)
             
             self.supplierId = try container.decode(UUID.self, forKey: .supplierId)
-            self.customerId = try container.decode(UUID.self, forKey: .customerId)
             
             self.items = try container.decode([CreateItem].self, forKey: .items)
             self.additionalDiscountAmount = (try? container.decode(Double.self, forKey: .additionalDiscountAmount)) ?? 0
@@ -415,7 +489,6 @@ extension PurchaseOrderRepository {
             self.currency = (try? container.decode(CurrencySupported.self, forKey: .currency)) ?? .thb
             self.vatOption = try container.decode(PurchaseOrder.VatOption.self, forKey: .vatOption)
             self.includedVat = (try? container.decode(Bool.self, forKey: .includedVat)) ?? false
-            self.vatRateOption = (try? container.decode(VatRateOption.self, forKey: .vatRateOption)) ?? .none
 
         }
         
@@ -425,13 +498,11 @@ extension PurchaseOrderRepository {
             try container.encode(note, forKey: .note)
             try container.encode(paymentTermsDays, forKey: .paymentTermsDays)
             try container.encode(supplierId, forKey: .supplierId)
-            try container.encode(customerId, forKey: .customerId)
             try container.encode(items, forKey: .items)
             try container.encode(additionalDiscountAmount, forKey: .additionalDiscountAmount)
             try container.encode(currency, forKey: .currency)
             try container.encode(vatOption, forKey: .vatOption)
             try container.encode(includedVat, forKey: .includedVat)
-            try container.encode(vatRateOption, forKey: .vatRateOption)
             
             let dateFormat = "yyyy-MM-dd"
             try container.encode(orderDate.toDateString(dateFormat),
@@ -498,7 +569,7 @@ extension PurchaseOrderRepository {
             validations.add("payment_terms_days", as: Int.self, is: .range(0...))
             
             validations.add("supplier_id", as: UUID.self, required: true)
-            validations.add("customer_id", as: UUID.self, required: true)
+            //validations.add("customer_id", as: UUID.self, required: true)
             
             validations.add("vat_option", as: PurchaseOrder.VatOption.self, required: true)
             
@@ -523,7 +594,6 @@ extension PurchaseOrderRepository {
             case supplierId = "supplier_id"
             case totalAmountBeforeVat = "total_amount_before_vat"
             case deliveryDate = "delivery_date"
-            case customerId = "customer_id"
             case items
             case vatOption = "vat_option"
             case orderDate = "order_date"
@@ -537,60 +607,123 @@ extension PurchaseOrderRepository {
     }
     
     struct Update: Content, Validatable {
-        let name: String?
-        let description: String?
-        let price: Double?
-        let unit: String?
-        let categoryId: UUID?
-        let images: [String]?
-        let coverImage: String?
-        let tags: [String]?
+        let reference: String?
+        let note: String?
+        let paymentTermsDays: Int?
+        let supplierId: UUID?
+        let deliveryDate: Date?
+        let items: [UpdateItem]?
+        let vatOption: PurchaseOrder.VatOption?
+        let orderDate: Date?
+        let additionalDiscountAmount: Double?
+        let currency: CurrencySupported?
+        let includedVat: Bool?
+        let vatRateOption: VatRateOption?
         
-        init(name: String? = nil,
-             description: String? = nil,
-             price: Double? = nil,
-             unit: String? = nil,
-             categoryId: UUID? = nil,
-             images: [String]? = nil,
-             coverImage: String? = nil,
-             tags: [String]? = nil) {
-            self.name = name
-            self.description = description
-            self.price = price
-            self.unit = unit
-            self.categoryId = categoryId
-            self.images = images
-            self.coverImage = coverImage
-            self.tags = tags
+        init(reference: String?,
+             note: String?,
+             paymentTermsDays: Int?,
+             supplierId: UUID?,
+             deliveryDate: Date?,
+             items: [UpdateItem]?,
+             vatOption: PurchaseOrder.VatOption?,
+             orderDate: Date?,
+             additionalDiscountAmount: Double?,
+             currency: CurrencySupported?,
+             includedVat: Bool?,
+             vatRateOption: VatRateOption?) {
+            self.reference = reference
+            self.note = note
+            self.paymentTermsDays = paymentTermsDays
+            self.supplierId = supplierId
+            self.deliveryDate = deliveryDate
+            self.items = items
+            self.vatOption = vatOption
+            self.orderDate = orderDate
+            self.additionalDiscountAmount = additionalDiscountAmount
+            self.currency = currency
+            self.includedVat = includedVat
+            self.vatRateOption = vatRateOption
         }
         
-        init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.name = try? container.decode(String.self, forKey: .name)
-            self.description = try? container.decode(String.self, forKey: .description)
-            self.price = try? container.decode(Double.self, forKey: .price)
-            self.unit = try? container.decode(String.self, forKey: .unit)
-            self.categoryId = try? container.decode(UUID.self, forKey: .categoryId)
-            self.images = try? container.decode([String].self, forKey: .images)
-            self.coverImage = try? container.decode(String.self, forKey: .coverImage)
-            self.tags = try? container.decode([String].self, forKey: .tags)
+        func poItems() -> [PurchaseOrderItem]? {
+            
+            guard 
+                let items = items
+            else { return nil }
+            
+            //additionalDiscountPerItem is zero if nil
+            var additionalDiscountPerItem: Double = 0
+            if let additionalDiscountAmount {
+                additionalDiscountPerItem = additionalDiscountAmount / Double(items.count)
+            }
+            
+            let poItems: [PurchaseOrderItem] = items.map({
+                .init(id: $0.id,
+                      itemId: $0.itemId,
+                      kind: $0.kind,
+                      name: $0.name,
+                      description: $0.description,
+                      variantId: $0.variantId,
+                      qty: $0.qty,
+                      pricePerUnit: $0.pricePerUnit,
+                      discountPricePerUnit: $0.discountPricePerUnit,
+                      additionalDiscount: 0,//additionalDiscountPerItem,
+                      vatRate: $0.vatRateOption.vatRate,
+                      vatIncluded: $0.vatIncluded,
+                      taxWithholdingRate: $0.withholdingTaxRateOption.taxRate)
+            })
+            
+            return poItems
         }
         
-        enum CodingKeys: String, CodingKey {
-            case name
-            case description
-            case price
-            case unit
-            case categoryId = "category_id"
-            case images
-            case coverImage = "cover_image"
-            case tags
+        func productUUIDs() -> [UUID]? {
+            items?.compactMap({
+                $0.kind == .product ? $0.itemId : nil
+            })
+        }
+        
+        func serviceUUIDs() -> [UUID]? {
+            items?.compactMap({
+                $0.kind == .service ? $0.itemId : nil
+            })
         }
         
         static func validations(_ validations: inout Validations) {
-            validations.add("name", as: String.self, is: .count(1...200))
-            validations.add("price", as: Double.self, is: .range(0...))
+            validations.add("reference", as: String.self, is: .count(1...200))
+            validations.add("note", as: String.self, is: .count(0...200))            
+            validations.add("payment_terms_days", as: Int.self, is: .range(0...))
+            
+            validations.add("supplier_id", as: UUID.self, required: true)
+            //validations.add("customer_id", as: UUID.self, required: true)
+            
+            validations.add("vat_option", as: PurchaseOrder.VatOption.self, required: true)
+            
+            validations.add("delivery_date", as: String.self, required: true)
+            validations.add("order_date", as: String.self, required: true)
+            
+            validations.add("additional_discount_amount", as: Double.self, is: .range(0...))
+            validations.add("currency", as: CurrencySupported.self, required: true)     
+            validations.add("included_vat", as: Bool.self, required: true)
+            validations.add("vat_rate_option", as: VatRateOption.self, required: true)
+            
+            validations.add("items", as: [CreateItem].self, is: !.empty)
         }
+        
+        enum CodingKeys: String, CodingKey {
+            case reference
+            case note
+            case paymentTermsDays = "payment_terms_days"
+            case supplierId = "supplier_id"
+            case deliveryDate = "delivery_date"
+            case items
+            case vatOption = "vat_option"
+            case orderDate = "order_date"
+            case additionalDiscountAmount = "additional_discount_amount"
+            case currency
+            case includedVat = "included_vat"
+            case vatRateOption = "vat_rate_option"
+        } 
     }
     
     struct ReplaceItems: Content, Validatable {
