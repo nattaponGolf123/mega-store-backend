@@ -79,6 +79,9 @@ final class PurchaseOrder: Model, Content {
     
     @Field(key: "additional_discount_amount")
     var additionalDiscountAmount: Double
+    
+    @Field(key: "vat_adjustment_amount")
+    var vatAdjustmentAmount: Double?
 
     @Enum(key: "currency")
     var currency: CurrencySupported
@@ -126,6 +129,7 @@ final class PurchaseOrder: Model, Content {
          includedVat: Bool,
          items: [PurchaseOrderItem],
          additionalDiscountAmount: Double = 0,
+         vatAdjustmentAmount: Double? = nil,
          orderDate: Date = .init(),
          deliveryDate: Date = .init(),
          paymentTermsDays: Int = 30,
@@ -162,6 +166,7 @@ final class PurchaseOrder: Model, Content {
         self.vatOption = vatOption
         self.includedVat = includedVat
         self.additionalDiscountAmount = additionalDiscountAmount
+        self.vatAdjustmentAmount = vatAdjustmentAmount
         
         //check vatOption
         let billItems: [BillItem] = items.map({
@@ -179,7 +184,8 @@ final class PurchaseOrder: Model, Content {
         
         let summary = BillSummary(items: billItems,
                                   additionalDiscountAmount: additionalDiscountAmount,
-                                  vatIncluded: includedVat)
+                                  vatIncluded: includedVat,
+                                  vatAdjustment: vatAdjustmentAmount)
         
         
         self.totalAmountBeforeDiscount = summary.totalAmountBeforeDiscount
