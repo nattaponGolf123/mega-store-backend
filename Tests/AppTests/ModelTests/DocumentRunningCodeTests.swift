@@ -1,60 +1,139 @@
 @testable import App
 import XCTVapor
 
-final class DocumentRunningCodeTests: XCTestCase {
+class DocumentRunningCodeTests: XCTestCase {
     
-//    func testDocumentRunningCode_WithBuddhist() {
-//        // Create a date formatter to parse specific dates for testing
-//        let dateFormatter = DateFormatter()
-//        dateFormatter.calendar = Calendar(identifier: .buddhist)
-//        dateFormatter.dateFormat = "yyyy-MM-dd"
-//        
-//        // Test with specific date: 2567-05-01 (Buddhist calendar)
-//        let testDate1 = dateFormatter.date(from: "2567-05-01")!
-//        let documentCode1 = DocumentRunningCode(prefix: "PO", year: testDate1, runningNumber: 1,calendarIdentifier: .buddhist)
-//        XCTAssertEqual(documentCode1.wrappedValue, "PO-6705-0001")
-//        
-//        // Test with different running number
-//        let documentCode2 = DocumentRunningCode(prefix: "PO", year: testDate1, runningNumber: 123,calendarIdentifier: .buddhist)
-//        XCTAssertEqual(documentCode2.wrappedValue, "PO-6705-0123")
-//        
-//        // Test with a different month
-//        let testDate2 = dateFormatter.date(from: "2567-11-01")!
-//        let documentCode3 = DocumentRunningCode(prefix: "PO", year: testDate2, runningNumber: 1,calendarIdentifier: .buddhist)
-//        XCTAssertEqual(documentCode3.wrappedValue, "PO-6711-0001")
-//        
-//        // Test with another year
-//        let testDate3 = dateFormatter.date(from: "2568-03-01")!
-//        let documentCode4 = DocumentRunningCode(prefix: "PO", year: testDate3, runningNumber: 1,calendarIdentifier: .buddhist)
-//        XCTAssertEqual(documentCode4.wrappedValue, "PO-6803-0001")
-//    }
-//    
-//    func testDocumentRunningCode_WithGregorian() {
-//        // Create a date formatter to parse specific dates for testing
-//        let dateFormatter = DateFormatter()
-//        dateFormatter.calendar = Calendar(identifier: .gregorian)
-//        dateFormatter.dateFormat = "yyyy-MM-dd"
-//        
-//        // Test with specific date: 2024-05-01 (Gregorian calendar)
-//        let testDate1 = dateFormatter.date(from: "2024-05-01")!
-//        var documentCode1 = DocumentRunningCode(prefix: "PO", calendarIdentifier: .gregorian)
-//        documentCode1.year = testDate1.year
-//        documentCode1.month = testDate1.month
-//        XCTAssertEqual(documentCode1.wrappedValue, "PO-6705-0001")
-//        
-//        // Test with different running number
-//        let documentCode2 = DocumentRunningCode(prefix: "PO", year: testDate1, runningNumber: 123,calendarIdentifier: .gregorian)
-//        XCTAssertEqual(documentCode2.wrappedValue, "PO-6705-0123")
-//        
-//        // Test with a different month
-//        let testDate2 = dateFormatter.date(from: "2024-11-01")!
-//        let documentCode3 = DocumentRunningCode(prefix: "PO", year: testDate2, runningNumber: 1,calendarIdentifier: .gregorian)
-//        XCTAssertEqual(documentCode3.wrappedValue, "PO-6711-0001")
-//        
-//        // Test with another year
-//        let testDate3 = dateFormatter.date(from: "2025-03-01")!
-//        let documentCode4 = DocumentRunningCode(prefix: "PO", year: testDate3, runningNumber: 1,calendarIdentifier: .gregorian)
-//        XCTAssertEqual(documentCode4.wrappedValue, "PO-6803-0001")
-//    }
+    func testInit_WithPrefixAndDefaultCalendar_ShouldInitializeCorrectly() {
+        // Given
+        let prefix = "DOC"
+        
+        // When
+        let documentRunningCode = DocumentRunningCode(prefix: prefix)
+        
+        // Then
+        XCTAssertEqual(documentRunningCode.prefix, prefix)
+        XCTAssertEqual(documentRunningCode.calendarIdentifier, .gregorian)
+        XCTAssertEqual(documentRunningCode.wrappedValue, "Incomplete Data")
+    }
     
+    func testInit_WithPrefixAndBuddhistCalendar_ShouldInitializeCorrectly() {
+        // Given
+        let prefix = "DOC"
+        
+        // When
+        let documentRunningCode = DocumentRunningCode(prefix: prefix, calendarIdentifier: .buddhist)
+        
+        // Then
+        XCTAssertEqual(documentRunningCode.prefix, prefix)
+        XCTAssertEqual(documentRunningCode.calendarIdentifier, .buddhist)
+        XCTAssertEqual(documentRunningCode.wrappedValue, "Incomplete Data")
+    }
+    
+    func testYear_WithValidYearAndBuddhistCalendar_ShouldAdjustAndReturnFormattedValue() {
+        // Given
+        var documentRunningCode = DocumentRunningCode(prefix: "DOC", calendarIdentifier: .buddhist)
+        
+        // When
+        documentRunningCode.year = 2023
+        
+        // Then
+        XCTAssertEqual(documentRunningCode.year, 2566)
+        XCTAssertEqual(documentRunningCode.wrappedValue, "Incomplete Data")
+    }
+    
+    func testYear_WithValidYearAndGregorianCalendar_ShouldNotAdjustYearAndReturnFormattedValue() {
+        // Given
+        var documentRunningCode = DocumentRunningCode(prefix: "DOC", calendarIdentifier: .gregorian)
+        
+        // When
+        documentRunningCode.year = 2023
+        
+        // Then
+        XCTAssertEqual(documentRunningCode.year, 2023)
+        XCTAssertEqual(documentRunningCode.wrappedValue, "Incomplete Data")
+    }
+    
+    func testMonth_WithValidMonth_ShouldReturnFormattedValue() {
+        // Given
+        var documentRunningCode = DocumentRunningCode(prefix: "DOC")
+        
+        // When
+        documentRunningCode.month = 6
+        
+        // Then
+        XCTAssertEqual(documentRunningCode.month, 6)
+        XCTAssertEqual(documentRunningCode.wrappedValue, "Incomplete Data")
+    }
+    
+    func testValue_WithValidValue_ShouldReturnFormattedValue() {
+        // Given
+        var documentRunningCode = DocumentRunningCode(prefix: "DOC")
+        
+        // When
+        documentRunningCode.value = 1234
+        
+        // Then
+        XCTAssertEqual(documentRunningCode.value, 1234)
+        XCTAssertEqual(documentRunningCode.wrappedValue, "Incomplete Data")
+    }
+    
+    func testWrappedValue_WithCompleteDataAndGregorianCalendar_ShouldReturnFormattedString() {
+        // Given
+        var documentRunningCode = DocumentRunningCode(prefix: "DOC", calendarIdentifier: .gregorian)
+        documentRunningCode.year = 2023
+        documentRunningCode.month = 6
+        documentRunningCode.value = 1234
+        
+        // Then
+        XCTAssertEqual(documentRunningCode.wrappedValue, "DOC-2306-1234")
+    }
+    
+    func testWrappedValue_WithCompleteDataAndBuddhistCalendar_ShouldReturnFormattedString() {
+        // Given
+        var documentRunningCode = DocumentRunningCode(prefix: "DOC", calendarIdentifier: .buddhist)
+        documentRunningCode.year = 2023
+        documentRunningCode.month = 6
+        documentRunningCode.value = 1234
+        
+        // Then
+        XCTAssertEqual(documentRunningCode.wrappedValue, "DOC-6606-1234")
+    }
+    
+    func testWrappedValue_WithIncompleteData_ShouldReturnIncompleteData() {
+        // Given
+        var documentRunningCode = DocumentRunningCode(prefix: "DOC")
+        documentRunningCode.year = 2023
+        documentRunningCode.month = 6
+        
+        // Then
+        XCTAssertEqual(documentRunningCode.wrappedValue, "Incomplete Data")
+    }
+}
+
+// Extension to provide stub data
+extension DocumentRunningCodeTests {
+    struct Stub {
+        static var completeDataGregorian: DocumentRunningCode {
+            var doc = DocumentRunningCode(prefix: "DOC", calendarIdentifier: .gregorian)
+            doc.year = 2023
+            doc.month = 6
+            doc.value = 1234
+            return doc
+        }
+        
+        static var completeDataBuddhist: DocumentRunningCode {
+            var doc = DocumentRunningCode(prefix: "DOC", calendarIdentifier: .buddhist)
+            doc.year = 2023
+            doc.month = 6
+            doc.value = 1234
+            return doc
+        }
+        
+        static var incompleteData: DocumentRunningCode {
+            var doc = DocumentRunningCode(prefix: "DOC")
+            doc.year = 2023
+            doc.month = 6
+            return doc
+        }
+    }
 }
