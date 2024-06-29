@@ -618,7 +618,6 @@ extension PurchaseOrderRepository {
         let additionalDiscountAmount: Double?
         let currency: CurrencySupported?
         let includedVat: Bool?
-        let vatRateOption: VatRateOption?
         
         init(reference: String?,
              note: String?,
@@ -630,8 +629,7 @@ extension PurchaseOrderRepository {
              orderDate: Date?,
              additionalDiscountAmount: Double?,
              currency: CurrencySupported?,
-             includedVat: Bool?,
-             vatRateOption: VatRateOption?) {
+             includedVat: Bool?) {
             self.reference = reference
             self.note = note
             self.paymentTermsDays = paymentTermsDays
@@ -643,7 +641,6 @@ extension PurchaseOrderRepository {
             self.additionalDiscountAmount = additionalDiscountAmount
             self.currency = currency
             self.includedVat = includedVat
-            self.vatRateOption = vatRateOption
         }
         
         func poItems() -> [PurchaseOrderItem]? {
@@ -705,7 +702,6 @@ extension PurchaseOrderRepository {
             validations.add("additional_discount_amount", as: Double.self, is: .range(0...))
             validations.add("currency", as: CurrencySupported.self, required: true)     
             validations.add("included_vat", as: Bool.self, required: true)
-            validations.add("vat_rate_option", as: VatRateOption.self, required: true)
             
             validations.add("items", as: [CreateItem].self, is: !.empty)
         }
@@ -722,7 +718,6 @@ extension PurchaseOrderRepository {
             case additionalDiscountAmount = "additional_discount_amount"
             case currency
             case includedVat = "included_vat"
-            case vatRateOption = "vat_rate_option"
         } 
     }
     

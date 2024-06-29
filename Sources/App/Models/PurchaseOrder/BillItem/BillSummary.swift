@@ -12,13 +12,16 @@ struct BillSummary {
     let items: [BillItem]
     let additionalDiscountAmount: Double // Additional discount amount
     let totalDiscountPerItem: Double
+    let vatAdjustment: Double // Vat adjustment
     
     init(items: [BillItem],
          additionalDiscountAmount: Double = 0,         
-         vatIncluded: Bool) {
+         vatIncluded: Bool,
+         vatAdjustment: Double = 0) {
         self.items = items
         self.additionalDiscountAmount = additionalDiscountAmount
         self.totalDiscountPerItem = additionalDiscountAmount / Double(items.count)
+        self.vatAdjustment = vatAdjustment
     }
        
     var totalAmountBeforeDiscount: Double {
@@ -26,7 +29,8 @@ struct BillSummary {
     }
     
     var totalAmountBeforeVat: Double {
-        return items.reduce(0) { $0 + $1.amountBeforeVat(withAdditionalDiscount: totalDiscountPerItem) }
+        let sum = items.reduce(0) { $0 + $1.amountBeforeVat(withAdditionalDiscount: totalDiscountPerItem) }
+        return sum - vatAdjustment
     }
         
     var totalAmountAfterVat: Double {
@@ -34,7 +38,8 @@ struct BillSummary {
     }
     
     var totalVatAmount: Double {
-        return items.reduce(0) { $0 + $1.vatAmount(withAdditionalDiscount: totalDiscountPerItem) }
+        let sum = items.reduce(0) { $0 + $1.vatAmount(withAdditionalDiscount: totalDiscountPerItem) }
+        return sum + vatAdjustment
     }
     
     var totalWithholdingTaxAmount: Double {

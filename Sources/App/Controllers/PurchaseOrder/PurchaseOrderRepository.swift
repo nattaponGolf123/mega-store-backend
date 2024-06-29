@@ -187,23 +187,7 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
         return PurchaseOrderResponse(po: model)
     }
     
-    /*
-     //PurchaseOrderRepository.Update
-     struct Update: Content, Validatable {
-         let reference: String?
-         let note: String?
-         let paymentTermsDays: Int?
-         let supplierId: UUID?
-         let deliveryDate: Date?
-         let items: [UpdateItem]?
-         let vatOption: PurchaseOrder.VatOption?
-         let orderDate: Date?
-         let additionalDiscountAmount: Double?
-         let currency: CurrencySupported?
-         let includedVat: Bool?
-         let vatRateOption: VatRateOption?
-         
-     */
+   
     func update(id: UUID,
                 with content: PurchaseOrderRepository.Update,
                 userId: UUID,
@@ -244,19 +228,13 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
             model.currency = currency
         }
         
-//        if let includedVat = content.includedVat {
-//            model.includedVat = includedVat
-//        }
-//        
-//        if let vatRateOption = content.vatRateOption {
-//            model.vatRate = vatRateOption.vatRate
-//        }
         
-//        if let orderDate = content.orderDate {
-//            model.orderDate = orderDate
-//        }
-        
-        
+        // should validate not over then delivery date
+        if let orderDate = content.orderDate,
+           orderDate <= model.deliveryDate {
+            model.orderDate = orderDate
+        }
+                
         
         if let productUUIDS = content.productUUIDs() {
             // validate exist productId
@@ -280,15 +258,24 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
             }
         }
         
-       
-        if let items = content.poItems() {
-          
-            let updateModel = model.replaceItems(items: items)
+       let poItems = content.poItems()
+        
+        if let includedVat = content.includedVat {
+            model.includedVat = includedVat
+            
+            // need to call re-calculate items
+            if poItems == nil {
+                model.recalculateItems()
+            }
+        }
+        
+        if let items = poItems {
+            model.replaceItems(items: items)
         }
         
         
         // update and validate
-        
+        try await model.save(on: db)
         
         return PurchaseOrderResponse(po: model)
     }

@@ -802,7 +802,6 @@ private extension PurchaseOrderTests {
                       year: 2024,
                       vatOption: vatOption,
                       includedVat: true,
-                      vatRate: ._7,
                       items: [],
                       supplierId: .init(),
                       customerId: .init())
