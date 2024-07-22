@@ -33,6 +33,7 @@ let package = Package(
 
             // Workaround for https://github.com/apple/swift-package-manager/issues/6940
             .product(name: "Vapor", package: "vapor"),
+            .product(name: "FluentMongoDriver", package: "fluent-mongo-driver"),
             .product(name: "MockableTest", package: "Mockable")
             
         ],swiftSettings: [
