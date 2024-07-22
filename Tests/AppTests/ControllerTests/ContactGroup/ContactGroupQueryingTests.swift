@@ -143,6 +143,6 @@ final class ContactGroupQueryingTests: XCTestCase {
         guard let mongoDB = db as? FluentMongoDriver.MongoDatabaseRepresentable else { return }
         
         // Drop the collection
-        try await mongoDB.raw[ContactGroup.schema].drop()
+        let _ = mongoDB.raw[ContactGroup.schema].drop()
     }
 }
