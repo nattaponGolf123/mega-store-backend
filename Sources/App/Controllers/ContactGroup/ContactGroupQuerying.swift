@@ -8,15 +8,17 @@
 import Foundation
 import Fluent
 import Vapor
+import Mockable
 
+@Mockable
 protocol ContactGroupQueryingProtocol {
     func fetchAll(
         on db: Database,
         showDeleted: Bool,
         page: Int,
         perPage: Int,
-        sortBy: ContactGroupRepository.SortBy,
-        sortOrder: ContactGroupRepository.SortOrder
+        sortBy: ContactGroupRequest.SortBy,
+        sortOrder: ContactGroupRequest.SortOrder
     ) async throws -> PaginatedResponse<ContactGroup>
     
     func findById(
@@ -34,24 +36,21 @@ protocol ContactGroupQueryingProtocol {
         on db: Database,
         page: Int,
         perPage: Int,
-        sortBy: ContactGroupRepository.SortBy,
-        sortOrder: ContactGroupRepository.SortOrder
+        sortBy: ContactGroupRequest.SortBy,
+        sortOrder: ContactGroupRequest.SortOrder
     ) async throws -> PaginatedResponse<ContactGroup>
     
-    func deleteAll(
-        on db: Database
-    ) async throws
 }
 
 class ContactGroupQuerying: ContactGroupQueryingProtocol {
-        
+    
     func fetchAll(
         on db: Database,
         showDeleted: Bool,
         page: Int,
         perPage: Int,
-        sortBy: ContactGroupRepository.SortBy,
-        sortOrder: ContactGroupRepository.SortOrder
+        sortBy: ContactGroupRequest.SortBy,
+        sortOrder: ContactGroupRequest.SortOrder
     ) async throws -> PaginatedResponse<ContactGroup> {
         let query = ContactGroup.query(on: db)
         
@@ -99,8 +98,8 @@ class ContactGroupQuerying: ContactGroupQueryingProtocol {
         on db: Database,
         page: Int,
         perPage: Int,
-        sortBy: ContactGroupRepository.SortBy,
-        sortOrder: ContactGroupRepository.SortOrder
+        sortBy: ContactGroupRequest.SortBy,
+        sortOrder: ContactGroupRequest.SortOrder
     ) async throws -> PaginatedResponse<ContactGroup> {
         let regexPattern = "(?i)\(name)"
         let query = ContactGroup.query(on: db).filter(\.$name =~ regexPattern)
@@ -124,18 +123,13 @@ class ContactGroupQuerying: ContactGroupQueryingProtocol {
         return response
     }
     
-    func deleteAll(
-        on db: Database
-    ) async throws {
-        try await ContactGroup.query(on: db).delete()
-    }
 }
 
 private extension ContactGroupQuerying {
     func sortQuery(
         query: QueryBuilder<ContactGroup>,
-        sortBy: ContactGroupRepository.SortBy,
-        sortOrder: ContactGroupRepository.SortOrder,
+        sortBy: ContactGroupRequest.SortBy,
+        sortOrder: ContactGroupRequest.SortOrder,
         page: Int,
         perPage: Int
     ) async throws -> [ContactGroup] {
@@ -158,19 +152,3 @@ private extension ContactGroupQuerying {
     }
 }
 
-/*
- extension ContactGroupRepository {
-     
-     enum SortBy: String, Codable {
-         case name
-         case createdAt = "created_at"
-     }
-     
-     enum SortOrder: String, Codable {
-         case asc
-         case desc
-     }
-     
- }
-
- */

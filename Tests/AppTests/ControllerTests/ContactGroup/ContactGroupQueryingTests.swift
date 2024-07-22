@@ -33,17 +33,12 @@ final class ContactGroupQueryingTests: XCTestCase {
         
         try await dropCollection(db)
     }
-    
-    override func setUpWithError() throws {
-           
-    }
 
     override func tearDown() async throws {
         
         app.shutdown()
         try await super.tearDown()
     }
-    
     
     func testFetchAll_ShouldReturnAllGroup() async throws {
         
@@ -132,9 +127,6 @@ final class ContactGroupQueryingTests: XCTestCase {
         try app.autoMigrate().wait()
     }
     
-    private func cleanDatabase(_ db: Database) async throws {
-        try await contactGroupQuerying.deleteAll(on: db)
-    }
     
     // drop collection
     private func dropCollection(_ db: Database) async throws {

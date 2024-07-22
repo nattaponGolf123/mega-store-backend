@@ -24,7 +24,10 @@ let package = Package(
                 .product(name: "JWT", package: "jwt"),
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "FluentMongoDriver", package: "fluent-mongo-driver"),
-                .product(name: "Mockable", package: "Mockable")
+                .product(name: "Mockable", package: "Mockable"),
+                .product(name: "MockableTest", package: "Mockable")
+            ],swiftSettings: [
+                .define("MOCKING", .when(configuration: .debug))
             ]
         ),
         .testTarget(name: "AppTests", dependencies: [

@@ -32,7 +32,7 @@ class ContactGroupController: RouteCollection {
     
     // GET /contact_groups?show_deleted=true&page=1&per_page=10
     func all(req: Request) async throws -> PaginatedResponse<ContactGroup> {        
-        let reqContent = try req.query.decode(ContactGroupRepository.Fetch.self)
+        let reqContent = try req.query.decode(ContactGroupRequest.Fetch.self)
 
         return try await repository.fetchAll(req: reqContent, on: req.db)
     }
@@ -90,7 +90,7 @@ class ContactGroupController: RouteCollection {
     // GET /contact_groups/search?name=xxx&page=1&per_page=10
     func search(req: Request) async throws -> PaginatedResponse<ContactGroup> {
         let _ = try validator.validateSearchQuery(req)
-        let reqContent = try req.query.decode(ContactGroupRepository.Search.self)
+        let reqContent = try req.query.decode(ContactGroupRequest.Search.self)
         
         return try await repository.search(req: reqContent, on: req.db)        
     }

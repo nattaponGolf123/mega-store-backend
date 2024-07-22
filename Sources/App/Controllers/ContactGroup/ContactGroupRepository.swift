@@ -6,14 +6,14 @@ import Mockable
 
 @Mockable
 protocol ContactGroupRepositoryProtocol {
-    func fetchAll(req: ContactGroupRepository.Fetch,
+    func fetchAll(req: ContactGroupRequest.Fetch,
                   on db: Database) async throws -> PaginatedResponse<ContactGroup>
-    func create(content: ContactGroupRepository.Create, on db: Database) async throws -> ContactGroup
+    func create(content: ContactGroupRequest.Create, on db: Database) async throws -> ContactGroup
     func find(id: UUID, on db: Database) async throws -> ContactGroup
     func find(name: String, on db: Database) async throws -> ContactGroup
-    func update(id: UUID, with content: ContactGroupRepository.Update, on db: Database) async throws -> ContactGroup
+    func update(id: UUID, with content: ContactGroupRequest.Update, on db: Database) async throws -> ContactGroup
     func delete(id: UUID, on db: Database) async throws -> ContactGroup
-    func search(req: ContactGroupRepository.Search, on db: Database) async throws -> PaginatedResponse<ContactGroup>
+    func search(req: ContactGroupRequest.Search, on db: Database) async throws -> PaginatedResponse<ContactGroup>
 }
 
 class ContactGroupRepository: ContactGroupRepositoryProtocol {
@@ -24,7 +24,7 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
         self.contactGroupQuerying = contactGroupQuerying
     }
     
-    func fetchAll(req: ContactGroupRepository.Fetch,
+    func fetchAll(req: ContactGroupRequest.Fetch,
                   on db: Database) async throws -> PaginatedResponse<ContactGroup> {
         do {
             let page = req.page
@@ -35,26 +35,33 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
                 perPage > 0
             else { throw DefaultError.invalidInput }
             
-            let query = ContactGroup.query(on: db)
+            let response = try await contactGroupQuerying.fetchAll(on: db,
+                                                                   showDeleted: req.showDeleted,
+                                                                   page: page,
+                                                                   perPage: perPage,
+                                                                   sortBy: req.sortBy,
+                                                                   sortOrder: req.sortOrder)
             
-            if req.showDeleted {
-                query.withDeleted()
-            } else {
-                query.filter(\.$deletedAt == nil)
-            }
+//            let query = ContactGroup.query(on: db)
+//            
+//            if req.showDeleted {
+//                query.withDeleted()
+//            } else {
+//                query.filter(\.$deletedAt == nil)
+//            }
             
-            let total = try await query.count()
-            let items = try await sortQuery(query: query,
-                                            sortBy: req.sortBy,
-                                            sortOrder: req.sortOrder,
-                                            page: page,
-                                            perPage: perPage)
-            
-            let response = PaginatedResponse(page: page,
-                                             perPage: perPage,
-                                             total: total,
-                                             items: items)
-            
+//            let total = try await query.count()
+//            let items = try await sortQuery(query: query,
+//                                            sortBy: req.sortBy,
+//                                            sortOrder: req.sortOrder,
+//                                            page: page,
+//                                            perPage: perPage)
+//            
+//            let response = PaginatedResponse(page: page,
+//                                             perPage: perPage,
+//                                             total: total,
+//                                             items: items)
+//            
             return response
         } catch {
             // Handle all other errors
@@ -62,7 +69,7 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
         }
     }
     
-    func create(content: ContactGroupRepository.Create, on db: Database) async throws -> ContactGroup {
+    func create(content: ContactGroupRequest.Create, on db: Database) async throws -> ContactGroup {
         do {
             // Initialize the ContactGroup from the validated content
             let newGroup = ContactGroup(name: content.name, description: content.description)
@@ -104,7 +111,7 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
         }
     }
     
-    func update(id: UUID, with content: ContactGroupRepository.Update, on db: Database) async throws -> ContactGroup {
+    func update(id: UUID, with content: ContactGroupRequest.Update, on db: Database) async throws -> ContactGroup {
         do {
             
             // Update the supplier group in the database
@@ -140,7 +147,7 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
         }
     }
     
-    func search(req: ContactGroupRepository.Search, on db: Database) async throws -> PaginatedResponse<ContactGroup> {
+    func search(req: ContactGroupRequest.Search, on db: Database) async throws -> PaginatedResponse<ContactGroup> {
         do {
             let perPage = req.perPage
             let page = req.page
@@ -179,8 +186,8 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
 
 private extension ContactGroupRepository {
     func sortQuery(query: QueryBuilder<ContactGroup>,
-                   sortBy: ContactGroupRepository.SortBy,
-                   sortOrder: ContactGroupRepository.SortOrder,
+                   sortBy: ContactGroupRequest.SortBy,
+                   sortOrder: ContactGroupRequest.SortOrder,
                    page: Int,
                    perPage: Int) async throws -> [ContactGroup] {
         switch sortBy {
@@ -205,7 +212,7 @@ private extension ContactGroupRepository {
 extension ContactGroupRepository {
     
     // Helper function to update supplier group fields in the database
-    static func updateFieldsBuilder(uuid: UUID, content: ContactGroupRepository.Update, db: Database) -> QueryBuilder<ContactGroup> {
+    static func updateFieldsBuilder(uuid: UUID, content: ContactGroupRequest.Update, db: Database) -> QueryBuilder<ContactGroup> {
         let updateBuilder = ContactGroup.query(on: db).filter(\.$id == uuid)
         
         if let name = content.name {

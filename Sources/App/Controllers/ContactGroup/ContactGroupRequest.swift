@@ -1,19 +1,7 @@
 import Foundation
 import Vapor
-import Fluent
-import FluentMongoDriver
 
-extension ContactGroupRepository {
-    
-    enum SortBy: String, Codable {
-        case name
-        case createdAt = "created_at"
-    }
-    
-    enum SortOrder: String, Codable {
-        case asc
-        case desc
-    }
+struct ContactGroupRequest {
     
     struct Fetch: Content {
         let showDeleted: Bool
@@ -28,8 +16,8 @@ extension ContactGroupRepository {
              sortBy: SortBy = .name,
              sortOrder: SortOrder = .asc) {
             self.showDeleted = showDeleted
-            self.page = page
-            self.perPage = perPage
+            self.page = max(page, 1)
+            self.perPage = max(perPage, 20)
             self.sortBy = sortBy
             self.sortOrder = sortOrder
         }
@@ -59,7 +47,7 @@ extension ContactGroupRepository {
             case sortBy = "sort_by"
             case sortOrder = "sort_order"
         }
-    }   
+    }
 
     struct Search: Content {
         let name: String
@@ -74,8 +62,8 @@ extension ContactGroupRepository {
              sortBy: SortBy = .name,
              sortOrder: SortOrder = .asc) {
             self.name = name
-            self.page = page
-            self.perPage = perPage
+            self.page = max(page, 1)
+            self.perPage = max(perPage, 20)
             self.sortBy = sortBy
             self.sortOrder = sortOrder
         }
@@ -155,5 +143,17 @@ extension ContactGroupRepository {
             validations.add("name", as: String.self,
                             is: .count(3...200))
         }
+    }
+}
+
+extension ContactGroupRequest {
+    enum SortBy: String, Codable {
+        case name
+        case createdAt = "created_at"
+    }
+    
+    enum SortOrder: String, Codable {
+        case asc
+        case desc
     }
 }

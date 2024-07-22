@@ -5,19 +5,133 @@
 //  Created by IntrodexMac on 22/7/2567 BE.
 //
 
-@testable import App
-import XCTVapor
+import XCTest
+import Vapor
+import Fluent
+import FluentMongoDriver
 import MockableTest
 
-final class ContactGroupRepositoryTests: XCTestCase {
+@testable import App
 
-    lazy var contactGroupRepository = ContactGroupRepository()
+final class ContactGroupRepositoryTests: XCTestCase {
     
-//   func testFetchAll_WithValideRequestParam_ShouldRetureValidResponse() async throws {
-//      given(contactGroupRepository)
-//   }
+    private(set) var app: Application!
+    private(set) var db: Database!
     
+    lazy var contactGroupQuerying = MockContactGroupQueryingProtocol()
+    var repo: ContactGroupRepository!
+    
+    
+    // Database configuration
+    let dbHost: String = "mongodb://localhost:27017/testdb"
+    
+    override func setUp() async throws {
+        try await super.setUp()
+        
+        app = Application(.testing)
+        try configure(app,
+                      dbHost: dbHost)
+        
+        db = app.db
+        //contactGroupQuerying = ContactGroupQuerying()
+        repo = .init(contactGroupQuerying: contactGroupQuerying)
+        
+        try await dropCollection(db)
+    }
+    
+    override func tearDown() async throws {
+        
+        app.shutdown()
+        try await super.tearDown()
+    }
+    
+    
+    func testFetchAll() async throws {
+        
+        given(contactGroupQuerying).fetchAll(on: .any,
+                                             showDeleted: .any,
+                                             page: .any,
+                                             perPage: .any,
+                                             sortBy: .any,
+                                             sortOrder: .any).willReturn(Stub.pageGroup)
+        
+        let req = ContactGroupRequest.Fetch(showDeleted: false,
+                                               page: 1,
+                                               perPage: 20,
+                                               sortBy: .createdAt,
+                                               sortOrder: .asc)
+        let response = try await repo.fetchAll(req: req,
+                                               on: db)
+        // Then
+        XCTAssertEqual(response.page, 1)
+        XCTAssertEqual(response.perPage, 20)
+        XCTAssertEqual(response.total, 2)
+        XCTAssertEqual(response.items.count, 2)
+        
+    }
 }
+
+private extension ContactGroupRepositoryTests {
+    struct Stub {
+        
+        static var groups: [ContactGroup] {
+            [
+                .init(name: "Group1"),
+                .init(name: "Group2")
+            ]
+        }
+        
+        static var groupsWithDeleted: [ContactGroup] {
+            [
+                .init(name: "Group1"),
+                .init(name: "Group2", deletedAt: Date())
+            ]
+        }
+        
+        static var pageGroup: PaginatedResponse<ContactGroup> {
+            let g = Self.groups
+            return .init(page: 1,
+                         perPage: 20,
+                         total: g.count,
+                         items: g)
+        }
+        
+        static var pageGroupWithDeleted: PaginatedResponse<ContactGroup> {
+            let g = Self.groupsWithDeleted
+            return .init(page: 1,
+                         perPage: 20,
+                         total: g.count,
+                         items: g)
+        }
+    }
+}
+
+private extension ContactGroupRepositoryTests {
+     func configure(_ app: Application,
+                           dbHost: String) throws {
+        // Database configuration
+        app.databases.use(try .mongo(connectionString: dbHost),
+                          as: .mongo)
+        
+        // Migrations
+        let migration = ContactGroupMigration()
+        app.migrations.add(migration)
+        
+        try app.autoMigrate().wait()
+    }
+    
+    
+    // drop collection
+    func dropCollection(_ db: Database) async throws {
+        
+        // Ensure the database is of type FluentMongoDriver.MongoDatabaseRepresentable
+        guard let mongoDB = db as? FluentMongoDriver.MongoDatabaseRepresentable else { return }
+        
+        // Drop the collection
+        let _ = mongoDB.raw[ContactGroup.schema].drop()
+    }
+}
+    
 
 /*
  @Mockable

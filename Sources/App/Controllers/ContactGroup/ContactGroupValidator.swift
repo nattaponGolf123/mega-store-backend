@@ -4,15 +4,15 @@ import Mockable
 
 @Mockable
 protocol ContactGroupValidatorProtocol {
-    func validateCreate(_ req: Request) throws -> ContactGroupRepository.Create
-    func validateUpdate(_ req: Request) throws -> (uuid: UUID, content: ContactGroupRepository.Update)
+    func validateCreate(_ req: Request) throws -> ContactGroupRequest.Create
+    func validateUpdate(_ req: Request) throws -> (uuid: UUID, content: ContactGroupRequest.Update)
     func validateID(_ req: Request) throws -> UUID
     func validateSearchQuery(_ req: Request) throws -> String
 }
 
 class ContactGroupValidator: ContactGroupValidatorProtocol {
-    typealias CreateContent = ContactGroupRepository.Create
-    typealias UpdateContent = ContactGroupRepository.Update
+    typealias CreateContent = ContactGroupRequest.Create
+    typealias UpdateContent = ContactGroupRequest.Update
 
     func validateCreate(_ req: Request) throws -> CreateContent {
         
@@ -34,8 +34,8 @@ class ContactGroupValidator: ContactGroupValidatorProtocol {
         }
     }
 
-    func validateUpdate(_ req: Request) throws -> (uuid: UUID, content: ContactGroupRepository.Update) {
-        typealias UpdateContactGroup = ContactGroupRepository.Update
+    func validateUpdate(_ req: Request) throws -> (uuid: UUID, content: ContactGroupRequest.Update) {
+        typealias UpdateContactGroup = ContactGroupRequest.Update
         do {
             // Decode the incoming ContactGroup and validate it
             let content: UpdateContactGroup = try req.content.decode(UpdateContactGroup.self)
