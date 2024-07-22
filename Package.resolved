@@ -109,6 +109,15 @@
       }
     },
     {
+      "identity" : "mockable",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Kolos65/Mockable",
+      "state" : {
+        "revision" : "81ccaead99a3c038c09345caa2888ae74b644ee9",
+        "version" : "0.0.9"
+      }
+    },
+    {
       "identity" : "mongokitten",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/orlandos-nl/MongoKitten.git",
@@ -259,6 +268,15 @@
       "state" : {
         "revision" : "0a5bc04095a675662cf24757cc0640aa2204253b",
         "version" : "1.0.2"
+      }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-syntax.git",
+      "state" : {
+        "revision" : "303e5c5c36d6a558407d364878df131c3546fad8",
+        "version" : "510.0.2"
       }
     },
     {

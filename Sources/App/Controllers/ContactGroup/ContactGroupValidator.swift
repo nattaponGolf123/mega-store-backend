@@ -1,6 +1,8 @@
 import Foundation
 import Vapor
+import Mockable
 
+@Mockable
 protocol ContactGroupValidatorProtocol {
     func validateCreate(_ req: Request) throws -> ContactGroupRepository.Create
     func validateUpdate(_ req: Request) throws -> (uuid: UUID, content: ContactGroupRepository.Update)

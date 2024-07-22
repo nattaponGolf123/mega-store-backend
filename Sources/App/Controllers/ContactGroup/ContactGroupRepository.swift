@@ -2,7 +2,9 @@ import Foundation
 import Vapor
 import Fluent
 import FluentMongoDriver
+import Mockable
 
+@Mockable
 protocol ContactGroupRepositoryProtocol {
     func fetchAll(req: ContactGroupRepository.Fetch,
                   on db: Database) async throws -> PaginatedResponse<ContactGroup>
@@ -15,6 +17,12 @@ protocol ContactGroupRepositoryProtocol {
 }
 
 class ContactGroupRepository: ContactGroupRepositoryProtocol {
+    
+    let contactGroupQuerying: ContactGroupQueryingProtocol
+    
+    init(contactGroupQuerying: ContactGroupQueryingProtocol = ContactGroupQuerying()) {
+        self.contactGroupQuerying = contactGroupQuerying
+    }
     
     func fetchAll(req: ContactGroupRepository.Fetch,
                   on db: Database) async throws -> PaginatedResponse<ContactGroup> {
@@ -215,3 +223,4 @@ extension ContactGroupRepository {
         return ContactGroup.query(on: db).filter(\.$id == uuid)
     }
 }
+

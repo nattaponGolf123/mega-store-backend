@@ -83,7 +83,17 @@ private func getMongoDBURLPath() -> String {
 }
 
 private func configMigrations(_ app: Application) async throws {
-    app.migrations.add(ModelSchemaMigration())    
+    
+    switch app.environment {
+    case .development:
+        app.migrations.add(ModelSchemaMigration())
+    case .production:
+        break
+    case .testing:
+        break
+    default:
+        break
+    }
     
     try await app.autoMigrate()
 }
@@ -101,5 +111,54 @@ private func configPwd(_ app: Application) {
         
     default:
         break
+    }
+}
+
+func dbHostURL(_ app: Application) throws -> String {
+//    guard
+//        let host = Environment.get("MONGO_HOST_URL"),
+//        let port = Environment.get("MONGO_PORT"),
+//        let dbName = Environment.get("MONGO_DB_NAME")
+//    else {
+//        //fatalError("Missing MONGO_HOST_URL or MONGO_PORT")
+//        throw Abort(.internalServerError,
+//                    reason: "Missing MONGO_HOST_URL or MONGO_PORT")
+//    }
+//    
+//    //mongodb://localhost:27017/testdb
+//    let url = "mongodb://\(host):\(port)/\(dbName)"
+//    print("MONGO_HOST_URL: \(url)")
+//    return url
+    
+    switch app.environment {
+    case .production:
+        print("ENV: production")
+        
+        return "mongodb://localhost:27017/MyDB"
+    case .development:
+        print("ENV: development")
+        
+        return "mongodb://localhost:27017/MyDB"
+        
+    case .testing:
+        print("ENV: testing")
+        
+        return "mongodb://localhost:27017/testdb"
+//        guard
+//            let host = Environment.get("MONGO_HOST_URL"),
+//            let port = Environment.get("MONGO_PORT")
+//        else {
+//            //fatalError("Missing MONGO_HOST_URL or MONGO_PORT")
+//            throw Abort(.internalServerError,
+//                        reason: "Missing MONGO_HOST_URL or MONGO_PORT")
+//        }
+//        
+//        let url = "mongodb://\(host):\(port)"
+//        print("MONGO_HOST_URL: \(url)")
+//        return url
+        
+    default:
+        throw Abort(.internalServerError,
+                    reason: "Missing MONGO_HOST_URL or MONGO_PORT")
     }
 }

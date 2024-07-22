@@ -13,6 +13,7 @@ let package = Package(
         .package(url: "https://github.com/vapor/jwt.git", from: "4.0.0"),
         .package(url: "https://github.com/vapor/fluent.git", from: "4.0.0"),
         .package(url: "https://github.com/vapor/fluent-mongo-driver.git", from: "1.0.0"),
+        .package(url: "https://github.com/Kolos65/Mockable", from: "0.0.1"),
     ],
     targets: [
         .executableTarget(
@@ -22,7 +23,8 @@ let package = Package(
                 .product(name: "Leaf", package: "leaf"),
                 .product(name: "JWT", package: "jwt"),
                 .product(name: "Fluent", package: "fluent"),
-                .product(name: "FluentMongoDriver", package: "fluent-mongo-driver")
+                .product(name: "FluentMongoDriver", package: "fluent-mongo-driver"),
+                .product(name: "Mockable", package: "Mockable")
             ]
         ),
         .testTarget(name: "AppTests", dependencies: [
@@ -31,6 +33,10 @@ let package = Package(
 
             // Workaround for https://github.com/apple/swift-package-manager/issues/6940
             .product(name: "Vapor", package: "vapor"),
+            .product(name: "MockableTest", package: "Mockable")
+            
+        ],swiftSettings: [
+            .define("MOCKING", .when(configuration: .debug))
         ])
     ]
 )
