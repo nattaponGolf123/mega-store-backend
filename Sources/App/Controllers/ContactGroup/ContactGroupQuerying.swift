@@ -24,7 +24,7 @@ protocol ContactGroupQueryingProtocol {
         on db: Database
     ) async throws -> ContactGroup?
     
-    func findByName(
+    func findFirstByName(
         name: String,
         on db: Database
     ) async throws -> ContactGroup?
@@ -87,7 +87,7 @@ class ContactGroupQuerying: ContactGroupQueryingProtocol {
         return try await ContactGroup.query(on: db).filter(\.$id == id).first()
     }
     
-    func findByName(
+    func findFirstByName(
         name: String,
         on db: Database
     ) async throws -> ContactGroup? {

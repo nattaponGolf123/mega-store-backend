@@ -70,7 +70,7 @@ final class ContactGroupQueryingTests: XCTestCase {
         try await group.create(on: db)
         
         // When
-        let result = try await contactGroupQuerying.findByName(name: "Group", on: db)
+        let result = try await contactGroupQuerying.findFirstByName(name: "Group", on: db)
         
         // Then
         XCTAssertNotNil(result)
