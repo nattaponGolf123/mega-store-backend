@@ -19,6 +19,31 @@ enum DefaultError {
     case error(message: String)
 }
 
+extension DefaultError: Equatable {
+    static func == (lhs: DefaultError, rhs: DefaultError) -> Bool {
+        switch (lhs, rhs) {
+        case (.notFound, .notFound):
+            return true
+        case (.unauthorized, .unauthorized):
+            return true
+        case (.invalidInput, .invalidInput):
+            return true
+        case (.serverError, .serverError):
+            return true
+        case (.internalError, .internalError):
+            return true
+        case (.dbConnectionError, .dbConnectionError):
+            return true
+        case (.insertFailed, .insertFailed):
+            return true
+        case (.error(let message1), .error(let message2)):
+            return message1 == message2
+        default:
+            return false
+        }
+    }
+}
+
 extension DefaultError: AbortError {
     var reason: String {
         switch self {

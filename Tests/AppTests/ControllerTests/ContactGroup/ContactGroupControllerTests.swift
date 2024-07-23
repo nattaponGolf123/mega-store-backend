@@ -29,12 +29,15 @@ final class ContactGroupControllerTests: XCTestCase {
         dbHost = try dbHostURL(app)
         
         try configure(app,
-                      dbHost: dbHost)
+                      dbHost: dbHost,
+                      migration: ContactGroupMigration())
         
         db = app.db
+        
         contactGroupRepository = ContactGroupRepository()
         
-        try await dropCollection(db)
+        try await dropCollection(db,
+                                 schema: ContactGroup.schema)
     }
 
     override func tearDown() async throws {
@@ -47,27 +50,4 @@ final class ContactGroupControllerTests: XCTestCase {
         
     }
 
-}
-
-extension ContactGroupControllerTests {
-    func configure(_ app: Application,
-                          dbHost: String) throws {
-       // Database configuration
-       app.databases.use(try .mongo(connectionString: dbHost),
-                         as: .mongo)
-       
-       // Migrations
-       app.migrations.add(ContactGroupMigration())
-       
-       try app.autoMigrate().wait()
-   }
-           
-   func dropCollection(_ db: Database) async throws {
-       
-       // Ensure the database is of type FluentMongoDriver.MongoDatabaseRepresentable
-       guard let mongoDB = db as? FluentMongoDriver.MongoDatabaseRepresentable else { return }
-       
-       // Drop the collection
-       let _ = mongoDB.raw[ContactGroup.schema].drop()
-   }
 }

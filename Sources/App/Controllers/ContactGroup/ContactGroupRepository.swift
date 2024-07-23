@@ -21,12 +21,12 @@ protocol ContactGroupRepositoryProtocol {
     func fetchById(
         request: ContactGroupRequest.FetchById,
         on db: Database
-    ) async throws -> ContactGroup?
+    ) async throws -> ContactGroup
     
     func fetchByName(
         request: ContactGroupRequest.FetchByName,
         on db: Database
-    ) async throws -> ContactGroup?
+    ) async throws -> ContactGroup
     
     func searchByName(
         request: ContactGroupRequest.Search,
@@ -86,15 +86,27 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
     func fetchById(
         request: ContactGroupRequest.FetchById,
         on db: Database
-    ) async throws -> ContactGroup? {
-        return try await ContactGroup.query(on: db).filter(\.$id == request.id).first()
+    ) async throws -> ContactGroup {
+        guard
+            let found = try await ContactGroup.query(on: db).filter(\.$id == request.id).first()
+        else {
+            throw DefaultError.notFound
+        }
+        
+        return found
     }
     
     func fetchByName(
         request: ContactGroupRequest.FetchByName,
         on db: Database
-    ) async throws -> ContactGroup? {
-        return try await ContactGroup.query(on: db).filter(\.$name == request.name).first()
+    ) async throws -> ContactGroup {
+        guard
+            let found = try await ContactGroup.query(on: db).filter(\.$name == request.name).first()
+        else {
+            throw DefaultError.notFound
+        }
+        
+        return found
     }
     
     func searchByName(
@@ -128,15 +140,17 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
         on db: Database
     ) async throws -> ContactGroup {
         // prevent duplicate name
-        if let _ = try await fetchByName(request: .init(name: request.name),
-                                         on: db) {
+        let found = try? await fetchByName(request: .init(name: request.name),
+                                          on: db)
+        if let _ = found {
             throw CommonError.duplicateName
         }
-        
-        let group = ContactGroup(name: request.name,
-                                 description: request.description)
-        try await group.save(on: db)
-        return group
+        else {
+            let group = ContactGroup(name: request.name,
+                                     description: request.description)
+            try await group.save(on: db)
+            return group
+        }
     }
     
     func update(
@@ -144,18 +158,24 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
         request: ContactGroupRequest.Update,
         on db: Database
     ) async throws -> ContactGroup {
-        guard
-            var group = try await fetchById(request: .init(id: byId.id),
-                                           on: db)
-        else { throw Abort(.notFound) }
+        let group = try await fetchById(request: .init(id: byId.id), on: db)
       
         if let name = request.name {
             // prevent duplicate name
-            if let _ = try await fetchByName(request: .init(name: name),
-                                             on: db) {
+            let found = try? await fetchByName(request: .init(name: name),
+                                              on: db)
+            if let _ = found {
                 throw CommonError.duplicateName
             }
             
+            // prevent duplicate name
+//            do {
+//                let _ = try await fetchByName(request: .init(name: name),
+//                                              on: db)
+//                throw CommonError.duplicateName
+//            } catch {
+//                // not not thing
+//            }
             group.name = name
         }
         
@@ -171,11 +191,8 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
         byId: ContactGroupRequest.FetchById,
         on db: Database
     ) async throws -> ContactGroup {
-        guard
-            var group = try await fetchById(request: .init(id: byId.id),
-                                           on: db)
-        else { throw Abort(.notFound) }
-        
+        let group = try await fetchById(request: .init(id: byId.id),
+                                        on: db)
         try await group.delete(on: db)
         return group
     }
@@ -190,20 +207,26 @@ private extension ContactGroupRepository {
         page: Int,
         perPage: Int
     ) async throws -> [ContactGroup] {
+        let pageIndex = (page - 1)
+        let pageStart = pageIndex * perPage
+        let pageEnd = pageStart + perPage
+        
+        let range = pageStart..<pageEnd
+        
         switch sortBy {
         case .name:
             switch sortOrder {
             case .asc:
-                return try await query.sort(\.$name).range((page - 1) * perPage..<(page * perPage)).all()
+                return try await query.sort(\.$name).range(range).all()
             case .desc:
-                return try await query.sort(\.$name, .descending).range((page - 1) * perPage..<(page * perPage)).all()
+                return try await query.sort(\.$name, .descending).range(range).all()
             }
         case .createdAt:
             switch sortOrder {
             case .asc:
-                return try await query.sort(\.$createdAt).range((page - 1) * perPage..<(page * perPage)).all()
+                return try await query.sort(\.$createdAt).range(range).all()
             case .desc:
-                return try await query.sort(\.$createdAt, .descending).range((page - 1) * perPage..<(page * perPage)).all()
+                return try await query.sort(\.$createdAt, .descending).range(range).all()
             }
         }
     }

@@ -50,14 +50,8 @@ class ContactGroupController: RouteCollection {
     func getByID(req: Request) async throws -> ContactGroup {
         let content = try validator.validateID(req)
         
-        guard 
-            let found = try await repository.fetchById(request: content,
-                                                       on: req.db)
-        else {
-            throw DefaultError.notFound
-        }
-        
-        return found
+        return try await repository.fetchById(request: content,
+                                              on: req.db)
     }
     
     // PUT /contact_groups/:id

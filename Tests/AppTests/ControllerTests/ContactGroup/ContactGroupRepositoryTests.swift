@@ -28,13 +28,15 @@ final class ContactGroupRepositoryTests: XCTestCase {
         dbHost = try dbHostURL(app)
         
         try configure(app,
-                      dbHost: dbHost)
-        
+                      dbHost: dbHost,
+                      migration: ContactGroupMigration())
         
         db = app.db
+        
         contactGroupRepository = ContactGroupRepository()
         
-        try await dropCollection(db)
+        try await dropCollection(db,
+                                 schema: ContactGroup.schema)
     }
 
     override func tearDown() async throws {
@@ -43,6 +45,7 @@ final class ContactGroupRepositoryTests: XCTestCase {
         try await super.tearDown()
     }
     
+    //MARK: fetchAll
     func testFetchAll_ShouldReturnAllGroup() async throws {
         
         // Given
@@ -76,6 +79,40 @@ final class ContactGroupRepositoryTests: XCTestCase {
         XCTAssertEqual(result.items.count, 2)
     }
     
+    //perPage min at 20
+    func testFetchAll_WithPagination_ShouldReturnGroup() async throws {
+        
+        // Given
+        let groups = Stub.group40
+        await createGroups(groups: groups,
+                           db: db)
+        // When
+        let result = try await contactGroupRepository.fetchAll(request: .init(page: 2,
+                                                                              perPage: 25),
+                                                               on: db)
+        
+        // Then
+        XCTAssertEqual(result.items.count, 15)
+    }
+    
+    func testFetchAll_WithSort_ShouldReturnGroup() async throws {
+        
+        // Given
+        let group1 = ContactGroup(name: "Group1")
+        let group2 = ContactGroup(name: "Group2")
+        try await group1.create(on: db)
+        try await group2.create(on: db)
+        
+        // When
+        let result = try await contactGroupRepository.fetchAll(request: .init(sortBy: .name, sortOrder: .desc),
+                                                               on: db)
+        
+        // Then
+        XCTAssertEqual(result.items.count, 2)
+        XCTAssertEqual(result.items.first?.name, "Group2")
+    }
+    
+    //MARK: fetchById
     func testFetchById_ShouldReturnGroup() async throws {
         
         // Given
@@ -88,9 +125,10 @@ final class ContactGroupRepositoryTests: XCTestCase {
         
         // Then
         XCTAssertNotNil(result)
-        XCTAssertEqual(result?.name, "Group")
+        XCTAssertEqual(result.name, "Group")
     }
     
+    //MARK: fetchByName
     func testFindFirstByName_ShouldReturnGroup() async throws {
         
         // Given
@@ -103,9 +141,10 @@ final class ContactGroupRepositoryTests: XCTestCase {
         
         // Then
         XCTAssertNotNil(result)
-        XCTAssertEqual(result?.name, "Group")
+        XCTAssertEqual(result.name, "Group")
     }
     
+    //MARK: searchByName
     func testSearchByName_WithExistChar_ShouldReturnGroups() async throws {
         
         // Given
@@ -122,29 +161,177 @@ final class ContactGroupRepositoryTests: XCTestCase {
         XCTAssertEqual(result.items.count, 2)
     }
     
+    func testSearchByName_WithNotExistChar_ShouldNotFoundAnyGroup() async throws {
+        
+        // Given
+        let group1 = ContactGroup(name: "Group1")
+        let group2 = ContactGroup(name: "Group2")
+        try await group1.create(on: db)
+        try await group2.create(on: db)
+        
+        // When
+        let result = try await contactGroupRepository.searchByName(request: .init(query: "X"),
+                                                                   on: db)
+        
+        // Then
+        XCTAssertEqual(result.items.count, 0)
+    }
+    
+    //MARK: create
+    func testCreate_ShouldCreateGroup() async throws {
+        
+        // Given
+        let request = ContactGroupRequest.Create(name: "Group")
+        
+        // When
+        let result = try await contactGroupRepository.create(request: request,
+                                                            on: db)
+        
+        // Then
+        XCTAssertEqual(result.name, "Group")
+    }
+    
+    func testCreate_WithDuplicateName_ShouldThrowError() async throws {
+        
+        // Given
+        let group = ContactGroup(name: "Group")
+        try await group.create(on: db)
+        
+        let request = ContactGroupRequest.Create(name: "Group")
+        
+        // When
+        do {
+            _ = try await contactGroupRepository.create(request: request,
+                                                        on: db)
+            XCTFail("Should throw error")
+        } catch {
+            // Then
+            XCTAssertEqual(error as? CommonError, .duplicateName)
+        }
+    }
+    
+    func testCreate_WithNameAndDescription_ShouldCreateGroup() async throws {
+        
+        // Given
+        let request = ContactGroupRequest.Create(name: "Group",
+                                                 description: "Des")
+        
+        // When
+        let result = try await contactGroupRepository.create(request: request,
+                                                            on: db)
+        
+        // Then
+        XCTAssertEqual(result.name, "Group")
+        XCTAssertEqual(result.description ?? "", "Des")
+    }
+    
+    //MARK: update
+    func testUpdate_WithNameAndDescription_ShouldUpdateGroup() async throws {
+        
+        // Given
+        let group = ContactGroup(name: "Group")
+        try await group.create(on: db)
+        
+        let request = ContactGroupRequest.Update(name: "Group2",
+                                                 description: "Des")
+        
+        let fetchById = ContactGroupRequest.FetchById(id: group.id!)
+        
+        // When
+        let result = try await contactGroupRepository.update(byId: fetchById,
+                                                             request: request,
+                                                             on: db)
+        // Then
+        XCTAssertEqual(result.name, "Group2")
+    }
+    
+    func testUpdate_WithDescription_ShouldUpdateGroup() async throws {
+        
+        // Given
+        let group = ContactGroup(name: "Group")
+        try await group.create(on: db)
+        
+        let request = ContactGroupRequest.Update(name: nil,
+                                                 description: "Des")
+        
+        let fetchById = ContactGroupRequest.FetchById(id: group.id!)
+        
+        // When
+        let result = try await contactGroupRepository.update(byId: fetchById,
+                                                             request: request,
+                                                             on: db)
+        // Then
+        XCTAssertEqual(result.description ?? "", "Des")
+    }
+    
+    func testUpdate_WithDuplicateName_ShouldThrowError() async throws {
+        
+        // Given
+        let group1 = ContactGroup(name: "Group1")
+        let group2 = ContactGroup(name: "Group2")
+        try await group1.create(on: db)
+        try await group2.create(on: db)
+        
+        let request = ContactGroupRequest.Update(name: "Group2",
+                                                 description: "Des")
+        
+        let fetchById = ContactGroupRequest.FetchById(id: group1.id!)
+        
+        // When
+        do {
+            _ = try await contactGroupRepository.update(byId: fetchById,
+                                                        request: request,
+                                                        on: db)
+            XCTFail("Should throw error")
+        } catch {
+            // Then
+            XCTAssertEqual(error as? CommonError, .duplicateName)
+        }
+    }
+    
+    func testUpdate_WithNotFoundId_ShouldThrowError() async throws {
+        
+        // Given
+        let request = ContactGroupRequest.Update(name: "Group2",
+                                                 description: "Des")
+        
+        let fetchById = ContactGroupRequest.FetchById(id: UUID())
+        
+        // When
+        do {
+            _ = try await contactGroupRepository.update(byId: fetchById,
+                                                        request: request,
+                                                        on: db)
+            XCTFail("Should throw error")
+        } catch {
+            // Then
+            XCTAssertEqual(error as? DefaultError, .notFound)
+        }
+    }
+    
+    //MARK: delete
+    func testDelete_ShouldDeleteGroup() async throws {
+        
+        // Given
+        let group = ContactGroup(name: "Group")
+        try await group.create(on: db)
+        
+        let fetchById = ContactGroupRequest.FetchById(id: group.id!)
+        
+        // When
+        let result = try await contactGroupRepository.delete(byId: fetchById,
+                                                            on: db)
+        
+        // Then
+        XCTAssertNotNil(result.deletedAt)
+    }
 }
 
 private extension ContactGroupRepositoryTests {
-    
-     func configure(_ app: Application,
-                           dbHost: String) throws {
-        // Database configuration
-        app.databases.use(try .mongo(connectionString: dbHost),
-                          as: .mongo)
-        
-        // Migrations
-        app.migrations.add(ContactGroupMigration())
-        
-        try app.autoMigrate().wait()
-    }
-            
-    func dropCollection(_ db: Database) async throws {
-        
-        // Ensure the database is of type FluentMongoDriver.MongoDatabaseRepresentable
-        guard let mongoDB = db as? FluentMongoDriver.MongoDatabaseRepresentable else { return }
-        
-        // Drop the collection
-        let _ = mongoDB.raw[ContactGroup.schema].drop()
+    struct Stub {
+        static var group40: [ContactGroup] {
+            (0..<40).map { ContactGroup(name: "Group\($0)") }
+        }
     }
 }
 
