@@ -19,14 +19,17 @@ final class ContactGroupRepositoryTests: XCTestCase {
     var contactGroupRepository: ContactGroupRepository!
     
     // Database configuration
-    let dbHost: String = "mongodb://localhost:27017/testdb"
+    var dbHost: String!
     
     override func setUp() async throws {
         try await super.setUp()
         
         app = Application(.testing)
+        dbHost = try dbHostURL(app)
+        
         try configure(app,
                       dbHost: dbHost)
+        
         
         db = app.db
         contactGroupRepository = ContactGroupRepository()
@@ -129,7 +132,7 @@ private extension ContactGroupRepositoryTests {
         app.databases.use(try .mongo(connectionString: dbHost),
                           as: .mongo)
         
-        // Migrations        
+        // Migrations
         app.migrations.add(ContactGroupMigration())
         
         try app.autoMigrate().wait()
