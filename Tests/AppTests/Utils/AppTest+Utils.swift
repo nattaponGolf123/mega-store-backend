@@ -23,7 +23,7 @@ extension XCTestCase {
         // Migrations
         app.migrations.add(migration)
         
-        try app.autoMigrate().wait()
+        try app.autoMigrate().wait()                
     }
     
     // Assuming `groups` is an array of ContactGroup objects

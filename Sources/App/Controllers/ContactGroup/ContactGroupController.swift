@@ -33,7 +33,6 @@ class ContactGroupController: RouteCollection {
     // GET /contact_groups?show_deleted=true&page=1&per_page=10
     func all(req: Request) async throws -> PaginatedResponse<ContactGroup> {        
         let content = try req.query.decode(ContactGroupRequest.FetchAll.self)
-
         return try await repository.fetchAll(request: content,
                                              on: req.db)
     }
@@ -61,30 +60,6 @@ class ContactGroupController: RouteCollection {
         return try await repository.update(byId: id,
                                            request: content,
                                            on: req.db)
-        
-//        do {
-//            // check if name is duplicate
-//            guard let name = content.name else { throw DefaultError.invalidInput }
-//            
-//            let _ = try await repository.find(name: name, on: req.db)
-//            
-//            throw CommonError.duplicateName
-//            
-//        } catch let error as DefaultError {
-//            switch error {
-//            case .notFound: // no duplicate
-//                return try await repository.update(id: uuid, with: content, on: req.db)
-//            default:
-//                throw error
-//            }
-//            
-//        } catch let error as CommonError {
-//            throw error
-//            
-//        } catch {
-//            // Handle all other errors
-//            throw DefaultError.error(message: error.localizedDescription)
-//        }
     }
 
     // DELETE /contact_groups/:id
@@ -102,9 +77,5 @@ class ContactGroupController: RouteCollection {
         
         return try await repository.searchByName(request: content,
                                                  on: req.db)
-//        let _ = try validator.validateSearchQuery(req)
-//        let reqContent = try req.query.decode(ContactGroupRequest.Search.self)
-//        
-//        return try await repository.search(req: reqContent, on: req.db)        
     }
 }

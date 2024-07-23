@@ -3,32 +3,20 @@ import Leaf
 
 func routes(_ app: Application) throws {
     
-    // switch app.environment {
-    // case .testing:
-    //     try registerTestingRoutes(app)
-    //     return
-    // default:
-    //     break
-    // }
+     switch app.environment {
+     case .testing:
+         try registerTestingRoutes(app)
+         return
+     default:
+         break
+     }
     
     // POC section
     app.get { req async in
         "Welcome to Swift Vapor Playground"
     }
-
-    // app.get("hello") { req async throws -> View in
-    //     return try await req.view.render("hello", ["name": "Leaf"])
-    // }
     
-    // app.get("categories") { req async throws -> HTTPStatus in
-    //     try await req.db.schema("Categories")
-    //         .id()
-    //         .field("name", .string, .required)
-    //         .field("product", .uuid, .references("Products", "id"))
-    //         .create()
-        
-    //     return .ok
-    // }
+
     // =========================
     
     // no auth
@@ -53,15 +41,22 @@ func routes(_ app: Application) throws {
     
 }
 
-// func registerTestingRoutes(_ app: Application) throws {
-//     // no auth
+ func registerTestingRoutes(_ app: Application) throws {
+          
+     app.get("test") { req async throws -> HTTPStatus in
+         return .ok
+     }
+     
+     try app.register(collection: ContactGroupController())
+     
+     // no auth
 //     try app.register(collection: AuthController())
 //     try app.register(collection: ProductController())
-    
+//    
 //     // init stub datasource
 //     try LocalDatastore.shared.save(fileName: "products",
 //                                    data: LocalProducts.Stub.applDevices)
-    
+//    
 //     try LocalDatastore.shared.save(fileName: "users",
 //                                    data: Users.Stub.allUsers)
-// }
+ }

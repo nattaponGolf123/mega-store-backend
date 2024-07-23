@@ -24,11 +24,11 @@ struct ContactGroupRequest {
         
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.showDeleted = (try? container.decode(Bool.self, forKey: .showDeleted)) ?? false
-            self.page = (try? container.decode(Int.self, forKey: .page)) ?? 1
-            self.perPage = (try? container.decode(Int.self, forKey: .perPage)) ?? 20
-            self.sortBy = (try? container.decode(SortBy.self, forKey: .sortBy)) ?? .name
-            self.sortOrder = (try? container.decode(SortOrder.self, forKey: .sortOrder)) ?? .asc
+            self.showDeleted = (try? container.decodeIfPresent(Bool.self, forKey: .showDeleted)) ?? false
+            self.page = (try? container.decodeIfPresent(Int.self, forKey: .page)) ?? 1
+            self.perPage = (try? container.decodeIfPresent(Int.self, forKey: .perPage)) ?? 20
+            self.sortBy = (try? container.decodeIfPresent(SortBy.self, forKey: .sortBy)) ?? .name
+            self.sortOrder = (try? container.decodeIfPresent(SortOrder.self, forKey: .sortOrder)) ?? .asc
         }
         
         func encode(to encoder: Encoder) throws {
