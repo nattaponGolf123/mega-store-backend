@@ -158,7 +158,7 @@ final class ContactGroupRequestTests: XCTestCase {
         let data = try encoder.encode(search)
         let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
         
-        XCTAssertEqual(jsonObject?["query"] as? String, "Test")
+        XCTAssertEqual(jsonObject?["q"] as? String, "Test")
         XCTAssertEqual(jsonObject?["page"] as? Int, 2)
         XCTAssertEqual(jsonObject?["per_page"] as? Int, 50)
         XCTAssertEqual(jsonObject?["sort_by"] as? String, "created_at")
@@ -168,7 +168,7 @@ final class ContactGroupRequestTests: XCTestCase {
     func testSearchDecode_WithValidJSON_ShouldReturnInstance() throws {
         let json = """
         {
-            "query": "Test",
+            "q": "Test",
             "page": 2,
             "per_page": 50,
             "sort_by": "created_at",
