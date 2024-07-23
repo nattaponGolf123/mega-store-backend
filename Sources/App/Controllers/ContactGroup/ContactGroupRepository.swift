@@ -1,195 +1,195 @@
+//
+//  File.swift
+//
+//
+//  Created by IntrodexMac on 22/7/2567 BE.
+//
+
 import Foundation
-import Vapor
 import Fluent
-import FluentMongoDriver
+import Vapor
 import Mockable
 
 @Mockable
 protocol ContactGroupRepositoryProtocol {
-    func fetchAll(req: ContactGroupRequest.Fetch,
-                  on db: Database) async throws -> PaginatedResponse<ContactGroup>
-    func create(content: ContactGroupRequest.Create, on db: Database) async throws -> ContactGroup
-    func find(id: UUID, on db: Database) async throws -> ContactGroup
-    func find(name: String, on db: Database) async throws -> ContactGroup
-    func update(id: UUID, with content: ContactGroupRequest.Update, on db: Database) async throws -> ContactGroup
-    func delete(id: UUID, on db: Database) async throws -> ContactGroup
-    func search(req: ContactGroupRequest.Search, on db: Database) async throws -> PaginatedResponse<ContactGroup>
+
+    func fetchAll(
+        request: ContactGroupRequest.FetchAll,
+        on db: Database
+    ) async throws -> PaginatedResponse<ContactGroup>
+    
+    func fetchById(
+        request: ContactGroupRequest.FetchById,
+        on db: Database
+    ) async throws -> ContactGroup?
+    
+    func fetchByName(
+        request: ContactGroupRequest.FetchByName,
+        on db: Database
+    ) async throws -> ContactGroup?
+    
+    func searchByName(
+        request: ContactGroupRequest.Search,
+        on db: Database
+    ) async throws -> PaginatedResponse<ContactGroup>
+    
+    func create(
+        request: ContactGroupRequest.Create,
+        on db: Database
+    ) async throws -> ContactGroup
+    
+    func update(
+        byId: ContactGroupRequest.FetchById,
+        request: ContactGroupRequest.Update,
+        on db: Database
+    ) async throws -> ContactGroup
+    
+    func delete(
+        byId: ContactGroupRequest.FetchById,
+        on db: Database
+    ) async throws -> ContactGroup
 }
 
 class ContactGroupRepository: ContactGroupRepositoryProtocol {
-    
-    let contactGroupQuerying: ContactGroupQueryingProtocol
-    
-    init(contactGroupQuerying: ContactGroupQueryingProtocol = ContactGroupQuerying()) {
-        self.contactGroupQuerying = contactGroupQuerying
-    }
-    
-    func fetchAll(req: ContactGroupRequest.Fetch,
-                  on db: Database) async throws -> PaginatedResponse<ContactGroup> {
-        do {
-            let page = req.page
-            let perPage = req.perPage
-            
-            guard
-                page > 0,
-                perPage > 0
-            else { throw DefaultError.invalidInput }
-            
-            let response = try await contactGroupQuerying.fetchAll(on: db,
-                                                                   showDeleted: req.showDeleted,
-                                                                   page: page,
-                                                                   perPage: perPage,
-                                                                   sortBy: req.sortBy,
-                                                                   sortOrder: req.sortOrder)
-            
-//            let query = ContactGroup.query(on: db)
-//            
-//            if req.showDeleted {
-//                query.withDeleted()
-//            } else {
-//                query.filter(\.$deletedAt == nil)
-//            }
-            
-//            let total = try await query.count()
-//            let items = try await sortQuery(query: query,
-//                                            sortBy: req.sortBy,
-//                                            sortOrder: req.sortOrder,
-//                                            page: page,
-//                                            perPage: perPage)
-//            
-//            let response = PaginatedResponse(page: page,
-//                                             perPage: perPage,
-//                                             total: total,
-//                                             items: items)
-//            
-            return response
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
+        
+    func fetchAll(
+        request: ContactGroupRequest.FetchAll,
+        on db: Database
+    ) async throws -> PaginatedResponse<ContactGroup> {
+        let query = ContactGroup.query(on: db)
+        
+        if request.showDeleted {
+            query.withDeleted()
+        } else {
+            query.filter(\.$deletedAt == nil)
         }
+        
+        let total = try await query.count()
+        let items = try await sortQuery(
+            query: query,
+            sortBy: request.sortBy,
+            sortOrder: request.sortOrder,
+            page: request.page,
+            perPage: request.perPage
+        )
+        
+        let response = PaginatedResponse(
+            page: request.page,
+            perPage: request.perPage,
+            total: total,
+            items: items
+        )
+        
+        return response
     }
     
-    func create(content: ContactGroupRequest.Create, on db: Database) async throws -> ContactGroup {
-        do {
-            // Initialize the ContactGroup from the validated content
-            let newGroup = ContactGroup(name: content.name, description: content.description)
-            
-            // Attempt to save the new group to the database
-            try await newGroup.save(on: db)
-            
-            // Return the newly created group
-            return newGroup
-        } catch let error as FluentMongoDriver.FluentMongoError where error == .insertFailed {
+    func fetchById(
+        request: ContactGroupRequest.FetchById,
+        on db: Database
+    ) async throws -> ContactGroup? {
+        return try await ContactGroup.query(on: db).filter(\.$id == request.id).first()
+    }
+    
+    func fetchByName(
+        request: ContactGroupRequest.FetchByName,
+        on db: Database
+    ) async throws -> ContactGroup? {
+        return try await ContactGroup.query(on: db).filter(\.$name == request.name).first()
+    }
+    
+    func searchByName(
+        request: ContactGroupRequest.Search,
+        on db: Database
+    ) async throws -> PaginatedResponse<ContactGroup> {
+        let regexPattern = "(?i)\(request.query)"
+        let query = ContactGroup.query(on: db).filter(\.$name =~ regexPattern)
+        
+        let total = try await query.count()
+        let items = try await sortQuery(
+            query: query,
+            sortBy: request.sortBy,
+            sortOrder: request.sortOrder,
+            page: request.page,
+            perPage: request.perPage
+        )
+        
+        let response = PaginatedResponse(
+            page: request.page,
+            perPage: request.perPage,
+            total: total,
+            items: items
+        )
+        
+        return response
+    }
+    
+    func create(
+        request: ContactGroupRequest.Create,
+        on db: Database
+    ) async throws -> ContactGroup {
+        // prevent duplicate name
+        if let _ = try await fetchByName(request: .init(name: request.name),
+                                         on: db) {
             throw CommonError.duplicateName
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
         }
+        
+        let group = ContactGroup(name: request.name,
+                                 description: request.description)
+        try await group.save(on: db)
+        return group
     }
     
-    func find(id: UUID, on db: Database) async throws -> ContactGroup {
-        do {
-            guard let group = try await ContactGroup.query(on: db).filter(\.$id == id).first() else { throw DefaultError.notFound }
+    func update(
+        byId: ContactGroupRequest.FetchById,
+        request: ContactGroupRequest.Update,
+        on db: Database
+    ) async throws -> ContactGroup {
+        guard
+            var group = try await fetchById(request: .init(id: byId.id),
+                                           on: db)
+        else { throw Abort(.notFound) }
+      
+        if let name = request.name {
+            // prevent duplicate name
+            if let _ = try await fetchByName(request: .init(name: name),
+                                             on: db) {
+                throw CommonError.duplicateName
+            }
             
-            return group
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
+            group.name = name
         }
+        
+        if let description = request.description {
+            group.description = description
+        }
+        
+        try await group.save(on: db)
+        return group
     }
     
-    func find(name: String, on db: Database) async throws -> ContactGroup {
-        do {
-            guard let group = try await ContactGroup.query(on: db).filter(\.$name == name).first() else { throw DefaultError.notFound }
-            
-            return group
-        } catch let error as DefaultError {
-            throw error
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
-        }
+    func delete(
+        byId: ContactGroupRequest.FetchById,
+        on db: Database
+    ) async throws -> ContactGroup {
+        guard
+            var group = try await fetchById(request: .init(id: byId.id),
+                                           on: db)
+        else { throw Abort(.notFound) }
+        
+        try await group.delete(on: db)
+        return group
     }
     
-    func update(id: UUID, with content: ContactGroupRequest.Update, on db: Database) async throws -> ContactGroup {
-        do {
-            
-            // Update the supplier group in the database
-            let updateBuilder = Self.updateFieldsBuilder(uuid: id, content: content, db: db)
-            try await updateBuilder.update()
-            
-            // Retrieve the updated supplier group
-            guard let group = try await Self.getByIDBuilder(uuid: id, db: db).first() else { throw DefaultError.notFound }
-            
-            return group
-        } catch let error as FluentMongoDriver.FluentMongoError where error == .insertFailed {
-            throw CommonError.duplicateName
-        } catch let error as DefaultError {
-            throw error
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
-        }
-    }
-    
-    func delete(id: UUID, on db: Database) async throws -> ContactGroup {
-        do {
-            guard let group = try await ContactGroup.query(on: db).filter(\.$id == id).first() else { throw DefaultError.notFound }
-            
-            try await group.delete(on: db).get()
-            
-            return group
-        } catch let error as DefaultError {
-            throw error
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
-        }
-    }
-    
-    func search(req: ContactGroupRequest.Search, on db: Database) async throws -> PaginatedResponse<ContactGroup> {
-        do {
-            let perPage = req.perPage
-            let page = req.page
-            let name = req.name
-            
-            guard
-                name.count > 0,
-                perPage > 0,
-                page > 0
-            else { throw DefaultError.invalidInput }
-            
-            let regexPattern = "(?i)\(name)"  // (?i) makes the regex case-insensitive
-            let query = ContactGroup.query(on: db).filter(\.$name =~ regexPattern)
-            
-            
-            let total = try await query.count()
-            let items = try await sortQuery(query: query,
-                                            sortBy: req.sortBy,
-                                            sortOrder: req.sortOrder,
-                                            page: page,
-                                            perPage: perPage)
-            
-            
-            let response = PaginatedResponse(page: page,
-                                             perPage: perPage,
-                                             total: total,
-                                             items: items)
-            
-            return response
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
-        }
-    }
 }
 
 private extension ContactGroupRepository {
-    func sortQuery(query: QueryBuilder<ContactGroup>,
-                   sortBy: ContactGroupRequest.SortBy,
-                   sortOrder: ContactGroupRequest.SortOrder,
-                   page: Int,
-                   perPage: Int) async throws -> [ContactGroup] {
+    func sortQuery(
+        query: QueryBuilder<ContactGroup>,
+        sortBy: ContactGroupRequest.SortBy,
+        sortOrder: ContactGroupRequest.SortOrder,
+        page: Int,
+        perPage: Int
+    ) async throws -> [ContactGroup] {
         switch sortBy {
         case .name:
             switch sortOrder {
@@ -208,26 +208,3 @@ private extension ContactGroupRepository {
         }
     }
 }
-
-extension ContactGroupRepository {
-    
-    // Helper function to update supplier group fields in the database
-    static func updateFieldsBuilder(uuid: UUID, content: ContactGroupRequest.Update, db: Database) -> QueryBuilder<ContactGroup> {
-        let updateBuilder = ContactGroup.query(on: db).filter(\.$id == uuid)
-        
-        if let name = content.name {
-            updateBuilder.set(\.$name, to: name)
-        }
-        
-        if let description = content.description {
-            updateBuilder.set(\.$description, to: description)
-        }
-        
-        return updateBuilder
-    }
-    
-    static func getByIDBuilder(uuid: UUID, db: Database) -> QueryBuilder<ContactGroup> {
-        return ContactGroup.query(on: db).filter(\.$id == uuid)
-    }
-}
-

@@ -1,5 +1,5 @@
 //
-//  ContactGroupQueryingTests.swift
+//  ContactGroupRepositoryTests.swift
 //  
 //
 //  Created by IntrodexMac on 22/7/2567 BE.
@@ -12,11 +12,11 @@ import FluentMongoDriver
 
 @testable import App
 
-final class ContactGroupQueryingTests: XCTestCase {
+final class ContactGroupRepositoryTests: XCTestCase {
     
     var app: Application!
     var db: Database!
-    var contactGroupQuerying: ContactGroupQuerying!
+    var ContactGroupRepository: ContactGroupRepository!
     
     // Database configuration
     let dbHost: String = "mongodb://localhost:27017/testdb"
@@ -29,7 +29,7 @@ final class ContactGroupQueryingTests: XCTestCase {
                       dbHost: dbHost)
         
         db = app.db
-        contactGroupQuerying = ContactGroupQuerying()
+        ContactGroupRepository = ContactGroupRepository()
         
         try await dropCollection(db)
     }
@@ -49,7 +49,7 @@ final class ContactGroupQueryingTests: XCTestCase {
         try await group2.create(on: db)
         
         // When
-        let result = try await contactGroupQuerying.fetchAll(on: db, showDeleted: false, page: 1, perPage: 10, sortBy: .name, sortOrder: .asc)
+        let result = try await ContactGroupRepository.fetchAll(on: db, showDeleted: false, page: 1, perPage: 10, sortBy: .name, sortOrder: .asc)
         
         // Then
         XCTAssertEqual(result.items.count, 1)
@@ -65,7 +65,7 @@ final class ContactGroupQueryingTests: XCTestCase {
         try await group2.create(on: db)
         
         // When
-        let result = try await contactGroupQuerying.fetchAll(on: db, showDeleted: true, page: 1, perPage: 10, sortBy: .name, sortOrder: .asc)
+        let result = try await ContactGroupRepository.fetchAll(on: db, showDeleted: true, page: 1, perPage: 10, sortBy: .name, sortOrder: .asc)
         
         // Then
         XCTAssertEqual(result.items.count, 2)
@@ -78,7 +78,7 @@ final class ContactGroupQueryingTests: XCTestCase {
         try await group.create(on: db)
         
         // When
-        let result = try await contactGroupQuerying.findById(id: group.id!, on: db)
+        let result = try await ContactGroupRepository.findById(id: group.id!, on: db)
         
         // Then
         XCTAssertNotNil(result)
@@ -92,7 +92,7 @@ final class ContactGroupQueryingTests: XCTestCase {
         try await group.create(on: db)
         
         // When
-        let result = try await contactGroupQuerying.findFirstByName(name: "Group", on: db)
+        let result = try await ContactGroupRepository.findFirstByName(name: "Group", on: db)
         
         // Then
         XCTAssertNotNil(result)
@@ -108,7 +108,7 @@ final class ContactGroupQueryingTests: XCTestCase {
         try await group2.create(on: db)
         
         // When
-        let result = try await contactGroupQuerying.searchByName(name: "Group", on: db, page: 1, perPage: 10, sortBy: .name, sortOrder: .asc)
+        let result = try await ContactGroupRepository.searchByName(name: "Group", on: db, page: 1, perPage: 10, sortBy: .name, sortOrder: .asc)
         
         // Then
         XCTAssertEqual(result.items.count, 2)

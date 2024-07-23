@@ -3,7 +3,7 @@ import Vapor
 
 struct ContactGroupRequest {
     
-    struct Fetch: Content {
+    struct FetchAll: Content {
         let showDeleted: Bool
         let page: Int
         let perPage: Int
@@ -49,19 +49,35 @@ struct ContactGroupRequest {
         }
     }
 
-    struct Search: Content {
+    struct FetchById: Content {
+        let id: UUID
+
+        init(id: UUID) {
+            self.id = id
+        }
+    }
+    
+    struct FetchByName: Content {
         let name: String
+
+        init(name: String) {
+            self.name = name
+        }
+    }
+    
+    struct Search: Content {
+        let query: String
         let page: Int
         let perPage: Int
         let sortBy: SortBy
         let sortOrder: SortOrder
 
-        init(name: String,
+        init(query: String,
              page: Int = 1,
              perPage: Int = 20,
              sortBy: SortBy = .name,
              sortOrder: SortOrder = .asc) {
-            self.name = name
+            self.query = query
             self.page = max(page, 1)
             self.perPage = max(perPage, 20)
             self.sortBy = sortBy
@@ -70,7 +86,7 @@ struct ContactGroupRequest {
 
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.name = try container.decode(String.self, forKey: .name)
+            self.query = try container.decode(String.self, forKey: .query)
             self.page = (try? container.decode(Int.self, forKey: .page)) ?? 1
             self.perPage = (try? container.decode(Int.self, forKey: .perPage)) ?? 20
             self.sortBy = (try? container.decode(SortBy.self, forKey: .sortBy)) ?? .name
@@ -79,7 +95,7 @@ struct ContactGroupRequest {
 
         func encode(to encoder: Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
-            try container.encode(name, forKey: .name)
+            try container.encode(query, forKey: .query)
             try container.encode(page, forKey: .page)
             try container.encode(perPage, forKey: .perPage)
             try container.encode(sortBy, forKey: .sortBy)
@@ -87,7 +103,7 @@ struct ContactGroupRequest {
         }
 
         enum CodingKeys: String, CodingKey {
-            case name
+            case query = "q"
             case page
             case perPage = "per_page"
             case sortBy = "sort_by"
@@ -114,8 +130,8 @@ struct ContactGroupRequest {
         }
         
         enum CodingKeys: String, CodingKey {
-            case name = "name"
-            case description = "description"
+            case name
+            case description
         }
                 
         static func validations(_ validations: inout Validations) {
@@ -129,14 +145,14 @@ struct ContactGroupRequest {
         let description: String?
         
         init(name: String? = nil,
-            description: String? = nil) {
+             description: String? = nil) {
             self.name = name
             self.description = description
         }
         
         enum CodingKeys: String, CodingKey {
-            case name = "name"
-            case description = "description"
+            case name
+            case description
         }
         
         static func validations(_ validations: inout Validations) {

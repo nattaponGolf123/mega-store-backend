@@ -5,67 +5,86 @@ import Mockable
 @Mockable
 protocol ContactGroupValidatorProtocol {
     func validateCreate(_ req: Request) throws -> ContactGroupRequest.Create
-    func validateUpdate(_ req: Request) throws -> (uuid: UUID, content: ContactGroupRequest.Update)
-    func validateID(_ req: Request) throws -> UUID
-    func validateSearchQuery(_ req: Request) throws -> String
+    func validateUpdate(_ req: Request) throws -> (id: ContactGroupRequest.FetchById, content: ContactGroupRequest.Update)
+    func validateID(_ req: Request) throws -> ContactGroupRequest.FetchById
+    func validateSearchQuery(_ req: Request) throws -> ContactGroupRequest.Search
 }
 
 class ContactGroupValidator: ContactGroupValidatorProtocol {
     typealias CreateContent = ContactGroupRequest.Create
-    typealias UpdateContent = ContactGroupRequest.Update
+    typealias UpdateContent = (id: ContactGroupRequest.FetchById, content: ContactGroupRequest.Update)
 
     func validateCreate(_ req: Request) throws -> CreateContent {
+        try CreateContent.validate(content: req)
         
-        do {
-            // Decode the incoming ContactGroup
-            let content: ContactGroupValidator.CreateContent = try req.content.decode(CreateContent.self)  
+        return try req.content.decode(CreateContent.self)
+        
+//        do {
+//            // Decode the incoming ContactGroup
+//            let content: ContactGroupValidator.CreateContent = try req.content.decode(CreateContent.self)  
+//
+//            // Validate the ContactGroup directly
+//            try CreateContent.validate(content: req)
+//            
+//            return content
+//        } catch let error as ValidationsError {
+//            // Parse and throw a more specific input validation error if validation fails
+//            let errors = InputError.parse(failures: error.failures)
+//            throw InputValidateError.inputValidateFailed(errors: errors)
+//        } catch {
+//            // Handle all other errors
+//            throw DefaultError.invalidInput
+//        }
+    }
 
-            // Validate the ContactGroup directly
-            try CreateContent.validate(content: req)
+    func validateUpdate(_ req: Request) throws -> UpdateContent {
+        try ContactGroupRequest.Update.validate(content: req)
+        
+        let id = try req.parameters.require("id", as: UUID.self)
+        let fetchById = ContactGroupRequest.FetchById(id: id)
+        let content = try req.content.decode(ContactGroupRequest.Update.self)
+        
+        return (fetchById, content)
+    }
+        
+//        typealias UpdateContactGroup = ContactGroupRequest.Update
+//        do {
+//            // Decode the incoming ContactGroup and validate it
+//            let content: UpdateContactGroup = try req.content.decode(UpdateContactGroup.self)
+//            try UpdateContactGroup.validate(content: req)
+//            
+//            // Extract the ID from the request's parameters
+//            guard let id = req.parameters.get("id", as: UUID.self) else { throw DefaultError.invalidInput }
+//            let fetchById = ContactGroupRequest.FetchById(id: id)
+//            
+//            return (fetchById, content)
+//        } catch let error as ValidationsError {
+//            let errors = InputError.parse(failures: error.failures)
+//            throw InputValidateError.inputValidateFailed(errors: errors)
+//        } catch {
+//            throw DefaultError.invalidInput
+//        }
+//    }
+
+    func validateID(_ req: Request) throws -> ContactGroupRequest.FetchById {
+        do {
+            return try req.query.decode(ContactGroupRequest.FetchById.self)
+        } catch {
+            throw DefaultError.invalidInput
+        }
+    }
+
+    func validateSearchQuery(_ req: Request) throws -> ContactGroupRequest.Search {
+        do {
+            let content = try req.query.decode(ContactGroupRequest.Search.self)
+            
+            guard content.query.isEmpty == false else { throw DefaultError.invalidInput }
             
             return content
-        } catch let error as ValidationsError {
-            // Parse and throw a more specific input validation error if validation fails
-            let errors = InputError.parse(failures: error.failures)
-            throw InputValidateError.inputValidateFailed(errors: errors)
-        } catch {
-            // Handle all other errors
+        }
+        catch {
             throw DefaultError.invalidInput
         }
-    }
-
-    func validateUpdate(_ req: Request) throws -> (uuid: UUID, content: ContactGroupRequest.Update) {
-        typealias UpdateContactGroup = ContactGroupRequest.Update
-        do {
-            // Decode the incoming ContactGroup and validate it
-            let content: UpdateContactGroup = try req.content.decode(UpdateContactGroup.self)
-            try UpdateContactGroup.validate(content: req)
-            
-            // Extract the ID from the request's parameters
-            guard let id = req.parameters.get("id", as: UUID.self) else { throw DefaultError.invalidInput }
-            
-            return (id, content)
-        } catch let error as ValidationsError {
-            let errors = InputError.parse(failures: error.failures)
-            throw InputValidateError.inputValidateFailed(errors: errors)
-        } catch {
-            throw DefaultError.invalidInput
-        }
-    }
-
-    func validateID(_ req: Request) throws -> UUID {
-        guard let id = req.parameters.get("id"), let uuid = UUID(id) else { throw DefaultError.invalidInput }
-        
-        return uuid
-    }
-
-    func validateSearchQuery(_ req: Request) throws -> String {
-        guard 
-            let search = req.query[String.self, at: "name"],
-            !search.isEmpty
-            else { throw DefaultError.invalidInput }
-        
-        return search
     }
 }
 /*

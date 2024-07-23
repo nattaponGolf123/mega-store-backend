@@ -25,7 +25,7 @@ let package = Package(
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "FluentMongoDriver", package: "fluent-mongo-driver"),
                 .product(name: "Mockable", package: "Mockable"),
-                .product(name: "MockableTest", package: "Mockable")
+                //.product(name: "MockableTest", package: "Mockable")
             ],swiftSettings: [
                 .define("MOCKING", .when(configuration: .debug))
             ]
@@ -37,6 +37,7 @@ let package = Package(
             // Workaround for https://github.com/apple/swift-package-manager/issues/6940
             .product(name: "Vapor", package: "vapor"),
             .product(name: "FluentMongoDriver", package: "fluent-mongo-driver"),
+            .product(name: "Mockable", package: "Mockable"),
             .product(name: "MockableTest", package: "Mockable")
             
         ],swiftSettings: [
