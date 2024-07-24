@@ -13,6 +13,7 @@ protocol ContactGroupValidatorProtocol {
 class ContactGroupValidator: ContactGroupValidatorProtocol {
     typealias CreateContent = ContactGroupRequest.Create
     typealias UpdateContent = (id: ContactGroupRequest.FetchById, content: ContactGroupRequest.Update)
+    typealias SearchContent = ContactGroupRequest.Search
 
     func validateCreate(_ req: Request) throws -> CreateContent {
         try CreateContent.validate(content: req)
@@ -40,6 +41,8 @@ class ContactGroupValidator: ContactGroupValidatorProtocol {
 
     func validateSearchQuery(_ req: Request) throws -> ContactGroupRequest.Search {
         do {
+            try SearchContent.validate(content: req)
+            
             let content = try req.query.decode(ContactGroupRequest.Search.self)
             
             guard content.query.isEmpty == false else { throw DefaultError.invalidInput }

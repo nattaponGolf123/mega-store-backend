@@ -65,7 +65,7 @@ struct ContactGroupRequest {
         }
     }
     
-    struct Search: Content {
+    struct Search: Content, Validatable {
         let query: String
         let page: Int
         let perPage: Int
@@ -108,6 +108,11 @@ struct ContactGroupRequest {
             case perPage = "per_page"
             case sortBy = "sort_by"
             case sortOrder = "sort_order"
+        }
+        
+        static func validations(_ validations: inout Validations) {
+            validations.add("q", as: String.self,
+                            is: .count(1...200))
         }
     }
 
