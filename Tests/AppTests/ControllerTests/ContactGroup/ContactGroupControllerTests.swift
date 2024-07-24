@@ -81,8 +81,21 @@ final class ContactGroupControllerTests: XCTestCase {
         }
     }
     
+    func testAll_WithShowDeleted_ShouldReturnAllGroups() async throws {
+        
+        // Given
+        given(repo).fetchAll(request: .matching({ $0.showDeleted == true}),
+                             on: .any).willReturn(Stub.pageGroupWithDeleted)
+        
+        try app.test(.GET, "contact_groups?show_deleted=true") { res in
+            XCTAssertEqual(res.status, .ok)
+            let groups = try res.content.decode(PaginatedResponse<ContactGroup>.self)
+            XCTAssertEqual(groups.items.count, 3)
+        }
+    }
+    
     // MARK: - Test GET /contact_groups/:id
-    func testGetByID_WithInvalidID_ShouldReturnNotFound() async throws {
+    func testGetByID_WithID_ShouldReturnNotFound() async throws {
         
         // Given
         let id = UUID()
@@ -110,6 +123,64 @@ final class ContactGroupControllerTests: XCTestCase {
             XCTAssertEqual(res.status, .ok)
             let group = try res.content.decode(ContactGroup.self)
             XCTAssertEqual(group.name, "Test")
+        }
+    }
+    
+    // MARK: - Test POST /contact_groups
+    func testCreate_WithInvalidGroup_ShouldReturnBadRequest() async throws {
+        
+        // Given
+        let request = ContactGroupRequest.Create(name: "")
+        given(validator).validateCreate(.any).willReturn(request)
+                
+        given(repo).create(request: .any,
+                           on: .any).willThrow(DefaultError.insertFailed)
+        
+        try app.test(.POST, "contact_groups",
+                     beforeRequest: { req in
+                        try req.content.encode(request)
+                     }) { res in
+            XCTAssertEqual(res.status, .badRequest)
+        }
+    }
+    
+    func testCreate_WithValidName_ShouldReturnGroup() async throws {
+        
+        // Given
+        let request = ContactGroupRequest.Create(name: "Test")
+        given(validator).validateCreate(.any).willReturn(request)
+        
+        given(repo).create(request: .any,
+                           on: .any).willReturn(Stub.group)
+        
+        try app.test(.POST, "contact_groups",
+                     beforeRequest: { req in
+                        try req.content.encode(request)
+                     }) { res in
+            XCTAssertEqual(res.status, .ok)
+            let group = try res.content.decode(ContactGroup.self)
+            XCTAssertEqual(group.name, "Test")
+        }
+    }
+    
+    func testCreate_WithValidNameDescription_ShouldReturnGroup() async throws {
+        
+        // Given
+        let request = ContactGroupRequest.Create(name: "Test",
+                                                 description: "Test")
+        given(validator).validateCreate(.any).willReturn(request)
+        
+        given(repo).create(request: .any,
+                           on: .any).willReturn(Stub.group)
+        
+        try app.test(.POST, "contact_groups",
+                     beforeRequest: { req in
+                        try req.content.encode(request)
+                     }) { res in
+            XCTAssertEqual(res.status, .ok)
+            let group = try res.content.decode(ContactGroup.self)
+            XCTAssertEqual(group.name, "Test")
+            XCTAssertEqual(group.description, "Test")
         }
     }
 }

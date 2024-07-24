@@ -95,7 +95,7 @@ final class ContactGroupRepositoryTests: XCTestCase {
         XCTAssertEqual(result.items.count, 15)
     }
     
-    func testFetchAll_WithSort_ShouldReturnGroup() async throws {
+    func testFetchAll_WithSortByNameDesc_ShouldReturnGroup() async throws {
         
         // Given
         let group1 = ContactGroup(name: "Group1")
@@ -110,6 +110,57 @@ final class ContactGroupRepositoryTests: XCTestCase {
         // Then
         XCTAssertEqual(result.items.count, 2)
         XCTAssertEqual(result.items.first?.name, "Group2")
+    }
+    
+    func testFetchAll_WithSortByNameAsc_ShouldReturnGroup() async throws {
+        
+        // Given
+        let group1 = ContactGroup(name: "Group1")
+        let group2 = ContactGroup(name: "Group2")
+        try await group1.create(on: db)
+        try await group2.create(on: db)
+        
+        // When
+        let result = try await contactGroupRepository.fetchAll(request: .init(sortBy: .name, sortOrder: .asc),
+                                                               on: db)
+        
+        // Then
+        XCTAssertEqual(result.items.count, 2)
+        XCTAssertEqual(result.items.first?.name, "Group1")
+    }
+    
+    func testFetchAll_WithSortByCreateAtDesc_ShouldReturnGroup() async throws {
+        
+        // Given
+        let group1 = ContactGroup(name: "Group1")
+        let group2 = ContactGroup(name: "Group2")
+        try await group1.create(on: db)
+        try await group2.create(on: db)
+        
+        // When
+        let result = try await contactGroupRepository.fetchAll(request: .init(sortBy: .createdAt, sortOrder: .desc),
+                                                               on: db)
+        
+        // Then
+        XCTAssertEqual(result.items.count, 2)
+        XCTAssertEqual(result.items.first?.name, "Group1")
+    }
+    
+    func testFetchAll_WithSortByCreateAtAsc_ShouldReturnGroup() async throws {
+        
+        // Given
+        let group1 = ContactGroup(name: "Group1")
+        let group2 = ContactGroup(name: "Group2")
+        try await group1.create(on: db)
+        try await group2.create(on: db)
+        
+        // When
+        let result = try await contactGroupRepository.fetchAll(request: .init(sortBy: .createdAt, sortOrder: .asc),
+                                                               on: db)
+        
+        // Then
+        XCTAssertEqual(result.items.count, 2)
+        XCTAssertEqual(result.items.first?.name, "Group1")
     }
     
     //MARK: fetchById
