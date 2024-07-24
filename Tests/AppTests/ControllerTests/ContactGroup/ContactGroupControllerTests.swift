@@ -334,6 +334,20 @@ final class ContactGroupControllerTests: XCTestCase {
         }
     }
     
+    func testSearch_WithMore200CharQuery_ShouldReturnBadRequest() async throws {
+        
+        // Given
+        let query = ContactGroupRequest.Search(query: String(repeating: "A", count: 210))
+        given(validator).validateSearchQuery(.any).willThrow(DefaultError.invalidInput)
+        
+        given(repo).searchByName(request: .matching({ $0.query == query.query }),
+                                 on: .any).willThrow(DefaultError.invalidInput)
+        
+        try app.test(.GET, "contact_groups/search?query=\(query.query)") { res in
+            XCTAssertEqual(res.status, .badRequest)
+        }
+    }
+    
     func testSearch_WithValidQuery_ShouldReturnEmptyGroups() async throws {
         
         // Given
