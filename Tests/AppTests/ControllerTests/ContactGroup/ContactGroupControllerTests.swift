@@ -133,7 +133,7 @@ final class ContactGroupControllerTests: XCTestCase {
         let request = ContactGroupRequest.Create(name: "")
         given(validator).validateCreate(.any).willReturn(request)
                 
-        given(repo).create(request: .any,
+        given(repo).create(request: .matching({ $0.name == request.name }),
                            on: .any).willThrow(DefaultError.insertFailed)
         
         try app.test(.POST, "contact_groups",
@@ -150,7 +150,7 @@ final class ContactGroupControllerTests: XCTestCase {
         let request = ContactGroupRequest.Create(name: "Test")
         given(validator).validateCreate(.any).willReturn(request)
         
-        given(repo).create(request: .any,
+        given(repo).create(request: .matching({ $0.name == request.name }),
                            on: .any).willReturn(Stub.group)
         
         try app.test(.POST, "contact_groups",
@@ -170,8 +170,16 @@ final class ContactGroupControllerTests: XCTestCase {
                                                  description: "Test")
         given(validator).validateCreate(.any).willReturn(request)
         
-        given(repo).create(request: .any,
-                           on: .any).willReturn(Stub.group)
+        let stub = ContactGroup(id: .init(),
+                                name: request.name,
+                                description: request.description, 
+                                createdAt: .now,
+                                updatedAt: .now)
+        given(repo).create(request: .matching({
+            $0.name == request.name &&
+            $0.description == request.description
+        }),
+                           on: .any).willReturn(stub)
         
         try app.test(.POST, "contact_groups",
                      beforeRequest: { req in
@@ -180,7 +188,7 @@ final class ContactGroupControllerTests: XCTestCase {
             XCTAssertEqual(res.status, .ok)
             let group = try res.content.decode(ContactGroup.self)
             XCTAssertEqual(group.name, "Test")
-            XCTAssertEqual(group.description, "Test")
+            XCTAssertEqual(group.description ?? "", "Test")
         }
     }
 }
