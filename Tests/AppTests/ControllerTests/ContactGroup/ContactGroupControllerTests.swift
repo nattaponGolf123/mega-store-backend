@@ -318,6 +318,58 @@ final class ContactGroupControllerTests: XCTestCase {
             XCTAssertNotNil(group.deletedAt)
         }
     }
+    
+    // MARK: - Test GET /contact_groups/search
+    func testSearch_WithEmptyQuery_ShouldReturnBadRequest() async throws {
+        
+        // Given
+        let query = ContactGroupRequest.Search(query: "")
+        given(validator).validateSearchQuery(.any).willThrow(DefaultError.invalidInput)
+        
+        given(repo).searchByName(request: .matching({ $0.query == query.query }),
+                                 on: .any).willThrow(DefaultError.invalidInput)
+        
+        try app.test(.GET, "contact_groups/search") { res in
+            XCTAssertEqual(res.status, .badRequest)
+        }
+    }
+    
+    func testSearch_WithValidQuery_ShouldReturnEmptyGroups() async throws {
+        
+        // Given
+        let query = ContactGroupRequest.Search(query: "Test")
+        given(validator).validateSearchQuery(.any).willReturn(query)
+        
+        let stub = PaginatedResponse<ContactGroup>(page: 1, perPage: 20, total: 0, items: [])
+        given(repo).searchByName(request: .matching({ $0.query == query.query }),
+                                 on: .any).willReturn(stub)
+        
+        try app.test(.GET, "contact_groups/search?query=Test") { res in
+            XCTAssertEqual(res.status, .ok)
+            let groups = try res.content.decode(PaginatedResponse<ContactGroup>.self)
+            XCTAssertEqual(groups.total, 0)
+        }
+    }
+    
+    func testSearch_WithValidQuery_ShouldReturnGroups() async throws {
+        
+        // Given
+        let query = ContactGroupRequest.Search(query: "Test")
+        given(validator).validateSearchQuery(.any).willReturn(query)
+        
+        let stub = PaginatedResponse<ContactGroup>(page: 1, perPage: 20, total: 2,
+                                                   items: [ContactGroup(name: "Test 1"),
+                                                           ContactGroup(name: "Test 2")])
+        given(repo).searchByName(request: .matching({ $0.query == query.query }),
+                                 on: .any).willReturn(stub)
+        
+        try app.test(.GET, "contact_groups/search?query=Test") { res in
+            XCTAssertEqual(res.status, .ok)
+            let groups = try res.content.decode(PaginatedResponse<ContactGroup>.self)
+            XCTAssertEqual(groups.total, 2)
+        }
+    }
+    
 }
 
 extension ContactGroupControllerTests {
