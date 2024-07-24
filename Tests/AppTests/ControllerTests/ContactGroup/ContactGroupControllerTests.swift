@@ -191,6 +191,133 @@ final class ContactGroupControllerTests: XCTestCase {
             XCTAssertEqual(group.description ?? "", "Test")
         }
     }
+    
+    // MARK: - Test PUT /contact_groups/:id
+    func testUpdate_WithInvalidGroup_ShouldReturnBadRequest() async throws {
+        
+        // Given
+        let id = UUID()
+        let requestId = ContactGroupRequest.FetchById(id: id)
+        let requestUpdate = ContactGroupRequest.Update(name: "")
+        given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
+        
+        given(repo).update(byId: .matching({ $0.id.uuidString == id.uuidString }),
+                           request: .matching({ $0.name == requestUpdate.name }),
+                           on: .any).willThrow(DefaultError.invalidInput)
+        
+        try app.test(.PUT, "contact_groups/\(id.uuidString)",
+                     beforeRequest: { req in
+                        try req.content.encode(requestUpdate)
+                     }) { res in
+            XCTAssertEqual(res.status, .badRequest)
+        }
+    }
+    
+    func testUpdate_WithValidName_ShouldReturnGroup() async throws {
+        
+        // Given
+        let id = UUID()
+        let requestId = ContactGroupRequest.FetchById(id: id)
+        let requestUpdate = ContactGroupRequest.Update(name: "Test")
+        given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
+        
+        given(repo).update(byId: .matching({ $0.id.uuidString == id.uuidString }),
+                           request: .matching({ $0.name == requestUpdate.name }),
+                           on: .any).willReturn(Stub.group)
+        
+        try app.test(.PUT, "contact_groups/\(id.uuidString)",
+                     beforeRequest: { req in
+                        try req.content.encode(requestUpdate)
+                     }) { res in
+            XCTAssertEqual(res.status, .ok)
+            let group = try res.content.decode(ContactGroup.self)
+            XCTAssertEqual(group.name, "Test")
+        }
+    }
+    
+    func testUpdate_WithValidNameDescription_ShouldReturnGroup() async throws {
+        
+        // Given
+        let id = UUID()
+        let requestId = ContactGroupRequest.FetchById(id: id)
+        let requestUpdate = ContactGroupRequest.Update(description: "Test")
+        given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
+        
+        let stub = ContactGroup(id: .init(),
+                                name: "Name",
+                                description: requestUpdate.description,
+                                createdAt: .now,
+                                updatedAt: .now)
+        given(repo).update(byId: .matching({ $0.id.uuidString == id.uuidString }),
+                           request: .matching({ $0.name == requestUpdate.name &&
+                                                $0.description == requestUpdate.description }),
+                           on: .any).willReturn(stub)
+        
+        try app.test(.PUT, "contact_groups/\(id.uuidString)",
+                     beforeRequest: { req in
+                        try req.content.encode(requestUpdate)
+                     }) { res in
+            XCTAssertEqual(res.status, .ok)
+            let group = try res.content.decode(ContactGroup.self)
+            XCTAssertEqual(group.name, "Name")
+            XCTAssertEqual(group.description ?? "", "Test")
+        }
+    }
+    
+    // MARK: - Test DELETE /contact_groups/:id
+    func testDelete_WithInvalidGroup_ShouldReturnBadRequest() async throws {
+        
+        // Given
+        let id = UUID()
+        given(validator).validateID(.any).willThrow(DefaultError.invalidInput)
+        
+        given(repo).delete(byId: .matching({ $0.id.uuidString == id.uuidString }),
+                           on: .any).willThrow(DefaultError.invalidInput)
+        
+        try app.test(.DELETE, "contact_groups/\(id.uuidString)") { res in
+            XCTAssertEqual(res.status, .badRequest)
+        }
+    }
+    
+    func testDelete_WithNotExistId_ShouldReturnNotFound() async throws {
+        
+        // Given
+        let id = UUID()
+        let reqId = ContactGroupRequest.FetchById(id: id)
+        given(validator).validateID(.any).willReturn(reqId)
+        
+        given(repo).delete(byId: .matching({ $0.id.uuidString == id.uuidString }),
+                           on: .any).willThrow(DefaultError.notFound)
+        
+        try app.test(.DELETE, "contact_groups/\(id.uuidString)") { res in
+            XCTAssertEqual(res.status, .notFound)
+        }
+    }
+    
+    func testDelete_WithValidGroup_ShouldReturnGroup() async throws {
+        
+        // Given
+        let id = UUID()
+        let reqId = ContactGroupRequest.FetchById(id: id)
+        given(validator).validateID(.any).willReturn(reqId)
+        
+        let stub = ContactGroup(id: .init(),
+                                name: "Name",
+                                description: "Test",
+                                createdAt: .now,
+                                updatedAt: .now,
+                                deletedAt: .now)
+        given(repo).delete(byId: .matching({ $0.id.uuidString == id.uuidString }),
+                           on: .any).willReturn(stub)
+        
+        try app.test(.DELETE, "contact_groups/\(id.uuidString)") { res in
+            XCTAssertEqual(res.status, .ok)
+            let group = try res.content.decode(ContactGroup.self)
+            XCTAssertEqual(group.name, "Name")
+            XCTAssertEqual(group.description ?? "", "Test")
+            XCTAssertNotNil(group.deletedAt)
+        }
+    }
 }
 
 extension ContactGroupControllerTests {
@@ -351,6 +478,60 @@ extension ContactGroupControllerTests {
          byId: ContactGroupRequest.FetchById,
          on db: Database
      ) async throws -> ContactGroup
+ }
+
+ */
+
+/*
+ 
+ @Mockable
+ protocol ContactGroupValidatorProtocol {
+     func validateCreate(_ req: Request) throws -> ContactGroupRequest.Create
+     func validateUpdate(_ req: Request) throws -> (id: ContactGroupRequest.FetchById, content: ContactGroupRequest.Update)
+     func validateID(_ req: Request) throws -> ContactGroupRequest.FetchById
+     func validateSearchQuery(_ req: Request) throws -> ContactGroupRequest.Search
+ }
+
+ class ContactGroupValidator: ContactGroupValidatorProtocol {
+     typealias CreateContent = ContactGroupRequest.Create
+     typealias UpdateContent = (id: ContactGroupRequest.FetchById, content: ContactGroupRequest.Update)
+
+     func validateCreate(_ req: Request) throws -> CreateContent {
+         try CreateContent.validate(content: req)
+         
+         return try req.content.decode(CreateContent.self)
+     }
+
+     func validateUpdate(_ req: Request) throws -> UpdateContent {
+         try ContactGroupRequest.Update.validate(content: req)
+         
+         let id = try req.parameters.require("id", as: UUID.self)
+         let fetchById = ContactGroupRequest.FetchById(id: id)
+         let content = try req.content.decode(ContactGroupRequest.Update.self)
+         
+         return (fetchById, content)
+     }
+
+     func validateID(_ req: Request) throws -> ContactGroupRequest.FetchById {
+         do {
+             return try req.query.decode(ContactGroupRequest.FetchById.self)
+         } catch {
+             throw DefaultError.invalidInput
+         }
+     }
+
+     func validateSearchQuery(_ req: Request) throws -> ContactGroupRequest.Search {
+         do {
+             let content = try req.query.decode(ContactGroupRequest.Search.self)
+             
+             guard content.query.isEmpty == false else { throw DefaultError.invalidInput }
+             
+             return content
+         }
+         catch {
+             throw DefaultError.invalidInput
+         }
+     }
  }
 
  */
