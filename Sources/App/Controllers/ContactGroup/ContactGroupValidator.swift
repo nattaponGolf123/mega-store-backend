@@ -22,13 +22,18 @@ class ContactGroupValidator: ContactGroupValidatorProtocol {
     }
 
     func validateUpdate(_ req: Request) throws -> UpdateContent {
-        try ContactGroupRequest.Update.validate(content: req)
-        
-        let id = try req.parameters.require("id", as: UUID.self)
-        let fetchById = ContactGroupRequest.FetchById(id: id)
-        let content = try req.content.decode(ContactGroupRequest.Update.self)
-        
-        return (fetchById, content)
+        do {
+            try ContactGroupRequest.Update.validate(content: req)
+            
+            let id = try req.parameters.require("id", as: UUID.self)
+            let fetchById = ContactGroupRequest.FetchById(id: id)
+            let content = try req.content.decode(ContactGroupRequest.Update.self)
+            return (fetchById, content)
+            
+        } catch {
+            print(error.localizedDescription)
+            throw error
+        }
     }
 
     func validateID(_ req: Request) throws -> ContactGroupRequest.FetchById {

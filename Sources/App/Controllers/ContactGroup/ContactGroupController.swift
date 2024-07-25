@@ -72,7 +72,6 @@ class ContactGroupController: RouteCollection {
     
     // GET /contact_groups/search?name=xxx&page=1&per_page=10
     func search(req: Request) async throws -> PaginatedResponse<ContactGroup> {
-        
         let content = try validator.validateSearchQuery(req)
         
         return try await repository.searchByName(request: content,
