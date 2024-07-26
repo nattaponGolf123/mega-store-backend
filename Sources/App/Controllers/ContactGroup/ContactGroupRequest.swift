@@ -112,7 +112,8 @@ struct ContactGroupRequest {
         
         static func validations(_ validations: inout Validations) {
             validations.add("q", as: String.self,
-                            is: .count(1...200))
+                            is: .count(1...200),
+                            required: true)
         }
     }
 
@@ -147,7 +148,8 @@ struct ContactGroupRequest {
                 
         static func validations(_ validations: inout Validations) {
             validations.add("name", as: String.self,
-                            is: .count(3...200))
+                            is: .count(3...200),
+                            required: true)
         }
     }
 
@@ -168,7 +170,8 @@ struct ContactGroupRequest {
         
         static func validations(_ validations: inout Validations) {
             validations.add("name", as: String.self,
-                            is: .count(3...200))
+                            is: .count(3...200),
+                            required: false)
         }
     }
 }

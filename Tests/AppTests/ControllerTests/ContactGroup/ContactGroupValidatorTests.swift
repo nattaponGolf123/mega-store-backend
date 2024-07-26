@@ -38,14 +38,14 @@ final class ContactGroupValidatorTests: XCTestCase {
 
     func testValidateCreate_WithValidRequest_ShouldReturnCorrectValues() {
         let content = ContactGroupRequest.Create(name: "Test")
-        let request = mockPOSTRequest(content: content)
+        let request = mockRequest(content: content)
         
         XCTAssertNoThrow(try validator.validateCreate(request))
     }
     
     func testValidateCreate_WithLessThen3CharName_ShouldThrow() {
         let content = ContactGroupRequest.Create(name: "T")
-        let request = mockPOSTRequest(content: content)
+        let request = mockRequest(content: content)
         
         XCTAssertThrowsError(try validator.validateCreate(request))
     }
@@ -53,7 +53,7 @@ final class ContactGroupValidatorTests: XCTestCase {
     func testValidateCreate_WithOver200CharName_ShouldThrow() {
         let name = String(repeating: "A", count: 201)
         let content = ContactGroupRequest.Create(name: name)
-        let request = mockPOSTRequest(content: content)
+        let request = mockRequest(content: content)
         
         XCTAssertThrowsError(try validator.validateCreate(request))
     }
@@ -62,7 +62,7 @@ final class ContactGroupValidatorTests: XCTestCase {
     
     func testValidateUpdate_WithNoId_ShouldThrowError() {
         let content = ContactGroupRequest.Update(name: "Test")
-        let request = mockPOSTRequest(content: content)
+        let request = mockRequest(content: content)
         
         XCTAssertThrowsError(try validator.validateUpdate(request))
     }
@@ -70,7 +70,7 @@ final class ContactGroupValidatorTests: XCTestCase {
     func testValidateUpdate_WithValidRequest_ShouldReturnCorrectValues() throws {
         let id = UUID()
         let content = ContactGroupRequest.Update(name: "Test")
-        let request = mockPOSTRequest(url: "/mock/:id",
+        let request = mockRequest(url: "/mock/:id",
                                       id: id,
                                       content: content)
         
@@ -80,7 +80,7 @@ final class ContactGroupValidatorTests: XCTestCase {
     func testValidateUpdate_WithLessThen3CharName_ShouldThrow() {
         let id = UUID()
         let content = ContactGroupRequest.Update(name: "T")
-        let request = mockPOSTRequest(url: "/mock/:id",
+        let request = mockRequest(url: "/mock/:id",
                                       id: id,
                                       content: content)
         
@@ -91,11 +91,21 @@ final class ContactGroupValidatorTests: XCTestCase {
         let id = UUID()
         let name = String(repeating: "A", count: 201)
         let content = ContactGroupRequest.Update(name: name)
-        let request = mockPOSTRequest(url: "/mock/:id",
+        let request = mockRequest(url: "/mock/:id",
                                       id: id,
                                       content: content)
         
         XCTAssertThrowsError(try validator.validateUpdate(request))
+    }
+    
+    func testValidateUpdate_WithOnlyDescription_ShouldNotThrow() {
+        let id = UUID()
+        let content = ContactGroupRequest.Update(description: "Test")
+        let request = mockRequest(url: "/mock/:id",
+                                      id: id,
+                                      content: content)
+        
+        XCTAssertNoThrow(try validator.validateUpdate(request))
     }
 
     // MARK: - Fetch By ID Tests

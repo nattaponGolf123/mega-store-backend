@@ -133,12 +133,11 @@ extension XCTestCase {
         )
     }
     
-    func mockPOSTRequest(app: Application = Application(.testing),
-                         url: String = "mock",
-                         id: UUID? = nil,
-                         content: any Content) -> Request {
-        let application = app
-        let method: HTTPMethod = .POST
+    func mockRequest(app: Application = Application(.testing),
+                     method: HTTPMethod = .POST,
+                     url: String = "mock",
+                     id: UUID? = nil,
+                     content: any Content) -> Request {
         
         // Construct the URL with the UUID if provided
         var urlWithID = url
@@ -160,8 +159,8 @@ extension XCTestCase {
             headers.add(name: "Content-Length", value: "\(buffer.readableBytes)")
         }
         
-        var request = Request(
-            application: application,
+        let request = Request(
+            application: app,
             method: method,
             url: uri,
             version: version,
