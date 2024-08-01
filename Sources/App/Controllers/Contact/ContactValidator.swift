@@ -1,60 +1,51 @@
 import Foundation
 import Vapor
+import Mockable
 
+@Mockable
 protocol ContactValidatorProtocol {
-    func validateCreate(_ req: Request) throws -> ContactRepository.Create
-    func validateUpdate(_ req: Request) throws -> (uuid: UUID, content: ContactRepository.Update)
-    func validateUpdateBussineseAddress(_ req: Request) throws -> ContactValidator.ValidateBusineseAdressResponse
-    func validateUpdateShippingAddress(_ req: Request) throws -> ContactValidator.ValidateShippingAddressResponse
-    func validateID(_ req: Request) throws -> UUID
-    func validateSearchQuery(_ req: Request) throws -> String
+    typealias Search = GeneralRequest.Search
+    
+    func validateCreate(_ req: Request) throws -> ContactRequest.Create
+    func validateUpdate(_ req: Request) throws -> (id: GeneralRequest.FetchById, content: ContactRequest.Update)
+    func validateUpdateBussineseAddress(_ req: Request) throws -> ContactRequest.UpdateBusineseAdressResponse
+    func validateUpdateShippingAddress(_ req: Request) throws -> ContactRequest.UpdateShippingAddressResponse
+    func validateID(_ req: Request) throws -> GeneralRequest.FetchById
+    func validateSearchQuery(_ req: Request) throws -> Search
 }
 
 class ContactValidator: ContactValidatorProtocol {
-    typealias CreateContent = ContactRepository.Create
-    typealias UpdateContent = ContactRepository.Update
+    typealias Create = ContactRequest.Create
+    typealias Update = (id: GeneralRequest.FetchById, content: ContactRequest.Update)
+    typealias Search = GeneralRequest.Search
     
-    func validateCreate(_ req: Request) throws -> CreateContent {
+    func validateCreate(_ req: Request) throws -> Create {
+        try Create.validate(content: req)
         
-        do {
-            let content = try req.content.decode(CreateContent.self)
-            try CreateContent.validate(content: req)
-            return content
-        } catch let error as ValidationsError {
-            let errors = InputError.parse(failures: error.failures)
-            throw InputValidateError.inputValidateFailed(errors: errors)
-        } catch {
-            throw DefaultError.invalidInput
-        }
+        return try req.content.decode(Create.self)
     }
 
-    func validateUpdate(_ req: Request) throws -> (uuid: UUID, content: UpdateContent) {
+    func validateUpdate(_ req: Request) throws -> Update {
+        try ContactRequest.Update.validate(content: req)
         
-        do {
-            let content = try req.content.decode(UpdateContent.self)
-            try UpdateContent.validate(content: req)
-            guard let id = req.parameters.get("id", as: UUID.self) else { throw DefaultError.invalidInput }
-            return (id, content)
-        } catch let error as ValidationsError {
-            let errors = InputError.parse(failures: error.failures)
-            throw InputValidateError.inputValidateFailed(errors: errors)
-        } catch {
-            throw DefaultError.invalidInput
-        }
+        let id = try req.parameters.require("id", as: UUID.self)
+        let fetchById = GeneralRequest.FetchById(id: id)
+        let content = try req.content.decode(ContactRequest.Update.self)
+        return (fetchById, content)
     }
 
-    func validateUpdateBussineseAddress(_ req: Request) throws -> ValidateBusineseAdressResponse {
+    func validateUpdateBussineseAddress(_ req: Request) throws -> ContactRequest.UpdateBusineseAdressResponse {
         
         do {
-            let content = try req.content.decode(ContactRepository.UpdateBussineseAddress.self)
-            try ContactRepository.UpdateBussineseAddress.validate(content: req)
+            let content = try req.content.decode(ContactRequest.UpdateBussineseAddress.self)
+            try ContactRequest.UpdateBussineseAddress.validate(content: req)
             guard 
                 let id = req.parameters.get("id", as: UUID.self),
                 let addressID: UUID = req.parameters.get("address_id", as: UUID.self)
                 else { throw DefaultError.invalidInput }
 
-            return .init(id: id,
-                         addressID: addressID,
+            return .init(id: .init(id: id),
+                         addressID: .init(id: addressID),
                         content: content)
         } catch let error as ValidationsError {
             let errors = InputError.parse(failures: error.failures)
@@ -64,18 +55,18 @@ class ContactValidator: ContactValidatorProtocol {
         }
     }
 
-    func validateUpdateShippingAddress(_ req: Request) throws -> ValidateShippingAddressResponse {
+    func validateUpdateShippingAddress(_ req: Request) throws -> ContactRequest.UpdateShippingAddressResponse {
         
         do {
-            let content = try req.content.decode(ContactRepository.UpdateShippingAddress.self)
-            try ContactRepository.UpdateShippingAddress.validate(content: req)
+            let content = try req.content.decode(ContactRequest.UpdateShippingAddress.self)
+            try ContactRequest.UpdateShippingAddress.validate(content: req)
             guard 
                 let id = req.parameters.get("id", as: UUID.self),
                 let addressID: UUID = req.parameters.get("address_id", as: UUID.self)
              else { throw DefaultError.invalidInput }
 
-            return .init(id: id,
-                         addressID: addressID,
+            return .init(id: .init(id: id),
+                         addressID: .init(id: addressID),
                          content: content)
         } catch let error as ValidationsError {
             let errors = InputError.parse(failures: error.failures)
@@ -85,32 +76,26 @@ class ContactValidator: ContactValidatorProtocol {
         }
     }
 
-    func validateID(_ req: Request) throws -> UUID {
-        guard let id = req.parameters.get("id"), let uuid = UUID(id) else { throw DefaultError.invalidInput }
-        return uuid
+    func validateID(_ req: Request) throws -> GeneralRequest.FetchById {
+        do {
+            return try req.query.decode(GeneralRequest.FetchById.self)
+        } catch {
+            throw DefaultError.invalidInput
+        }
     }
 
-    func validateSearchQuery(_ req: Request) throws -> String {
-        guard 
-            let search = req.query[String.self, at: "q"],
-            !search.isEmpty
-            else { throw DefaultError.invalidInput }
-        
-        return search
-    }
-}
-
-extension ContactValidator {
-    
-    struct ValidateBusineseAdressResponse {
-        let id: UUID
-        let addressID: UUID
-        let content: ContactRepository.UpdateBussineseAddress
-    }
-
-    struct ValidateShippingAddressResponse {
-        let id: UUID
-        let addressID: UUID
-        let content: ContactRepository.UpdateShippingAddress    
+    func validateSearchQuery(_ req: Request) throws -> Search {
+        do {
+            try Search.validate(content: req)
+            
+            let content = try req.query.decode(Search.self)
+            
+            guard content.query.isEmpty == false else { throw DefaultError.invalidInput }
+            
+            return content
+        }
+        catch {
+            throw DefaultError.invalidInput
+        }
     }
 }

@@ -40,7 +40,7 @@ final class Contact: Model, Content {
     var contactInformation: ContactInformation
     
     @Field(key: "tax_number")
-    var taxNumber: String
+    var taxNumber: String?
     
     @Enum(key: "legal_status")
     var legalStatus: BusinessType
@@ -84,7 +84,7 @@ final class Contact: Model, Content {
          kind: ContactKind = .both,
          vatRegistered: Bool = false,
          contactInformation: ContactInformation = .init(),
-         taxNumber: String = "",
+         taxNumber: String? = nil,
          legalStatus: BusinessType = .individual,
          website: String? = nil,
          businessAddress: [BusinessAddress] = [.init()],

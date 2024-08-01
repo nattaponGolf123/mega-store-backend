@@ -118,9 +118,10 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
                 on db: any FluentKit.Database) async throws -> PurchaseOrderResponse {
         do {
             // validate exist supplierId , customerId
+           
             guard
-                let _ = try? await contactRepository.find(id: content.supplierId,
-                                                          on: db),
+                let _ = try? await contactRepository.fetchById(request: .init(id: content.supplierId),
+                                                               on: db),
                 let customerId = try? await myBusineseRepository.fetchAll(on: db).first?.id
             else {
                 throw DefaultError.error(message: "supplier or customer not found")
@@ -197,10 +198,10 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
         else { throw DefaultError.notFound }
         
         // validate exist supplierId , customerId
-        if let supplierId = content.supplierId {
+        if let supplierId = content.supplierId {            
             guard
-                let _ = try? await contactRepository.find(id: supplierId,
-                                                          on: db)
+                let _ = try? await contactRepository.fetchById(request: .init(id: supplierId),
+                                                               on: db)
             else {
                 throw DefaultError.error(message: "supplier not found")
             }

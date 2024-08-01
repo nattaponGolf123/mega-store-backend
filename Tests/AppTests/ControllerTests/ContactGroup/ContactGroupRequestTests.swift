@@ -13,22 +13,30 @@ import MockableTest
 
 @testable import App
 
-final class ContactGroupRequestTests: XCTestCase {
+final class ContactGroupRequestTests: XCTestCase {    
+    
+    typealias Search = GeneralRequest.Search
+    typealias FetchAll = GeneralRequest.FetchAll
     
     // MARK: - Fetch Tests
     
     func testFetchInit_WithDefaults_ShouldReturnCorrectValues() {
-        let fetch = ContactGroupRequest.FetchAll()
+        let fetch = FetchAll()
         
         XCTAssertFalse(fetch.showDeleted)
         XCTAssertEqual(fetch.page, 1)
         XCTAssertEqual(fetch.perPage, 20)
-        XCTAssertEqual(fetch.sortBy, .name)
+        XCTAssertEqual(fetch.sortBy, .createdAt)
         XCTAssertEqual(fetch.sortOrder, .asc)
     }
 
     func testFetchInit_WithCustomValues_ShouldReturnCorrectValues() {
-        let fetch = ContactGroupRequest.FetchAll(showDeleted: true, page: 2, perPage: 50, sortBy: .createdAt, sortOrder: .desc)
+        let fetch = FetchAll(showDeleted: true, 
+                             page: 2,
+                             perPage: 50,
+                             sortBy: .createdAt,
+                             sortOrder: .desc)
+
         
         XCTAssertTrue(fetch.showDeleted)
         XCTAssertEqual(fetch.page, 2)
@@ -38,7 +46,11 @@ final class ContactGroupRequestTests: XCTestCase {
     }
     
     func testFetchInit_WithInvalidPage_ShouldReturnCorrectValues() {
-        let fetch = ContactGroupRequest.FetchAll(showDeleted: true, page: -1, perPage: 50, sortBy: .createdAt, sortOrder: .desc)
+        let fetch = FetchAll(showDeleted: true, 
+                                            page: -1,
+                                            perPage: 50,
+                                            sortBy: .createdAt,
+                                            sortOrder: .desc)
         
         XCTAssertTrue(fetch.showDeleted)
         XCTAssertEqual(fetch.page, 1)
@@ -48,7 +60,11 @@ final class ContactGroupRequestTests: XCTestCase {
     }
 
     func testFetchInit_WithInvalidPerPage_ShouldReturnCorrectValues() {
-        let fetch = ContactGroupRequest.FetchAll(showDeleted: true, page: 2, perPage: -1, sortBy: .createdAt, sortOrder: .desc)
+        let fetch = FetchAll(showDeleted: true,
+                                            page: 2,
+                                            perPage: -1,
+                                            sortBy: .createdAt,
+                                            sortOrder: .desc)
         
         XCTAssertTrue(fetch.showDeleted)
         XCTAssertEqual(fetch.page, 2)
@@ -58,7 +74,11 @@ final class ContactGroupRequestTests: XCTestCase {
     }
     
     func testFetchEncode_WithValidInstance_ShouldReturnJSON() throws {
-        let fetch = ContactGroupRequest.FetchAll(showDeleted: true, page: 2, perPage: 50, sortBy: .createdAt, sortOrder: .desc)
+        let fetch = FetchAll(showDeleted: true, 
+                                            page: 2,
+                                            perPage: 50,
+                                            sortBy: .createdAt,
+                                            sortOrder: .desc)
         
         let encoder = JSONEncoder()
         let data = try encoder.encode(fetch)
@@ -83,7 +103,7 @@ final class ContactGroupRequestTests: XCTestCase {
         """
         let data = json.data(using: .utf8)!
         let decoder = JSONDecoder()
-        let fetch = try decoder.decode(ContactGroupRequest.FetchAll.self, from: data)
+        let fetch = try decoder.decode(FetchAll.self, from: data)
         
         XCTAssertTrue(fetch.showDeleted)
         XCTAssertEqual(fetch.page, 2)
@@ -100,29 +120,33 @@ final class ContactGroupRequestTests: XCTestCase {
         """
         let data = json.data(using: .utf8)!
         let decoder = JSONDecoder()
-        let fetch = try decoder.decode(ContactGroupRequest.FetchAll.self, from: data)
+        let fetch = try decoder.decode(FetchAll.self, from: data)
         
         XCTAssertFalse(fetch.showDeleted)
         XCTAssertEqual(fetch.page, 1)
         XCTAssertEqual(fetch.perPage, 20)
-        XCTAssertEqual(fetch.sortBy, .name)
+        XCTAssertEqual(fetch.sortBy, .createdAt)
         XCTAssertEqual(fetch.sortOrder, .asc)
     }
 
     // MARK: - Search Tests
     
     func testSearchInit_WithDefaults_ShouldReturnCorrectValues() {
-        let search = ContactGroupRequest.Search(query: "Test")
+        let search = Search(query: "Test")
         
         XCTAssertEqual(search.query, "Test")
         XCTAssertEqual(search.page, 1)
         XCTAssertEqual(search.perPage, 20)
-        XCTAssertEqual(search.sortBy, .name)
+        XCTAssertEqual(search.sortBy, .createdAt)
         XCTAssertEqual(search.sortOrder, .asc)
     }
 
     func testSearchInit_WithCustomValues_ShouldReturnCorrectValues() {
-        let search = ContactGroupRequest.Search(query: "Test", page: 2, perPage: 50, sortBy: .createdAt, sortOrder: .desc)
+        let search = Search(query: "Test",
+                            page: 2,
+                            perPage: 50,
+                            sortBy: .createdAt,
+                            sortOrder: .desc)
         
         XCTAssertEqual(search.query, "Test")
         XCTAssertEqual(search.page, 2)
@@ -132,7 +156,11 @@ final class ContactGroupRequestTests: XCTestCase {
     }
 
     func testSearchInit_WithInvalidPage_ShouldReturnCorrectValues() {
-        let search = ContactGroupRequest.Search(query: "Test", page: -1, perPage: 50, sortBy: .createdAt, sortOrder: .desc)
+        let search = Search(query: "Test",
+                            page: -1,
+                            perPage: 50,
+                            sortBy: .createdAt,
+                            sortOrder: .desc)
         
         XCTAssertEqual(search.query, "Test")
         XCTAssertEqual(search.page, 1)
@@ -142,7 +170,11 @@ final class ContactGroupRequestTests: XCTestCase {
     }
     
     func testSearchInit_WithInvalidPerPage_ShouldReturnCorrectValues() {
-        let search = ContactGroupRequest.Search(query: "Test", page: 2, perPage: -1, sortBy: .createdAt, sortOrder: .desc)
+        let search = Search(query: "Test",
+                            page: 2,
+                            perPage: -1,
+                            sortBy: .createdAt,
+                            sortOrder: .desc)
         
         XCTAssertEqual(search.query, "Test")
         XCTAssertEqual(search.page, 2)
@@ -152,7 +184,11 @@ final class ContactGroupRequestTests: XCTestCase {
     }
     
     func testSearchEncode_WithValidInstance_ShouldReturnJSON() throws {
-        let search = ContactGroupRequest.Search(query: "Test", page: 2, perPage: 50, sortBy: .createdAt, sortOrder: .desc)
+        let search = Search(query: "Test", 
+                                           page: 2,
+                                           perPage: 50,
+                                           sortBy: .createdAt,
+                                           sortOrder: .desc)
         
         let encoder = JSONEncoder()
         let data = try encoder.encode(search)
@@ -177,7 +213,7 @@ final class ContactGroupRequestTests: XCTestCase {
         """
         let data = json.data(using: .utf8)!
         let decoder = JSONDecoder()
-        let search = try decoder.decode(ContactGroupRequest.Search.self, from: data)
+        let search = try decoder.decode(Search.self, from: data)
         
         XCTAssertEqual(search.query, "Test")
         XCTAssertEqual(search.page, 2)
@@ -212,7 +248,8 @@ final class ContactGroupRequestTests: XCTestCase {
     }
 
     func testUpdateInit_WithCustomValues_ShouldReturnCorrectValues() {
-        let update = ContactGroupRequest.Update(name: "Group", description: "Description")
+        let update = ContactGroupRequest.Update(name: "Group", 
+                                                description: "Description")
         
         XCTAssertEqual(update.name, "Group")
         XCTAssertEqual(update.description, "Description")

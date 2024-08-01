@@ -4,51 +4,47 @@ import Mockable
 
 @Mockable
 protocol ContactGroupValidatorProtocol {
+    typealias Search = GeneralRequest.Search
+    
     func validateCreate(_ req: Request) throws -> ContactGroupRequest.Create
-    func validateUpdate(_ req: Request) throws -> (id: ContactGroupRequest.FetchById, content: ContactGroupRequest.Update)
-    func validateID(_ req: Request) throws -> ContactGroupRequest.FetchById
-    func validateSearchQuery(_ req: Request) throws -> ContactGroupRequest.Search
+    func validateUpdate(_ req: Request) throws -> (id: GeneralRequest.FetchById, content: ContactGroupRequest.Update)
+    func validateID(_ req: Request) throws -> GeneralRequest.FetchById
+    func validateSearchQuery(_ req: Request) throws -> Search
 }
 
 class ContactGroupValidator: ContactGroupValidatorProtocol {
-    typealias CreateContent = ContactGroupRequest.Create
-    typealias UpdateContent = (id: ContactGroupRequest.FetchById, content: ContactGroupRequest.Update)
-    typealias SearchContent = ContactGroupRequest.Search
+    typealias Create = ContactGroupRequest.Create
+    typealias Update = (id: GeneralRequest.FetchById, content: ContactGroupRequest.Update)
+    typealias Search = GeneralRequest.Search
 
-    func validateCreate(_ req: Request) throws -> CreateContent {
-        try CreateContent.validate(content: req)
+    func validateCreate(_ req: Request) throws -> Create {
+        try Create.validate(content: req)
         
-        return try req.content.decode(CreateContent.self)
+        return try req.content.decode(Create.self)
     }
 
-    func validateUpdate(_ req: Request) throws -> UpdateContent {
-        do {
-            try ContactGroupRequest.Update.validate(content: req)
-            
-            let id = try req.parameters.require("id", as: UUID.self)
-            let fetchById = ContactGroupRequest.FetchById(id: id)
-            let content = try req.content.decode(ContactGroupRequest.Update.self)
-            return (fetchById, content)
-            
-        } catch {
-            print(error.localizedDescription)
-            throw error
-        }
+    func validateUpdate(_ req: Request) throws -> Update {
+        try ContactGroupRequest.Update.validate(content: req)
+        
+        let id = try req.parameters.require("id", as: UUID.self)
+        let fetchById = GeneralRequest.FetchById(id: id)
+        let content = try req.content.decode(ContactGroupRequest.Update.self)
+        return (fetchById, content)
     }
 
-    func validateID(_ req: Request) throws -> ContactGroupRequest.FetchById {
+    func validateID(_ req: Request) throws -> GeneralRequest.FetchById {
         do {
-            return try req.query.decode(ContactGroupRequest.FetchById.self)
+            return try req.query.decode(GeneralRequest.FetchById.self)
         } catch {
             throw DefaultError.invalidInput
         }
     }
 
-    func validateSearchQuery(_ req: Request) throws -> ContactGroupRequest.Search {
+    func validateSearchQuery(_ req: Request) throws -> Search {
         do {
-            try SearchContent.validate(content: req)
+            try Search.validate(content: req)
             
-            let content = try req.query.decode(ContactGroupRequest.Search.self)
+            let content = try req.query.decode(Search.self)
             
             guard content.query.isEmpty == false else { throw DefaultError.invalidInput }
             

@@ -4,6 +4,8 @@ import Vapor
 
 class ContactGroupController: RouteCollection {
     
+    typealias FetchAll = GeneralRequest.FetchAll
+    
     private(set) var repository: ContactGroupRepositoryProtocol
     private(set) var validator: ContactGroupValidatorProtocol
     
@@ -32,7 +34,8 @@ class ContactGroupController: RouteCollection {
     
     // GET /contact_groups?show_deleted=true&page=1&per_page=10
     func all(req: Request) async throws -> PaginatedResponse<ContactGroup> {        
-        let content = try req.query.decode(ContactGroupRequest.FetchAll.self)
+        let content = try req.query.decode(FetchAll.self)
+        
         return try await repository.fetchAll(request: content,
                                              on: req.db)
     }

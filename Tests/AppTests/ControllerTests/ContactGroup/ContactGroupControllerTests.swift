@@ -16,6 +16,8 @@ import MockableTest
 
 final class ContactGroupControllerTests: XCTestCase {
 
+    typealias Search = GeneralRequest.Search
+    
     var app: Application!
     var db: Database!
     
@@ -99,7 +101,7 @@ final class ContactGroupControllerTests: XCTestCase {
         
         // Given
         let id = UUID()
-        let request = ContactGroupRequest.FetchById(id: id)
+        let request = GeneralRequest.FetchById(id: id)
         given(repo).fetchById(request: .matching({ $0.id == id}),
                               on: .any).willThrow(DefaultError.notFound)
         given(validator).validateID(.any).willReturn(request)
@@ -114,7 +116,7 @@ final class ContactGroupControllerTests: XCTestCase {
         
         // Given
         let id = UUID()
-        let request = ContactGroupRequest.FetchById(id: id)
+        let request = GeneralRequest.FetchById(id: id)
         given(repo).fetchById(request: .matching({ $0.id == id}),
                               on: .any).willReturn(Stub.group)
         given(validator).validateID(.any).willReturn(request)
@@ -197,7 +199,7 @@ final class ContactGroupControllerTests: XCTestCase {
         
         // Given
         let id = UUID()
-        let requestId = ContactGroupRequest.FetchById(id: id)
+        let requestId = GeneralRequest.FetchById(id: id)
         let requestUpdate = ContactGroupRequest.Update(name: "")
         given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
         
@@ -217,7 +219,7 @@ final class ContactGroupControllerTests: XCTestCase {
         
         // Given
         let id = UUID()
-        let requestId = ContactGroupRequest.FetchById(id: id)
+        let requestId = GeneralRequest.FetchById(id: id)
         let requestUpdate = ContactGroupRequest.Update(name: "Test")
         given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
         
@@ -239,7 +241,7 @@ final class ContactGroupControllerTests: XCTestCase {
         
         // Given
         let id = UUID()
-        let requestId = ContactGroupRequest.FetchById(id: id)
+        let requestId = GeneralRequest.FetchById(id: id)
         let requestUpdate = ContactGroupRequest.Update(description: "Test")
         given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
         
@@ -283,7 +285,7 @@ final class ContactGroupControllerTests: XCTestCase {
         
         // Given
         let id = UUID()
-        let reqId = ContactGroupRequest.FetchById(id: id)
+        let reqId = GeneralRequest.FetchById(id: id)
         given(validator).validateID(.any).willReturn(reqId)
         
         given(repo).delete(byId: .matching({ $0.id.uuidString == id.uuidString }),
@@ -298,7 +300,7 @@ final class ContactGroupControllerTests: XCTestCase {
         
         // Given
         let id = UUID()
-        let reqId = ContactGroupRequest.FetchById(id: id)
+        let reqId = GeneralRequest.FetchById(id: id)
         given(validator).validateID(.any).willReturn(reqId)
         
         let stub = ContactGroup(id: .init(),
@@ -323,7 +325,7 @@ final class ContactGroupControllerTests: XCTestCase {
     func testSearch_WithEmptyQuery_ShouldReturnBadRequest() async throws {
         
         // Given
-        let query = ContactGroupRequest.Search(query: "")
+        let query = Search(query: "")
         given(validator).validateSearchQuery(.any).willThrow(DefaultError.invalidInput)
         
         given(repo).searchByName(request: .matching({ $0.query == query.query }),
@@ -337,7 +339,7 @@ final class ContactGroupControllerTests: XCTestCase {
     func testSearch_WithMore200CharQuery_ShouldReturnBadRequest() async throws {
         
         // Given
-        let query = ContactGroupRequest.Search(query: String(repeating: "A", count: 210))
+        let query = Search(query: String(repeating: "A", count: 210))
         given(validator).validateSearchQuery(.any).willThrow(DefaultError.invalidInput)
         
         given(repo).searchByName(request: .matching({ $0.query == query.query }),
@@ -351,7 +353,7 @@ final class ContactGroupControllerTests: XCTestCase {
     func testSearch_WithValidQuery_ShouldReturnEmptyGroups() async throws {
         
         // Given
-        let query = ContactGroupRequest.Search(query: "Test")
+        let query = Search(query: "Test")
         given(validator).validateSearchQuery(.any).willReturn(query)
         
         let stub = PaginatedResponse<ContactGroup>(page: 1, perPage: 20, total: 0, items: [])
@@ -368,7 +370,7 @@ final class ContactGroupControllerTests: XCTestCase {
     func testSearch_WithValidQuery_ShouldReturnGroups() async throws {
         
         // Given
-        let query = ContactGroupRequest.Search(query: "Test")
+        let query = Search(query: "Test")
         given(validator).validateSearchQuery(.any).willReturn(query)
         
         let stub = PaginatedResponse<ContactGroup>(page: 1, perPage: 20, total: 2,
@@ -419,185 +421,3 @@ extension ContactGroupControllerTests {
         }
     }
 }
-
-/*
- import Foundation
- import Fluent
- import Vapor
-
- class ContactGroupController: RouteCollection {
-     
-     private(set) var repository: ContactGroupRepositoryProtocol
-     private(set) var validator: ContactGroupValidatorProtocol
-     
-     init(repository: ContactGroupRepositoryProtocol = ContactGroupRepository(),
-          validator: ContactGroupValidatorProtocol = ContactGroupValidator()) {
-         self.repository = repository
-         self.validator = validator
-     }
-     
-     func boot(routes: RoutesBuilder) throws {
-         
-         let groups = routes.grouped("contact_groups")
-         groups.get(use: all)
-         groups.post(use: create)
-         
-         groups.group(":id") { withID in
-             withID.get(use: getByID)
-             withID.put(use: update)
-             withID.delete(use: delete)
-         }
-         
-         groups.group("search") { _search in
-             _search.get(use: search)
-         }
-     }
-     
-     // GET /contact_groups?show_deleted=true&page=1&per_page=10
-     func all(req: Request) async throws -> PaginatedResponse<ContactGroup> {
-         let content = try req.query.decode(ContactGroupRequest.FetchAll.self)
-
-         return try await repository.fetchAll(request: content,
-                                              on: req.db)
-     }
-     
-     // POST /contact_groups
-     func create(req: Request) async throws -> ContactGroup {
-         let content = try validator.validateCreate(req)
-         
-         return try await repository.create(request: content,
-                                            on: req.db)
-     }
-     
-     // GET /contact_groups/:id
-     func getByID(req: Request) async throws -> ContactGroup {
-         let content = try validator.validateID(req)
-         
-         return try await repository.fetchById(request: content,
-                                               on: req.db)
-     }
-     
-     // PUT /contact_groups/:id
-     func update(req: Request) async throws -> ContactGroup {
-         let (id, content) = try validator.validateUpdate(req)
-         
-         return try await repository.update(byId: id,
-                                            request: content,
-                                            on: req.db)
-     }
-
-     // DELETE /contact_groups/:id
-     func delete(req: Request) async throws -> ContactGroup {
-         let id = try validator.validateID(req)
-         
-         return try await repository.delete(byId: id,
-                                            on: req.db)
-     }
-     
-     // GET /contact_groups/search?name=xxx&page=1&per_page=10
-     func search(req: Request) async throws -> PaginatedResponse<ContactGroup> {
-         
-         let content = try validator.validateSearchQuery(req)
-         
-         return try await repository.searchByName(request: content,
-                                                  on: req.db)
-     }
- }
-
- */
-
-/*
- protocol ContactGroupRepositoryProtocol {
-
-     func fetchAll(
-         request: ContactGroupRequest.FetchAll,
-         on db: Database
-     ) async throws -> PaginatedResponse<ContactGroup>
-     
-     func fetchById(
-         request: ContactGroupRequest.FetchById,
-         on db: Database
-     ) async throws -> ContactGroup
-     
-     func fetchByName(
-         request: ContactGroupRequest.FetchByName,
-         on db: Database
-     ) async throws -> ContactGroup
-     
-     func searchByName(
-         request: ContactGroupRequest.Search,
-         on db: Database
-     ) async throws -> PaginatedResponse<ContactGroup>
-     
-     func create(
-         request: ContactGroupRequest.Create,
-         on db: Database
-     ) async throws -> ContactGroup
-     
-     func update(
-         byId: ContactGroupRequest.FetchById,
-         request: ContactGroupRequest.Update,
-         on db: Database
-     ) async throws -> ContactGroup
-     
-     func delete(
-         byId: ContactGroupRequest.FetchById,
-         on db: Database
-     ) async throws -> ContactGroup
- }
-
- */
-
-/*
- 
- @Mockable
- protocol ContactGroupValidatorProtocol {
-     func validateCreate(_ req: Request) throws -> ContactGroupRequest.Create
-     func validateUpdate(_ req: Request) throws -> (id: ContactGroupRequest.FetchById, content: ContactGroupRequest.Update)
-     func validateID(_ req: Request) throws -> ContactGroupRequest.FetchById
-     func validateSearchQuery(_ req: Request) throws -> ContactGroupRequest.Search
- }
-
- class ContactGroupValidator: ContactGroupValidatorProtocol {
-     typealias CreateContent = ContactGroupRequest.Create
-     typealias UpdateContent = (id: ContactGroupRequest.FetchById, content: ContactGroupRequest.Update)
-
-     func validateCreate(_ req: Request) throws -> CreateContent {
-         try CreateContent.validate(content: req)
-         
-         return try req.content.decode(CreateContent.self)
-     }
-
-     func validateUpdate(_ req: Request) throws -> UpdateContent {
-         try ContactGroupRequest.Update.validate(content: req)
-         
-         let id = try req.parameters.require("id", as: UUID.self)
-         let fetchById = ContactGroupRequest.FetchById(id: id)
-         let content = try req.content.decode(ContactGroupRequest.Update.self)
-         
-         return (fetchById, content)
-     }
-
-     func validateID(_ req: Request) throws -> ContactGroupRequest.FetchById {
-         do {
-             return try req.query.decode(ContactGroupRequest.FetchById.self)
-         } catch {
-             throw DefaultError.invalidInput
-         }
-     }
-
-     func validateSearchQuery(_ req: Request) throws -> ContactGroupRequest.Search {
-         do {
-             let content = try req.query.decode(ContactGroupRequest.Search.self)
-             
-             guard content.query.isEmpty == false else { throw DefaultError.invalidInput }
-             
-             return content
-         }
-         catch {
-             throw DefaultError.invalidInput
-         }
-     }
- }
-
- */

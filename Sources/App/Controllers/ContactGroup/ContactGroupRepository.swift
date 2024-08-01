@@ -12,24 +12,27 @@ import Mockable
 
 @Mockable
 protocol ContactGroupRepositoryProtocol {
-
+    
+    typealias FetchAll = GeneralRequest.FetchAll
+    typealias Search = GeneralRequest.Search
+    
     func fetchAll(
-        request: ContactGroupRequest.FetchAll,
+        request: FetchAll,
         on db: Database
     ) async throws -> PaginatedResponse<ContactGroup>
     
     func fetchById(
-        request: ContactGroupRequest.FetchById,
+        request: GeneralRequest.FetchById,
         on db: Database
     ) async throws -> ContactGroup
     
     func fetchByName(
-        request: ContactGroupRequest.FetchByName,
+        request: GeneralRequest.FetchByName,
         on db: Database
     ) async throws -> ContactGroup
     
     func searchByName(
-        request: ContactGroupRequest.Search,
+        request: Search,
         on db: Database
     ) async throws -> PaginatedResponse<ContactGroup>
     
@@ -39,21 +42,24 @@ protocol ContactGroupRepositoryProtocol {
     ) async throws -> ContactGroup
     
     func update(
-        byId: ContactGroupRequest.FetchById,
+        byId: GeneralRequest.FetchById,
         request: ContactGroupRequest.Update,
         on db: Database
     ) async throws -> ContactGroup
     
     func delete(
-        byId: ContactGroupRequest.FetchById,
+        byId: GeneralRequest.FetchById,
         on db: Database
     ) async throws -> ContactGroup
 }
 
 class ContactGroupRepository: ContactGroupRepositoryProtocol {
+    
+    typealias FetchAll = GeneralRequest.FetchAll
+    typealias Search = GeneralRequest.Search
         
     func fetchAll(
-        request: ContactGroupRequest.FetchAll,
+        request: FetchAll,
         on db: Database
     ) async throws -> PaginatedResponse<ContactGroup> {
         let query = ContactGroup.query(on: db)
@@ -84,7 +90,7 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
     }
     
     func fetchById(
-        request: ContactGroupRequest.FetchById,
+        request: GeneralRequest.FetchById,
         on db: Database
     ) async throws -> ContactGroup {
         guard
@@ -97,7 +103,7 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
     }
     
     func fetchByName(
-        request: ContactGroupRequest.FetchByName,
+        request: GeneralRequest.FetchByName,
         on db: Database
     ) async throws -> ContactGroup {
         guard
@@ -110,7 +116,7 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
     }
     
     func searchByName(
-        request: ContactGroupRequest.Search,
+        request: Search,
         on db: Database
     ) async throws -> PaginatedResponse<ContactGroup> {
         let regexPattern = "(?i)\(request.query)"
@@ -140,9 +146,8 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
         on db: Database
     ) async throws -> ContactGroup {
         // prevent duplicate name
-        let found = try? await fetchByName(request: .init(name: request.name),
-                                          on: db)
-        if let _ = found {
+        if let _ = try? await fetchByName(request: .init(name: request.name),
+                                          on: db) {
             throw CommonError.duplicateName
         }
         else {
@@ -154,7 +159,7 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
     }
     
     func update(
-        byId: ContactGroupRequest.FetchById,
+        byId: GeneralRequest.FetchById,
         request: ContactGroupRequest.Update,
         on db: Database
     ) async throws -> ContactGroup {
@@ -168,14 +173,6 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
                 throw CommonError.duplicateName
             }
             
-            // prevent duplicate name
-//            do {
-//                let _ = try await fetchByName(request: .init(name: name),
-//                                              on: db)
-//                throw CommonError.duplicateName
-//            } catch {
-//                // not not thing
-//            }
             group.name = name
         }
         
@@ -188,7 +185,7 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
     }
     
     func delete(
-        byId: ContactGroupRequest.FetchById,
+        byId: GeneralRequest.FetchById,
         on db: Database
     ) async throws -> ContactGroup {
         let group = try await fetchById(request: .init(id: byId.id),
@@ -202,8 +199,8 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
 private extension ContactGroupRepository {
     func sortQuery(
         query: QueryBuilder<ContactGroup>,
-        sortBy: ContactGroupRequest.SortBy,
-        sortOrder: ContactGroupRequest.SortOrder,
+        sortBy: SortBy,
+        sortOrder: SortOrder,
         page: Int,
         perPage: Int
     ) async throws -> [ContactGroup] {
@@ -228,6 +225,8 @@ private extension ContactGroupRepository {
             case .desc:
                 return try await query.sort(\.$createdAt, .descending).range(range).all()
             }
+        default:
+            return try await query.range(range).all()
         }
     }
 }

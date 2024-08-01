@@ -104,7 +104,9 @@ final class ContactGroupRepositoryTests: XCTestCase {
         try await group2.create(on: db)
         
         // When
-        let result = try await contactGroupRepository.fetchAll(request: .init(sortBy: .name, sortOrder: .desc),
+        
+        let result = try await contactGroupRepository.fetchAll(request: .init(sortBy: .name,
+                                                                              sortOrder: .desc),
                                                                on: db)
         
         // Then
@@ -286,7 +288,7 @@ final class ContactGroupRepositoryTests: XCTestCase {
         let request = ContactGroupRequest.Update(name: "Group2",
                                                  description: "Des")
         
-        let fetchById = ContactGroupRequest.FetchById(id: group.id!)
+        let fetchById = GeneralRequest.FetchById(id: group.id!)
         
         // When
         let result = try await contactGroupRepository.update(byId: fetchById,
@@ -305,7 +307,7 @@ final class ContactGroupRepositoryTests: XCTestCase {
         let request = ContactGroupRequest.Update(name: nil,
                                                  description: "Des")
         
-        let fetchById = ContactGroupRequest.FetchById(id: group.id!)
+        let fetchById = GeneralRequest.FetchById(id: group.id!)
         
         // When
         let result = try await contactGroupRepository.update(byId: fetchById,
@@ -326,7 +328,7 @@ final class ContactGroupRepositoryTests: XCTestCase {
         let request = ContactGroupRequest.Update(name: "Group2",
                                                  description: "Des")
         
-        let fetchById = ContactGroupRequest.FetchById(id: group1.id!)
+        let fetchById = GeneralRequest.FetchById(id: group1.id!)
         
         // When
         do {
@@ -346,7 +348,7 @@ final class ContactGroupRepositoryTests: XCTestCase {
         let request = ContactGroupRequest.Update(name: "Group2",
                                                  description: "Des")
         
-        let fetchById = ContactGroupRequest.FetchById(id: UUID())
+        let fetchById = GeneralRequest.FetchById(id: UUID())
         
         // When
         do {
@@ -367,7 +369,7 @@ final class ContactGroupRepositoryTests: XCTestCase {
         let group = ContactGroup(name: "Group")
         try await group.create(on: db)
         
-        let fetchById = ContactGroupRequest.FetchById(id: group.id!)
+        let fetchById = GeneralRequest.FetchById(id: group.id!)
         
         // When
         let result = try await contactGroupRepository.delete(byId: fetchById,
@@ -385,205 +387,3 @@ private extension ContactGroupRepositoryTests {
         }
     }
 }
-
-/*
- @Mockable
- protocol ContactGroupRepositoryProtocol {
-
-     func fetchAll(
-         request: ContactGroupRequest.FetchAll,
-         on db: Database
-     ) async throws -> PaginatedResponse<ContactGroup>
-     
-     func fetchById(
-         request: ContactGroupRequest.FetchById,
-         on db: Database
-     ) async throws -> ContactGroup?
-     
-     func fetchByName(
-         request: ContactGroupRequest.FetchByName,
-         on db: Database
-     ) async throws -> ContactGroup?
-     
-     func searchByName(
-         request: ContactGroupRequest.Search,
-         on db: Database
-     ) async throws -> PaginatedResponse<ContactGroup>
-     
-     func create(
-         request: ContactGroupRequest.Create,
-         on db: Database
-     ) async throws -> ContactGroup
-     
-     func update(
-         byId: ContactGroupRequest.FetchById,
-         request: ContactGroupRequest.Update,
-         on db: Database
-     ) async throws -> ContactGroup
-     
-     func delete(
-         byId: ContactGroupRequest.FetchById,
-         on db: Database
-     ) async throws -> ContactGroup
- }
-
- class ContactGroupRepository: ContactGroupRepositoryProtocol {
-         
-     func fetchAll(
-         request: ContactGroupRequest.FetchAll,
-         on db: Database
-     ) async throws -> PaginatedResponse<ContactGroup> {
-         let query = ContactGroup.query(on: db)
-         
-         if request.showDeleted {
-             query.withDeleted()
-         } else {
-             query.filter(\.$deletedAt == nil)
-         }
-         
-         let total = try await query.count()
-         let items = try await sortQuery(
-             query: query,
-             sortBy: request.sortBy,
-             sortOrder: request.sortOrder,
-             page: request.page,
-             perPage: request.perPage
-         )
-         
-         let response = PaginatedResponse(
-             page: request.page,
-             perPage: request.perPage,
-             total: total,
-             items: items
-         )
-         
-         return response
-     }
-     
-     func fetchById(
-         request: ContactGroupRequest.FetchById,
-         on db: Database
-     ) async throws -> ContactGroup? {
-         return try await ContactGroup.query(on: db).filter(\.$id == request.id).first()
-     }
-     
-     func fetchByName(
-         request: ContactGroupRequest.FetchByName,
-         on db: Database
-     ) async throws -> ContactGroup? {
-         return try await ContactGroup.query(on: db).filter(\.$name == request.name).first()
-     }
-     
-     func searchByName(
-         request: ContactGroupRequest.Search,
-         on db: Database
-     ) async throws -> PaginatedResponse<ContactGroup> {
-         let regexPattern = "(?i)\(request.query)"
-         let query = ContactGroup.query(on: db).filter(\.$name =~ regexPattern)
-         
-         let total = try await query.count()
-         let items = try await sortQuery(
-             query: query,
-             sortBy: request.sortBy,
-             sortOrder: request.sortOrder,
-             page: request.page,
-             perPage: request.perPage
-         )
-         
-         let response = PaginatedResponse(
-             page: request.page,
-             perPage: request.perPage,
-             total: total,
-             items: items
-         )
-         
-         return response
-     }
-     
-     func create(
-         request: ContactGroupRequest.Create,
-         on db: Database
-     ) async throws -> ContactGroup {
-         // prevent duplicate name
-         if let _ = try await fetchByName(request: .init(name: request.name),
-                                          on: db) {
-             throw CommonError.duplicateName
-         }
-         
-         let group = ContactGroup(name: request.name,
-                                  description: request.description)
-         try await group.save(on: db)
-         return group
-     }
-     
-     func update(
-         byId: ContactGroupRequest.FetchById,
-         request: ContactGroupRequest.Update,
-         on db: Database
-     ) async throws -> ContactGroup {
-         guard
-             var group = try await fetchById(request: .init(id: byId.id),
-                                            on: db)
-         else { throw Abort(.notFound) }
-       
-         if let name = request.name {
-             // prevent duplicate name
-             if let _ = try await fetchByName(request: .init(name: name),
-                                              on: db) {
-                 throw CommonError.duplicateName
-             }
-             
-             group.name = name
-         }
-         
-         if let description = request.description {
-             group.description = description
-         }
-         
-         try await group.save(on: db)
-         return group
-     }
-     
-     func delete(
-         byId: ContactGroupRequest.FetchById,
-         on db: Database
-     ) async throws -> ContactGroup {
-         guard
-             var group = try await fetchById(request: .init(id: byId.id),
-                                            on: db)
-         else { throw Abort(.notFound) }
-         
-         try await group.delete(on: db)
-         return group
-     }
-     
- }
-
- private extension ContactGroupRepository {
-     func sortQuery(
-         query: QueryBuilder<ContactGroup>,
-         sortBy: ContactGroupRequest.SortBy,
-         sortOrder: ContactGroupRequest.SortOrder,
-         page: Int,
-         perPage: Int
-     ) async throws -> [ContactGroup] {
-         switch sortBy {
-         case .name:
-             switch sortOrder {
-             case .asc:
-                 return try await query.sort(\.$name).range((page - 1) * perPage..<(page * perPage)).all()
-             case .desc:
-                 return try await query.sort(\.$name, .descending).range((page - 1) * perPage..<(page * perPage)).all()
-             }
-         case .createdAt:
-             switch sortOrder {
-             case .asc:
-                 return try await query.sort(\.$createdAt).range((page - 1) * perPage..<(page * perPage)).all()
-             case .desc:
-                 return try await query.sort(\.$createdAt, .descending).range((page - 1) * perPage..<(page * perPage)).all()
-             }
-         }
-     }
- }
-
- */

@@ -111,7 +111,7 @@ final class ContactGroupValidatorTests: XCTestCase {
     // MARK: - Fetch By ID Tests
     
     func testValidateID_WithValidRequest_ShouldReturnCorrectValues() {
-        let content = ContactGroupRequest.FetchById(id: .init())
+        let content = GeneralRequest.FetchById(id: .init())
         let request = mockGETRequest(param: content)
         
         XCTAssertNoThrow(try validator.validateID(request))
@@ -124,7 +124,7 @@ final class ContactGroupValidatorTests: XCTestCase {
     }
     
     // MARK: - Search Query Tests
-    typealias Search = ContactGroupRequest.Search
+    typealias Search = GeneralRequest.Search
     
     func testValidateSearchQuery_WithValidRequest_ShouldReturnCorrectValues() {
         let content = Search(query: "Test")
