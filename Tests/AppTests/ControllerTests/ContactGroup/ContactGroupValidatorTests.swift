@@ -71,7 +71,7 @@ final class ContactGroupValidatorTests: XCTestCase {
         let id = UUID()
         let content = ContactGroupRequest.Update(name: "Test")
         let request = mockRequest(url: "/mock/:id",
-                                      id: id,
+                                      pathParameters: ["id": id],
                                       content: content)
         
         XCTAssertNoThrow(try validator.validateUpdate(request))
@@ -81,7 +81,7 @@ final class ContactGroupValidatorTests: XCTestCase {
         let id = UUID()
         let content = ContactGroupRequest.Update(name: "T")
         let request = mockRequest(url: "/mock/:id",
-                                      id: id,
+                                      pathParameters: ["id": id],
                                       content: content)
         
         XCTAssertThrowsError(try validator.validateUpdate(request))
@@ -92,7 +92,7 @@ final class ContactGroupValidatorTests: XCTestCase {
         let name = String(repeating: "A", count: 201)
         let content = ContactGroupRequest.Update(name: name)
         let request = mockRequest(url: "/mock/:id",
-                                      id: id,
+                                      pathParameters: ["id": id],
                                       content: content)
         
         XCTAssertThrowsError(try validator.validateUpdate(request))
@@ -102,8 +102,8 @@ final class ContactGroupValidatorTests: XCTestCase {
         let id = UUID()
         let content = ContactGroupRequest.Update(description: "Test")
         let request = mockRequest(url: "/mock/:id",
-                                      id: id,
-                                      content: content)
+                                  pathParameters: ["id": id],
+                                  content: content)
         
         XCTAssertNoThrow(try validator.validateUpdate(request))
     }

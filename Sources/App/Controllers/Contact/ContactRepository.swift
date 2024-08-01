@@ -9,8 +9,11 @@ protocol ContactRepositoryProtocol {
     typealias FetchAll = GeneralRequest.FetchAll
     typealias Search = GeneralRequest.Search
     
-    func fetchAll(request: FetchAll,
-                  on db: Database) async throws -> PaginatedResponse<Contact>
+    func fetchAll(
+        request: FetchAll,
+        on db: Database
+    ) async throws -> PaginatedResponse<Contact>
+    
     func fetchById(
         request: GeneralRequest.FetchById,
         on db: Database
@@ -26,28 +29,44 @@ protocol ContactRepositoryProtocol {
         on db: Database
     ) async throws -> Contact
     
-    func create(request: ContactRequest.Create, on db: Database) async throws -> Contact
+    func create(
+        request: ContactRequest.Create,
+        on db: Database
+    ) async throws -> Contact
+    
     func update(
         byId: GeneralRequest.FetchById,
         request: ContactRequest.Update,
         on db: Database
     ) async throws -> Contact
-        
+    
     func delete(
         byId: GeneralRequest.FetchById,
         on db: Database
     ) async throws -> Contact
-    func updateBussineseAddress(byId: GeneralRequest.FetchById,
-                                addressID: GeneralRequest.FetchById,
-                                request: ContactRequest.UpdateBussineseAddress, 
-                                on db: Database) async throws -> Contact
-    func updateShippingAddress(byId: GeneralRequest.FetchById,
-                               addressID: GeneralRequest.FetchById,
-                               request: ContactRequest.UpdateShippingAddress,
-                               on db: Database) async throws -> Contact
-    func search(request: Search,
-                on db: Database) async throws -> PaginatedResponse<Contact>
-    func fetchLastedNumber(on db: Database) async throws -> Int
+    
+    func updateBussineseAddress(
+        byId: GeneralRequest.FetchById,
+        addressID: GeneralRequest.FetchById,
+        request: ContactRequest.UpdateBussineseAddress,
+        on db: Database
+    ) async throws -> Contact
+    
+    func updateShippingAddress(
+        byId: GeneralRequest.FetchById,
+        addressID: GeneralRequest.FetchById,
+        request: ContactRequest.UpdateShippingAddress,
+        on db: Database
+    ) async throws -> Contact
+    
+    func search(
+        request: Search,
+        on db: Database
+    ) async throws -> PaginatedResponse<Contact>
+    
+    func fetchLastedNumber(
+        on db: Database
+    ) async throws -> Int
 }
 
 class ContactRepository: ContactRepositoryProtocol {
@@ -75,7 +94,7 @@ class ContactRepository: ContactRepositoryProtocol {
         let total = try await query.count()
         let items = try await sortQuery(query: query,
                                         sortBy: request.sortBy,
-                                       sortOrder: request.sortOrder,
+                                        sortOrder: request.sortOrder,
                                         page: request.page,
                                         perPage: request.perPage)
         
@@ -136,31 +155,31 @@ class ContactRepository: ContactRepositoryProtocol {
         // prevent duplicate tax number
         if let taxNumber = request.taxNumber,
            let _ = try? await fetchByTaxNumber(request: .init(taxNumber: taxNumber),
-                                                   on: db) {
+                                               on: db) {
             throw CommonError.duplicateName
         }
         
         if let groupId = request.groupId,
            let _ = try? await contactGroupRepository.fetchById(request: .init(id: groupId),
-                                                     on: db) {
-           throw DefaultError.notFound
+                                                               on: db) {
+            throw DefaultError.notFound
         }
-                
+        
         let lastedNumber = try await fetchLastedNumber(on: db)
         let nextNumber = lastedNumber + 1
         
         let contact = Contact(number: nextNumber,
-                                 name: request.name,
-                                 groupId: request.groupId,
-                                 vatRegistered: request.vatRegistered,
-                                 contactInformation: request.contactInformation ?? .init(),
-                                 taxNumber: request.taxNumber,
-                                 legalStatus: request.legalStatus,
-                                 website: request.website,
-                                 businessAddress: [.init()],
-                                 shippingAddress: [.init()],
-                                 paymentTermsDays: request.paymentTermsDays ?? 30,
-                                 note: request.note)
+                              name: request.name,
+                              groupId: request.groupId,
+                              vatRegistered: request.vatRegistered,
+                              contactInformation: request.contactInformation ?? .init(),
+                              taxNumber: request.taxNumber,
+                              legalStatus: request.legalStatus,
+                              website: request.website,
+                              businessAddress: [.init()],
+                              shippingAddress: [.init()],
+                              paymentTermsDays: request.paymentTermsDays ?? 30,
+                              note: request.note)
         try await contact.save(on: db)
         return contact
     }
@@ -195,7 +214,7 @@ class ContactRepository: ContactRepositoryProtocol {
         if let groupId = request.groupId {
             // try to fetch group id to check is exist
             if let _ = try? await contactGroupRepository.fetchById(request: .init(id: groupId),
-                                                         on: db) {
+                                                                   on: db) {
                 contact.groupId = groupId
             }
             else {
@@ -365,7 +384,6 @@ class ContactRepository: ContactRepositoryProtocol {
             or.filter(\.$note =~ regexPattern)
         }
         
-        
         let total = try await query.count()
         let items = try await sortQuery(query: query,
                                         sortBy: request.sortBy,
@@ -385,7 +403,7 @@ class ContactRepository: ContactRepositoryProtocol {
         let query = Contact.query(on: db).withDeleted()
         query.sort(\.$number, .descending)
         query.limit(1)
-
+        
         let model = try await query.first()
         
         return model?.number ?? 0

@@ -133,19 +133,21 @@ extension XCTestCase {
         )
     }
     
-    func mockRequest(app: Application = Application(.testing),
-                     method: HTTPMethod = .POST,
-                     url: String = "mock",
-                     id: UUID? = nil,
-                     content: any Content) -> Request {
+    func mockRequest(
+        app: Application = Application(.testing),
+        method: HTTPMethod = .POST,
+        url: String = "mock",
+        pathParameters: [String: UUID] = [:],
+        content: any Content
+    ) -> Request {
         
-        // Construct the URL with the UUID if provided
-        var urlWithID = url
-        if let id = id {
-            urlWithID = urlWithID.replacingOccurrences(of: ":id", with: id.uuidString)
+        // Construct the URL with the path parameters
+        var urlWithParameters = url
+        for (key, value) in pathParameters {
+            urlWithParameters = urlWithParameters.replacingOccurrences(of: ":\(key)", with: value.uuidString)
         }
         
-        let uri: URI = URI(path: urlWithID)
+        let uri: URI = URI(path: urlWithParameters)
         let version: HTTPVersion = .init(major: 1, minor: 1)
         var headers: HTTPHeaders = .init([("Content-Type", "application/json")])
         let logger = Logger(label: "codes.vapor.request.mock")
@@ -173,12 +175,64 @@ extension XCTestCase {
         )
         
         // Parameters
-        if let id {
+        if !pathParameters.isEmpty {
             var parameters = Parameters()
-            parameters.set("id", to: id.uuidString)
+            for (key, value) in pathParameters {
+                parameters.set(key, to: value.uuidString)
+            }
             request.parameters = parameters
         }
-                
+        
         return request
     }
+    
+//    func mockRequest(app: Application = Application(.testing),
+//                     method: HTTPMethod = .POST,
+//                     url: String = "mock",
+//                     id: UUID? = nil,
+//                     content: any Content) -> Request {
+//        
+//        // Construct the URL with the UUID if provided
+//        var urlWithID = url
+//        if let id = id {
+//            urlWithID = urlWithID.replacingOccurrences(of: ":id", with: id.uuidString)
+//        }
+//        
+//        let uri: URI = URI(path: urlWithID)
+//        let version: HTTPVersion = .init(major: 1, minor: 1)
+//        var headers: HTTPHeaders = .init([("Content-Type", "application/json")])
+//        let logger = Logger(label: "codes.vapor.request.mock")
+//        let byteBufferAllocator = ByteBufferAllocator()
+//        let eventLoop = MultiThreadedEventLoopGroup(numberOfThreads: 1).next()
+//        
+//        // Encode the JSON body into a ByteBuffer
+//        var buffer = byteBufferAllocator.buffer(capacity: 0)
+//        if let jsonData = try? JSONEncoder().encode(content) {
+//            buffer.writeBytes(jsonData)
+//            headers.add(name: "Content-Length", value: "\(buffer.readableBytes)")
+//        }
+//        
+//        let request = Request(
+//            application: app,
+//            method: method,
+//            url: uri,
+//            version: version,
+//            headersNoUpdate: headers,
+//            collectedBody: buffer,
+//            remoteAddress: nil,
+//            logger: logger,
+//            byteBufferAllocator: byteBufferAllocator,
+//            on: eventLoop
+//        )
+//        
+//        // Parameters
+//        if let id {
+//            var parameters = Parameters()
+//            parameters.set("id", to: id.uuidString)
+//            request.parameters = parameters
+//        }
+//                
+//        return request
+//    }
+    
 }

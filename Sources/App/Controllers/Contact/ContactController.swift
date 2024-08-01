@@ -4,7 +4,6 @@ import Vapor
 
 class ContactController: RouteCollection {
     
-    //typealias FetchAll = GeneralRequest.FetchAll<ContactRequest.SortBy>
     typealias FetchAll = GeneralRequest.FetchAll
     
     private(set) var repository: ContactRepositoryProtocol

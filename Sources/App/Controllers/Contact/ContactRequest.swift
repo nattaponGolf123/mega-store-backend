@@ -154,7 +154,7 @@ struct ContactRequest {
     }
 }
 
-extension ContactRequest {
+//extension ContactRequest {
 //    enum SortBy: String, Codable, Sortable {
 //        case name
 //        case number
@@ -165,5 +165,4 @@ extension ContactRequest {
 //            return lhs.rawValue == rhs.rawValue
 //        }
 //    }
-    
-}
+//}
