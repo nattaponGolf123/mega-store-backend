@@ -1,221 +1,434 @@
-//
-//  ContactRequestTests.swift
-//  
-//
-//  Created by IntrodexMac on 23/7/2567 BE.
-//
-
 import XCTest
 import Vapor
-import Fluent
-import FluentMongoDriver
-import MockableTest
-
 @testable import App
 
 final class ContactRequestTests: XCTestCase {
-    
-    // MARK: - Fetch Tests
-    
-//    func testFetchInit_WithDefaults_ShouldReturnCorrectValues() {
-//        let fetch = ContactGroupRequest.FetchAll()
-//        
-//        XCTAssertFalse(fetch.showDeleted)
-//        XCTAssertEqual(fetch.page, 1)
-//        XCTAssertEqual(fetch.perPage, 20)
-//        XCTAssertEqual(fetch.sortBy, .name)
-//        XCTAssertEqual(fetch.sortOrder, .asc)
-//    }
+
+    // MARK: - Create Tests
+
+    func testCreateInit_WithValidValues_ShouldReturnCorrectValues() {
+        
+        let contactInfo = ContactInformation(phone: "123456789", email: "test@example.com")
+        let groupId = UUID()
+        let create = ContactRequest.Create(
+            name: "John Doe",
+            vatRegistered: true,
+            contactInformation: contactInfo,
+            taxNumber: "1234567890123",
+            legalStatus: .individual,
+            website: "https://example.com",
+            note: "Test note",
+            groupId: groupId,
+            paymentTermsDays: 30
+        )
+
+        XCTAssertEqual(create.name, "John Doe")
+        XCTAssertEqual(create.vatRegistered, true)
+        XCTAssertEqual(create.contactInformation, contactInfo)
+        XCTAssertEqual(create.taxNumber, "1234567890123")
+        XCTAssertEqual(create.legalStatus, .individual)
+        XCTAssertEqual(create.website, "https://example.com")
+        XCTAssertEqual(create.note, "Test note")
+        XCTAssertEqual(create.groupId, groupId)
+        XCTAssertEqual(create.paymentTermsDays, 30)
+    }
+
+//    func testCreateEncode_WithValidInstance_ShouldReturnJSON() throws {
+//        let contactInfo = ContactInformation(phone: "123456789", email: "test@example.com")
+//        let groupId = UUID()
+//        let create = ContactRequest.Create(
+//            name: "John Doe",
+//            vatRegistered: true,
+//            contactInformation: contactInfo,
+//            taxNumber: "1234567890123",
+//            legalStatus: .individual,
+//            website: "https://example.com",
+//            note: "Test note",
+//            groupId: groupId,
+//            paymentTermsDays: 30
+//        )
 //
-//    func testFetchInit_WithCustomValues_ShouldReturnCorrectValues() {
-//        let fetch = ContactGroupRequest.FetchAll(showDeleted: true, page: 2, perPage: 50, sortBy: .createdAt, sortOrder: .desc)
-//        
-//        XCTAssertTrue(fetch.showDeleted)
-//        XCTAssertEqual(fetch.page, 2)
-//        XCTAssertEqual(fetch.perPage, 50)
-//        XCTAssertEqual(fetch.sortBy, .createdAt)
-//        XCTAssertEqual(fetch.sortOrder, .desc)
-//    }
-//    
-//    func testFetchInit_WithInvalidPage_ShouldReturnCorrectValues() {
-//        let fetch = ContactGroupRequest.FetchAll(showDeleted: true, page: -1, perPage: 50, sortBy: .createdAt, sortOrder: .desc)
-//        
-//        XCTAssertTrue(fetch.showDeleted)
-//        XCTAssertEqual(fetch.page, 1)
-//        XCTAssertEqual(fetch.perPage, 50)
-//        XCTAssertEqual(fetch.sortBy, .createdAt)
-//        XCTAssertEqual(fetch.sortOrder, .desc)
-//    }
-//
-//    func testFetchInit_WithInvalidPerPage_ShouldReturnCorrectValues() {
-//        let fetch = ContactGroupRequest.FetchAll(showDeleted: true, page: 2, perPage: -1, sortBy: .createdAt, sortOrder: .desc)
-//        
-//        XCTAssertTrue(fetch.showDeleted)
-//        XCTAssertEqual(fetch.page, 2)
-//        XCTAssertEqual(fetch.perPage, 20)
-//        XCTAssertEqual(fetch.sortBy, .createdAt)
-//        XCTAssertEqual(fetch.sortOrder, .desc)
-//    }
-//    
-//    func testFetchEncode_WithValidInstance_ShouldReturnJSON() throws {
-//        let fetch = ContactGroupRequest.FetchAll(showDeleted: true, page: 2, perPage: 50, sortBy: .createdAt, sortOrder: .desc)
-//        
 //        let encoder = JSONEncoder()
-//        let data = try encoder.encode(fetch)
+//        let data = try encoder.encode(create)
 //        let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-//        
-//        XCTAssertEqual(jsonObject?["show_deleted"] as? Bool, true)
-//        XCTAssertEqual(jsonObject?["page"] as? Int, 2)
-//        XCTAssertEqual(jsonObject?["per_page"] as? Int, 50)
-//        XCTAssertEqual(jsonObject?["sort_by"] as? String, "created_at")
-//        XCTAssertEqual(jsonObject?["sort_order"] as? String, "desc")
+//
+//        XCTAssertEqual(jsonObject?["name"] as? String, "John Doe")
+//        XCTAssertEqual(jsonObject?["vat_registered"] as? Bool, true)
+////        XCTAssertEqual(jsonObject?["contact_information"] as? [String: Any], ["email": "test@example.com", "phone": "123456789"])
+//        XCTAssertEqual(jsonObject?["tax_number"] as? String, "1234567890123")
+//        XCTAssertEqual(jsonObject?["legal_status"] as? String, "individual")
+//        XCTAssertEqual(jsonObject?["website"] as? String, "https://example.com")
+//        XCTAssertEqual(jsonObject?["note"] as? String, "Test note")
+//        XCTAssertEqual(jsonObject?["group_id"] as? String, groupId.uuidString)
+//        XCTAssertEqual(jsonObject?["payment_terms_days"] as? Int, 30)
 //    }
 //
-//    func testFetchDecode_WithValidJSON_ShouldReturnInstance() throws {
+//    func testCreateDecode_WithValidJSON_ShouldReturnInstance() throws {
+//        let groupId = UUID()
 //        let json = """
 //        {
-//            "show_deleted": true,
-//            "page": 2,
-//            "per_page": 50,
-//            "sort_by": "created_at",
-//            "sort_order": "desc"
+//            "name": "John Doe",
+//            "vat_registered": true,
+//            "contact_information": {
+//                "email": "test@example.com",
+//                "phone": "123456789"
+//            },
+//            "tax_number": "1234567890123",
+//            "legal_status": "individual",
+//            "website": "https://example.com",
+//            "note": "Test note",
+//            "group_id": "\(groupId.uuidString)",
+//            "payment_terms_days": 30
 //        }
 //        """
 //        let data = json.data(using: .utf8)!
 //        let decoder = JSONDecoder()
-//        let fetch = try decoder.decode(ContactGroupRequest.FetchAll.self, from: data)
-//        
-//        XCTAssertTrue(fetch.showDeleted)
-//        XCTAssertEqual(fetch.page, 2)
-//        XCTAssertEqual(fetch.perPage, 50)
-//        XCTAssertEqual(fetch.sortBy, .createdAt)
-//        XCTAssertEqual(fetch.sortOrder, .desc)
-//    }
-//    
-//    func testFetchDecode_WithLessJSON_ShouldReturnInstance() throws {
-//        let json = """
-//        {
+//        let create = try decoder.decode(ContactRequest.Create.self, from: data)
 //
+//        XCTAssertEqual(create.name, "John Doe")
+//        XCTAssertEqual(create.vatRegistered, true)
+//        XCTAssertEqual(create.contactInformation?.email, "test@example.com")
+//        XCTAssertEqual(create.contactInformation?.phone, "123456789")
+//        XCTAssertEqual(create.taxNumber, "1234567890123")
+//        XCTAssertEqual(create.legalStatus, .individual)
+//        XCTAssertEqual(create.website, "https://example.com")
+//        XCTAssertEqual(create.note, "Test note")
+//        XCTAssertEqual(create.groupId, groupId)
+//        XCTAssertEqual(create.paymentTermsDays, 30)
+//    }
+//
+//    func testCreateValidation_WithInvalidValues_ShouldFail() {
+//        var validations = Validations()
+//
+//        ContactRequest.Create.validations(&validations)
+//
+//        let invalidTaxNumber = ContactRequest.Create(
+//            name: "John",
+//            vatRegistered: true,
+//            contactInformation: nil,
+//            taxNumber: "123",
+//            legalStatus: .individual,
+//            website: nil,
+//            note: nil,
+//            groupId: nil,
+//            paymentTermsDays: nil
+//        )
+//
+//        let invalidName = ContactRequest.Create(
+//            name: "Jo",
+//            vatRegistered: true,
+//            contactInformation: nil,
+//            taxNumber: nil,
+//            legalStatus: .individual,
+//            website: nil,
+//            note: nil,
+//            groupId: nil,
+//            paymentTermsDays: nil
+//        )
+//
+//        XCTAssertThrowsError(try validations.validate(invalidTaxNumber)) { error in
+//            XCTAssertEqual(error as? ValidationError, ValidationError("tax_number", "Tax number must be exactly 13 characters long."))
 //        }
-//        """
-//        let data = json.data(using: .utf8)!
-//        let decoder = JSONDecoder()
-//        let fetch = try decoder.decode(ContactGroupRequest.FetchAll.self, from: data)
-//        
-//        XCTAssertFalse(fetch.showDeleted)
-//        XCTAssertEqual(fetch.page, 1)
-//        XCTAssertEqual(fetch.perPage, 20)
-//        XCTAssertEqual(fetch.sortBy, .name)
-//        XCTAssertEqual(fetch.sortOrder, .asc)
-//    }
 //
-//    // MARK: - Search Tests
-//    
-//    func testSearchInit_WithDefaults_ShouldReturnCorrectValues() {
-//        let search = ContactGroupRequest.Search(query: "Test")
-//        
-//        XCTAssertEqual(search.query, "Test")
-//        XCTAssertEqual(search.page, 1)
-//        XCTAssertEqual(search.perPage, 20)
-//        XCTAssertEqual(search.sortBy, .name)
-//        XCTAssertEqual(search.sortOrder, .asc)
-//    }
-//
-//    func testSearchInit_WithCustomValues_ShouldReturnCorrectValues() {
-//        let search = ContactGroupRequest.Search(query: "Test", page: 2, perPage: 50, sortBy: .createdAt, sortOrder: .desc)
-//        
-//        XCTAssertEqual(search.query, "Test")
-//        XCTAssertEqual(search.page, 2)
-//        XCTAssertEqual(search.perPage, 50)
-//        XCTAssertEqual(search.sortBy, .createdAt)
-//        XCTAssertEqual(search.sortOrder, .desc)
-//    }
-//
-//    func testSearchInit_WithInvalidPage_ShouldReturnCorrectValues() {
-//        let search = ContactGroupRequest.Search(query: "Test", page: -1, perPage: 50, sortBy: .createdAt, sortOrder: .desc)
-//        
-//        XCTAssertEqual(search.query, "Test")
-//        XCTAssertEqual(search.page, 1)
-//        XCTAssertEqual(search.perPage, 50)
-//        XCTAssertEqual(search.sortBy, .createdAt)
-//        XCTAssertEqual(search.sortOrder, .desc)
-//    }
-//    
-//    func testSearchInit_WithInvalidPerPage_ShouldReturnCorrectValues() {
-//        let search = ContactGroupRequest.Search(query: "Test", page: 2, perPage: -1, sortBy: .createdAt, sortOrder: .desc)
-//        
-//        XCTAssertEqual(search.query, "Test")
-//        XCTAssertEqual(search.page, 2)
-//        XCTAssertEqual(search.perPage, 20)
-//        XCTAssertEqual(search.sortBy, .createdAt)
-//        XCTAssertEqual(search.sortOrder, .desc)
-//    }
-//    
-//    func testSearchEncode_WithValidInstance_ShouldReturnJSON() throws {
-//        let search = ContactGroupRequest.Search(query: "Test", page: 2, perPage: 50, sortBy: .createdAt, sortOrder: .desc)
-//        
-//        let encoder = JSONEncoder()
-//        let data = try encoder.encode(search)
-//        let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-//        
-//        XCTAssertEqual(jsonObject?["q"] as? String, "Test")
-//        XCTAssertEqual(jsonObject?["page"] as? Int, 2)
-//        XCTAssertEqual(jsonObject?["per_page"] as? Int, 50)
-//        XCTAssertEqual(jsonObject?["sort_by"] as? String, "created_at")
-//        XCTAssertEqual(jsonObject?["sort_order"] as? String, "desc")
-//    }
-//
-//    func testSearchDecode_WithValidJSON_ShouldReturnInstance() throws {
-//        let json = """
-//        {
-//            "q": "Test",
-//            "page": 2,
-//            "per_page": 50,
-//            "sort_by": "created_at",
-//            "sort_order": "desc"
+//        XCTAssertThrowsError(try validations.validate(invalidName)) { error in
+//            XCTAssertEqual(error as? ValidationError, ValidationError("name", "Name must be between 3 and 200 characters long."))
 //        }
-//        """
-//        let data = json.data(using: .utf8)!
-//        let decoder = JSONDecoder()
-//        let search = try decoder.decode(ContactGroupRequest.Search.self, from: data)
-//        
-//        XCTAssertEqual(search.query, "Test")
-//        XCTAssertEqual(search.page, 2)
-//        XCTAssertEqual(search.perPage, 50)
-//        XCTAssertEqual(search.sortBy, .createdAt)
-//        XCTAssertEqual(search.sortOrder, .desc)
-//    }
-//
-//    // MARK: - Create Tests
-//    
-//    func testCreateInit_WithDefaults_ShouldReturnCorrectValues() {
-//        let create = ContactGroupRequest.Create(name: "Group")
-//        
-//        XCTAssertEqual(create.name, "Group")
-//        XCTAssertNil(create.description)
-//    }
-//
-//    func testCreateInit_WithCustomValues_ShouldReturnCorrectValues() {
-//        let create = ContactGroupRequest.Create(name: "Group", description: "Description")
-//        
-//        XCTAssertEqual(create.name, "Group")
-//        XCTAssertEqual(create.description, "Description")
 //    }
 //
 //    // MARK: - Update Tests
-//    
-//    func testUpdateInit_WithDefaults_ShouldReturnCorrectValues() {
-//        let update = ContactGroupRequest.Update()
-//        
-//        XCTAssertNil(update.name)
-//        XCTAssertNil(update.description)
+//
+//    func testUpdateInit_WithValidValues_ShouldReturnCorrectValues() {
+//        let contactInfo = ContactInformation(email: "test@example.com", phone: "123456789")
+//        let groupId = UUID()
+//        let update = ContactRequest.Update(
+//            name: "John Doe",
+//            vatRegistered: false,
+//            contactInformation: contactInfo,
+//            taxNumber: "1234567890123",
+//            legalStatus: .corporation,
+//            website: "https://example.com",
+//            note: "Updated note",
+//            paymentTermsDays: 45,
+//            groupId: groupId
+//        )
+//
+//        XCTAssertEqual(update.name, "John Doe")
+//        XCTAssertEqual(update.vatRegistered, false)
+//        XCTAssertEqual(update.contactInformation, contactInfo)
+//        XCTAssertEqual(update.taxNumber, "1234567890123")
+//        XCTAssertEqual(update.legalStatus, .corporation)
+//        XCTAssertEqual(update.website, "https://example.com")
+//        XCTAssertEqual(update.note, "Updated note")
+//        XCTAssertEqual(update.paymentTermsDays, 45)
+//        XCTAssertEqual(update.groupId, groupId)
 //    }
 //
-//    func testUpdateInit_WithCustomValues_ShouldReturnCorrectValues() {
-//        let update = ContactGroupRequest.Update(name: "Group", description: "Description")
-//        
-//        XCTAssertEqual(update.name, "Group")
-//        XCTAssertEqual(update.description, "Description")
+//    func testUpdateEncode_WithValidInstance_ShouldReturnJSON() throws {
+//        let contactInfo = ContactInformation(email: "test@example.com", phone: "123456789")
+//        let groupId = UUID()
+//        let update = ContactRequest.Update(
+//            name: "John Doe",
+//            vatRegistered: false,
+//            contactInformation: contactInfo,
+//            taxNumber: "1234567890123",
+//            legalStatus: .corporation,
+//            website: "https://example.com",
+//            note: "Updated note",
+//            paymentTermsDays: 45,
+//            groupId: groupId
+//        )
+//
+//        let encoder = JSONEncoder()
+//        let data = try encoder.encode(update)
+//        let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+//
+//        XCTAssertEqual(jsonObject?["name"] as? String, "John Doe")
+//        XCTAssertEqual(jsonObject?["vat_registered"] as? Bool, false)
+//        XCTAssertEqual(jsonObject?["contact_information"] as? [String: Any], ["email": "test@example.com", "phone": "123456789"])
+//        XCTAssertEqual(jsonObject?["tax_number"] as? String, "1234567890123")
+//        XCTAssertEqual(jsonObject?["legal_status"] as? String, "corporation")
+//        XCTAssertEqual(jsonObject?["website"] as? String, "https://example.com")
+//        XCTAssertEqual(jsonObject?["note"] as? String, "Updated note")
+//        XCTAssertEqual(jsonObject?["payment_terms_days"] as? Int, 45)
+//        XCTAssertEqual(jsonObject?["group_id"] as? String, groupId.uuidString)
 //    }
-}
+//
+//    func testUpdateDecode_WithValidJSON_ShouldReturnInstance() throws {
+//        let groupId = UUID()
+//        let json = """
+//        {
+//            "name": "John Doe",
+//            "vat_registered": false,
+//            "contact_information": {
+//                "email": "test@example.com",
+//                "phone": "123456789"
+//            },
+//            "tax_number": "1234567890123",
+//            "legal_status": "corporation",
+//            "website": "https://example.com",
+//            "note": "Updated note",
+//            "payment_terms_days": 45,
+//            "group_id": "\(groupId.uuidString)"
+//        }
+//        """
+//        let data = json.data(using: .utf8)!
+//        let decoder = JSONDecoder()
+//        let update = try decoder.decode(ContactRequest.Update.self, from: data)
+//
+//        XCTAssertEqual(update.name, "John Doe")
+//        XCTAssertEqual(update.vatRegistered, false)
+//        XCTAssertEqual(update.contactInformation?.email, "test@example.com")
+//        XCTAssertEqual(update.contactInformation?.phone, "123456789")
+//        XCTAssertEqual(update.taxNumber, "1234567890123")
+//        XCTAssertEqual(update.legalStatus, .companyLimited)
+//        XCTAssertEqual(update.website, "https://example.com")
+//        XCTAssertEqual(update.note, "Updated note")
+//        XCTAssertEqual(update.paymentTermsDays, 45)
+//        XCTAssertEqual(update.groupId, groupId)
+//    }
+//
+//    func testUpdateValidation_WithInvalidValues_ShouldFail() {
+//        var validations = Validations()
+//
+//        ContactRequest.Update.validations(&validations)
+//
+//        let invalidTaxNumber = ContactRequest.Update(
+//            name: "John",
+//            vatRegistered: true,
+//            contactInformation: nil,
+//            taxNumber: "123",
+//            legalStatus: .individual,
+//            website: nil,
+//            note: nil,
+//            paymentTermsDays: nil, 
+//            groupId: nil
+//        )
+//
+//        let invalidName = ContactRequest.Update(
+//            name: "Jo",
+//            vatRegistered: true,
+//            contactInformation: nil,
+//            taxNumber: nil,
+//            legalStatus: .individual,
+//            website: nil,
+//            note: nil,
+//            groupId: nil,
+//            paymentTermsDays: nil
+//        )
+//
+//        XCTAssertThrowsError(try validations.validate(invalidTaxNumber)) { error in
+//            XCTAssertEqual(error as? ValidationError, ValidationError("tax_number", "Tax number must be exactly 13 characters long."))
+//        }
+//
+//        XCTAssertThrowsError(try validations.validate(invalidName)) { error in
+//            XCTAssertEqual(error as? ValidationError, ValidationError("name", "Name must be between 3 and 200 characters long."))
+//        }
+//    }
+//
+//    // MARK: - Update Business Address Tests
+//
+//    func testUpdateBusinessAddressInit_WithValidValues_ShouldReturnCorrectValues() {
+//        let updateBusinessAddress = ContactRequest.UpdateBussineseAddress(
+//            address: "123 Main St",
+//            branch: "Main",
+//            branchCode: "001",
+//            subDistrict: "District",
+//            city: "City",
+//            province: "Province",
+//            country: "Country",
+//            postalCode: "12345",
+//            phone: "123456789",
+//            email: "email@example.com",
+//            fax: "987654321"
+//        )
+//
+//        XCTAssertEqual(updateBusinessAddress.address, "123 Main St")
+//        XCTAssertEqual(updateBusinessAddress.branch, "Main")
+//        XCTAssertEqual(updateBusinessAddress.branchCode, "001")
+//        XCTAssertEqual(updateBusinessAddress.subDistrict, "District")
+//        XCTAssertEqual(updateBusinessAddress.city, "City")
+//        XCTAssertEqual(updateBusinessAddress.province, "Province")
+//        XCTAssertEqual(updateBusinessAddress.country, "Country")
+//        XCTAssertEqual(updateBusinessAddress.postalCode, "12345")
+//        XCTAssertEqual(updateBusinessAddress.phone, "123456789")
+//        XCTAssertEqual(updateBusinessAddress.email, "email@example.com")
+//        XCTAssertEqual(updateBusinessAddress.fax, "987654321")
+//    }
+//
+//    func testUpdateBusinessAddressEncode_WithValidInstance_ShouldReturnJSON() throws {
+//        let updateBusinessAddress = ContactRequest.UpdateBussineseAddress(
+//            address: "123 Main St",
+//            branch: "Main",
+//            branchCode: "001",
+//            subDistrict: "District",
+//            city: "City",
+//            province: "Province",
+//            country: "Country",
+//            postalCode: "12345",
+//            phone: "123456789",
+//            email: "email@example.com",
+//            fax: "987654321"
+//        )
+//
+//        let encoder = JSONEncoder()
+//        let data = try encoder.encode(updateBusinessAddress)
+//        let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+//
+//        XCTAssertEqual(jsonObject?["address"] as? String, "123 Main St")
+//        XCTAssertEqual(jsonObject?["branch"] as? String, "Main")
+//        XCTAssertEqual(jsonObject?["branch_code"] as? String, "001")
+//        XCTAssertEqual(jsonObject?["sub_district"] as? String, "District")
+//        XCTAssertEqual(jsonObject?["city"] as? String, "City")
+//        XCTAssertEqual(jsonObject?["province"] as? String, "Province")
+//        XCTAssertEqual(jsonObject?["country"] as? String, "Country")
+//        XCTAssertEqual(jsonObject?["postal_code"] as? String, "12345")
+//        XCTAssertEqual(jsonObject?["phone"] as? String, "123456789")
+//        XCTAssertEqual(jsonObject?["email"] as? String, "email@example.com")
+//        XCTAssertEqual(jsonObject?["fax"] as? String, "987654321")
+//    }
+//
+//    func testUpdateBusinessAddressDecode_WithValidJSON_ShouldReturnInstance() throws {
+//        let json = """
+//        {
+//            "address": "123 Main St",
+//            "branch": "Main",
+//            "branch_code": "001",
+//            "sub_district": "District",
+//            "city": "City",
+//            "province": "Province",
+//            "country": "Country",
+//            "postal_code": "12345",
+//            "phone": "123456789",
+//            "email": "email@example.com",
+//            "fax": "987654321"
+//        }
+//        """
+//        let data = json.data(using: .utf8)!
+//        let decoder = JSONDecoder()
+//        let updateBusinessAddress = try decoder.decode(ContactRequest.UpdateBussineseAddress.self, from: data)
+//
+//        XCTAssertEqual(updateBusinessAddress.address, "123 Main St")
+//        XCTAssertEqual(updateBusinessAddress.branch, "Main")
+//        XCTAssertEqual(updateBusinessAddress.branchCode, "001")
+//        XCTAssertEqual(updateBusinessAddress.subDistrict, "District")
+//        XCTAssertEqual(updateBusinessAddress.city, "City")
+//        XCTAssertEqual(updateBusinessAddress.province, "Province")
+//        XCTAssertEqual(updateBusinessAddress.country, "Country")
+//        XCTAssertEqual(updateBusinessAddress.postalCode, "12345")
+//        XCTAssertEqual(updateBusinessAddress.phone, "123456789")
+//        XCTAssertEqual(updateBusinessAddress.email, "email@example.com")
+//        XCTAssertEqual(updateBusinessAddress.fax, "987654321")
+//    }
+//
+//    // MARK: - Update Shipping Address Tests
+//
+//    func testUpdateShippingAddressInit_WithValidValues_ShouldReturnCorrectValues() {
+//        let updateShippingAddress = ContactRequest.UpdateShippingAddress(
+//            address: "123 Main St",
+//            subDistrict: "District",
+//            city: "City",
+//            province: "Province",
+//            country: "Country",
+//            postalCode: "12345",
+//            phone: "123456789"
+//        )
+//
+//        XCTAssertEqual(updateShippingAddress.address, "123 Main St")
+//        XCTAssertEqual(updateShippingAddress.subDistrict, "District")
+//        XCTAssertEqual(updateShippingAddress.city, "City")
+//        XCTAssertEqual(updateShippingAddress.province, "Province")
+//        XCTAssertEqual(updateShippingAddress.country, "Country")
+//        XCTAssertEqual(updateShippingAddress.postalCode, "12345")
+//        XCTAssertEqual(updateShippingAddress.phone, "123456789")
+//    }
+//
+//    func testUpdateShippingAddressEncode_WithValidInstance_ShouldReturnJSON() throws {
+//        let updateShippingAddress = ContactRequest.UpdateShippingAddress(
+//            address: "123 Main St",
+//            subDistrict: "District",
+//            city: "City",
+//            province: "Province",
+//            country: "Country",
+//            postalCode: "12345",
+//            phone: "123456789"
+//        )
+//
+//        let encoder = JSONEncoder()
+//        let data = try encoder.encode(updateShippingAddress)
+//        let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+//
+//        XCTAssertEqual(jsonObject?["address"] as? String, "123 Main St")
+//        XCTAssertEqual(jsonObject?["sub_district"] as? String, "District")
+//        XCTAssertEqual(jsonObject?["city"] as? String, "City")
+//        XCTAssertEqual(jsonObject?["province"] as? String, "Province")
+//        XCTAssertEqual(jsonObject?["country"] as? String, "Country")
+//        XCTAssertEqual(jsonObject?["postal_code"] as? String, "12345")
+//        XCTAssertEqual(jsonObject?["phone"] as? String, "123456789")
+//    }
+//
+//    func testUpdateShippingAddressDecode_WithValidJSON_ShouldReturnInstance() throws {
+//        let json = """
+//        {
+//            "address": "123 Main St",
+//            "sub_district": "District",
+//            "city": "City",
+//            "province": "Province",
+//            "country": "Country",
+//            "postal_code": "12345",
+//            "phone": "123456789"
+//        }
+//        """
+//        let data = json.data(using: .utf8)!
+//        let decoder = JSONDecoder()
+//        let updateShippingAddress = try decoder.decode(ContactRequest.UpdateShippingAddress.self, from: data)
+//
+//        XCTAssertEqual(updateShippingAddress.address, "123 Main St")
+//        XCTAssertEqual(updateShippingAddress.subDistrict, "District")
+//        XCTAssertEqual(updateShippingAddress.city, "City")
+//        XCTAssertEqual(updateShippingAddress.province, "Province")
+//        XCTAssertEqual(updateShippingAddress.country, "Country")
+//        XCTAssertEqual(updateShippingAddress.postalCode, "12345")
+//        XCTAssertEqual(updateShippingAddress.phone, "123456789")
+//    }
 
+}

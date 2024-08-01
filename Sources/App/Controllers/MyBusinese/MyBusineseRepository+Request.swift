@@ -160,7 +160,7 @@ struct BusinessAddress: Content {
     @ThailandPostCode
     var postalCode: String
 
-    let phoneNumber: String
+    let phone: String
     let email: String
     let fax: String
     
@@ -172,7 +172,7 @@ struct BusinessAddress: Content {
          province: String,
          postalCode: String,
          country: String = "THA",
-         phoneNumber: String = "",
+         phone: String = "",
          email: String = "",
          fax: String = "") {
         self.id = id
@@ -260,7 +260,7 @@ struct ShippingAddress: Codable {
     @ThailandPostCode
     var postalCode: String
 
-    let phoneNumber: String
+    let phone: String
     let email: String
     let fax: String
 
@@ -272,7 +272,7 @@ struct ShippingAddress: Codable {
          province: String,
          country: String = "THA",
          postalCode: String,
-         phoneNumber: String = "",
+         phone: String = "",
          email: String = "",
          fax: String = "") {
         self.id = id

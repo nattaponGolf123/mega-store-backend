@@ -116,7 +116,7 @@ extension MyBusinese {
                        name: "ABC Industries",
                        vatRegistered: true,
                        contactInformation: ContactInformation(contactPerson: "John Doe",
-                                                              phoneNumber: "123-456-7890",
+                                                              phone: "123-456-7890",
                                                               email: "abc@email.com"),
                        taxNumber: "123123212123",
                        legalStatus: .companyLimited,

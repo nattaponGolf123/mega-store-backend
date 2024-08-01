@@ -104,7 +104,7 @@ extension Customer {
         static var individul: Customer {
             
             let contactInformation = ContactInformation(contactPerson: "John Doe",
-                                                        phoneNumber: "1234567890",
+                                                        phone: "1234567890",
                                                         email: "")
             let businessAddress = [BusinessAddress(address: "123/456",
                                                    subDistrict: "",

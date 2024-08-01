@@ -7,12 +7,12 @@ struct ShippingAddress: Codable {
     var city: String
     var province: String
     var country: String
-
+    
     @ThailandPostCode
     var postalCode: String
-
-    var phone: String    
-
+    
+    var phone: String
+    
     init(id: UUID = .init(),
          address: String = "",
          subDistrict: String = "",
@@ -29,29 +29,29 @@ struct ShippingAddress: Codable {
         self.country = country
         self.postalCode = postalCode
         self.phone = phone
-     
+        
     }
-
+    
     //decode
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.id = try container.decode(UUID.self, forKey: .id)
         self.address = (try? container.decode(String.self,
-                                            forKey: .address)) ?? ""
+                                              forKey: .address)) ?? ""
         self.subDistrict = (try? container.decode(String.self,
-                                                 forKey: .subDistrict)) ?? ""
+                                                  forKey: .subDistrict)) ?? ""
         self.city = (try? container.decode(String.self,
-                                             forKey: .city)) ?? ""
+                                           forKey: .city)) ?? ""
         self.province = (try? container.decode(String.self,
-                                                 forKey: .province)) ?? ""
+                                               forKey: .province)) ?? ""
         self.postalCode = (try? container.decode(String.self,
-                                                    forKey: .postalCode)) ?? ""
+                                                 forKey: .postalCode)) ?? ""
         self.country = (try? container.decode(String.self,
-                                                forKey: .country)) ?? ""
+                                              forKey: .country)) ?? ""
         self.phone = (try? container.decode(String.self,
-                                                    forKey: .phone)) ?? ""                                                    
+                                            forKey: .phone)) ?? ""
     }
-
+    
     //encode
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
@@ -62,9 +62,9 @@ struct ShippingAddress: Codable {
         try container.encode(province, forKey: .province)
         try container.encode(postalCode, forKey: .postalCode)
         try container.encode(country, forKey: .country)
-        try container.encode(phone, forKey: .phone)        
+        try container.encode(phone, forKey: .phone)
     }
-
+    
     enum CodingKeys: String, CodingKey {
         case id
         case address
@@ -73,7 +73,20 @@ struct ShippingAddress: Codable {
         case province
         case postalCode = "postal_code"
         case country
-        case phone 
+        case phone
+    }
+}
+
+extension ShippingAddress: Equatable {
+    static func == (lhs: ShippingAddress, rhs: ShippingAddress) -> Bool {
+        lhs.id == rhs.id &&
+            lhs.address == rhs.address &&
+            lhs.subDistrict == rhs.subDistrict &&
+            lhs.city == rhs.city &&
+            lhs.province == rhs.province &&
+            lhs.country == rhs.country &&
+            lhs.postalCode == rhs.postalCode &&
+            lhs.phone == rhs.phone
     }
 }
 
@@ -90,4 +103,4 @@ extension ShippingAddress {
         }
     }
 }
- 
+
