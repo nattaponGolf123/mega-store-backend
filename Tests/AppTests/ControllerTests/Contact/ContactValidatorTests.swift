@@ -199,27 +199,32 @@ final class ContactValidatorTests: XCTestCase {
 
         XCTAssertNoThrow(try validator.validateUpdateBussineseAddress(request))
     }
+    
+    func testValidateUpdateBussineseAddress_WithInvalidPostCodeRequest_ShouldThrow() throws {
+        let id = UUID()
+        let addressID = UUID()
+        let content = ContactRequest.UpdateBussineseAddress(
+            address: nil,
+            branch: nil,
+            branchCode: nil,
+            subDistrict: nil,
+            city: nil,
+            province: nil,
+            country: nil,
+            postalCode: "2929283833",
+            phone: nil,
+            email: nil,
+            fax: nil
+        )
+        let request = mockRequest(url: "/mock/:id/address/:address_id", 
+                                  pathParameters: [
+                                    "id": id,
+                                    "address_id": addressID
+                                  ],
+                                  content: content)
 
-//    func testValidateUpdateBussineseAddress_WithInvalidRequest_ShouldThrow() throws {
-//        let id = UUID()
-//        let addressID = UUID()
-//        let content = ContactRequest.UpdateBussineseAddress(
-//            address: nil,
-//            branch: nil,
-//            branchCode: nil,
-//            subDistrict: nil,
-//            city: nil,
-//            province: nil,
-//            country: nil,
-//            postalCode: nil,
-//            phone: nil,
-//            email: nil,
-//            fax: nil
-//        )
-//        let request = mockRequest(url: "/mock/:id/address/:address_id", pathParameters: ["id": id, "address_id": addressID], content: content)
-//
-//        XCTAssertThrowsError(try validator.validateUpdateBussineseAddress(request))
-//    }
+        XCTAssertThrowsError(try validator.validateUpdateBussineseAddress(request))
+    }
 
     // MARK: - Update Shipping Address Tests
 
@@ -240,23 +245,28 @@ final class ContactValidatorTests: XCTestCase {
         XCTAssertNoThrow(try validator.validateUpdateShippingAddress(request))
     }
 
-//    func testValidateUpdateShippingAddress_WithInvalidRequest_ShouldThrow() throws {
-//        let id = UUID()
-//        let addressID = UUID()
-//        let content = ContactRequest.UpdateShippingAddress(
-//            address: nil,
-//            subDistrict: nil,
-//            city: nil,
-//            province: nil,
-//            country: nil,
-//            postalCode: nil,
-//            phone: nil
-//        )
-//        let request = mockRequest(url: "/mock/:id/address/:address_id", pathParameters: ["id": id, "address_id": addressID], content: content)
-//
-//        XCTAssertThrowsError(try validator.validateUpdateShippingAddress(request))
-//    }
+    func testValidateUpdateShippingAddress_WithInvalidPostCodeRequest_ShouldThrow() throws {
+        let id = UUID()
+        let addressID = UUID()
+        let content = ContactRequest.UpdateShippingAddress(
+            address: nil,
+            subDistrict: nil,
+            city: nil,
+            province: nil,
+            country: nil,
+            postalCode: "2929283833",
+            phone: nil
+        )
+        let request = mockRequest(url: "/mock/:id/address/:address_id",
+                                  pathParameters: [
+                                    "id": id,
+                                    "address_id": addressID
+                                  ],
+                                  content: content)
 
+        XCTAssertThrowsError(try validator.validateUpdateShippingAddress(request))
+    }
+    
     // MARK: - Fetch By ID Tests
 
     func testValidateID_WithValidRequest_ShouldReturnCorrectValues() {

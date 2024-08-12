@@ -78,15 +78,31 @@ struct ContactRequest {
         let fax: String?
         
         static func validations(_ validations: inout Validations) {
-            //            if let postalCode {
-            //                validations.add("postal_code", as: String.self,
-            //                                is: .count(5...5))
-            //            }
+            validations.add("postal_code",
+                            as: String.self,
+                            is: .count(5...5),
+                            required: false)
+            validations.add("address", 
+                            as: String.self,
+                            is: .count(1...300),
+                            required: false)
+            validations.add("sub_district", 
+                            as: String.self,
+                            is: .count(1...300),
+                            required: false)
+            validations.add("city",
+                            as: String.self,
+                            is: .count(1...300),
+                            required: false)
+            validations.add("province", 
+                            as: String.self,
+                            is: .count(1...300),
+                            required: false)
+            validations.add("country",
+                            as: String.self,
+                            is: .count(1...300),
+                            required: false)
             
-            //     validations.add("address", as: String.self,
-            //                     is: .count(1...200))
-            //     validations.add("postalCode", as: String.self,
-            //                     is: .count(5...5))
         }
         
         enum CodingKeys: String, CodingKey {
@@ -114,20 +130,30 @@ struct ContactRequest {
         let phone: String?
         
         static func validations(_ validations: inout Validations) {
-            //            if let postalCode {
-            //                validations.add("postal_code", as: String.self,
-            //                                is: .count(5...5))
-            //            }
-            //
-            //            if let address {
-            //                validations.add("address", as: String.self,
-            //                                is: .count(1...200))
-            //            }
-            
-            //     validations.add("address", as: String.self,
-            //                     is: .count(1...200))
-            //     validations.add("postalCode", as: String.self,
-            //                     is: .count(5...5))
+            validations.add("postal_code",
+                            as: String.self,
+                            is: .count(5...5),
+                            required: false)
+            validations.add("address",
+                            as: String.self,
+                            is: .count(1...300),
+                            required: false)
+            validations.add("sub_district",
+                            as: String.self,
+                            is: .count(1...300),
+                            required: false)
+            validations.add("city",
+                            as: String.self,
+                            is: .count(1...300),
+                            required: false)
+            validations.add("province",
+                            as: String.self,
+                            is: .count(1...300),
+                            required: false)
+            validations.add("country",
+                            as: String.self,
+                            is: .count(1...300),
+                            required: false)
         }
         
         enum CodingKeys: String, CodingKey {

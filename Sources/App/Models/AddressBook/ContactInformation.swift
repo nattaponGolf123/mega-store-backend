@@ -36,7 +36,7 @@ struct ContactInformation: Content {
     
     enum CodingKeys: String, CodingKey {
         case contactPerson = "contact_person"
-        case phone = "phone_number"
+        case phone
         case email
     }
 }
