@@ -90,7 +90,10 @@ final class Contact: Model, Content {
          businessAddress: [BusinessAddress] = [.init()],
          shippingAddress: [ShippingAddress] = [.init()],
          paymentTermsDays: Int = 30,
-         note: String? = nil) {
+         note: String? = nil,
+         createAt: Date? = nil,
+         updatedAt: Date? = nil,
+         deletedAt: Date? = nil) {
         
         self.id = id ?? UUID()
         self.number = number
@@ -106,6 +109,10 @@ final class Contact: Model, Content {
         self.shippingAddress = shippingAddress
         self.paymentTermsDays = paymentTermsDays
         self.note = note
+        self.createdAt = createAt ?? .init()
+        self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
+        
     }
     
 }

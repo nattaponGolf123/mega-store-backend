@@ -21,6 +21,26 @@ struct ContactRequest {
         let groupId: UUID?
         let paymentTermsDays: Int?
         
+        init(name: String, 
+             vatRegistered: Bool,
+             contactInformation: ContactInformation? = nil,
+             taxNumber: String? = nil,
+             legalStatus: BusinessType,
+             website: String? = nil,
+             note: String? = nil,
+             groupId: UUID? = nil,
+             paymentTermsDays: Int? = nil) {
+            self.name = name
+            self.vatRegistered = vatRegistered
+            self.contactInformation = contactInformation
+            self.taxNumber = taxNumber
+            self.legalStatus = legalStatus
+            self.website = website
+            self.note = note
+            self.groupId = groupId
+            self.paymentTermsDays = paymentTermsDays
+        }
+        
         static func validations(_ validations: inout Validations) {
             validations.add("name", as: String.self,
                             is: .count(3...200),
@@ -53,6 +73,26 @@ struct ContactRequest {
         let note: String?
         let paymentTermsDays: Int?
         let groupId: UUID?
+        
+        init(name: String? = nil,
+             vatRegistered: Bool? = nil,
+             contactInformation: ContactInformation? = nil,
+             taxNumber: String? = nil,
+             legalStatus: BusinessType? = nil,
+             website: String? = nil,
+             note: String? = nil,
+             paymentTermsDays: Int? = nil,
+             groupId: UUID? = nil) {
+            self.name = name
+            self.vatRegistered = vatRegistered
+            self.contactInformation = contactInformation
+            self.taxNumber = taxNumber
+            self.legalStatus = legalStatus
+            self.website = website
+            self.note = note
+            self.paymentTermsDays = paymentTermsDays
+            self.groupId = groupId
+        }
         
         static func validations(_ validations: inout Validations) {
             validations.add("name", as: String.self,
