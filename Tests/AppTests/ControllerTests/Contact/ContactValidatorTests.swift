@@ -47,8 +47,9 @@ final class ContactValidatorTests: XCTestCase {
             paymentTermsDays: 30
         )
         let request = mockRequest(content: content)
+        
         XCTAssertNoThrow(try validator.validateCreate(request))
-    }
+    }       
 
     func testValidateCreate_WithLessThan3CharName_ShouldThrow() {
         let content = ContactRequest.Create(

@@ -3,15 +3,6 @@ import Vapor
 @testable import App
 
 final class ContactRequestTests: XCTestCase {
-
-    /*
-     enum BusinessType: String, Codable {
-         case companyLimited = "COMPANY_LIMITED"
-         case publicCompanyLimited = "PUBLIC_COMPANY_LIMITED"
-         case limitedPartnership = "LIMITED_PARTNERSHIP"
-         case individual = "INDIVIDUAL"
-     }
-     */
     
     // MARK: - Create Tests
 
@@ -88,7 +79,7 @@ final class ContactRequestTests: XCTestCase {
                 "phone": "123456789"
             },
             "tax_number": "1234567890123",
-            "legal_status": "individual",
+            "legal_status": "INDIVIDUAL",
             "website": "https://example.com",
             "note": "Test note",
             "group_id": "\(groupId.uuidString)",
@@ -109,44 +100,6 @@ final class ContactRequestTests: XCTestCase {
         XCTAssertEqual(create.note, "Test note")
         XCTAssertEqual(create.groupId, groupId)
         XCTAssertEqual(create.paymentTermsDays, 30)
-    }
-
-    func testCreateValidation_WithInvalidValues_ShouldFail() {
-        var validations = Validations()
-
-        ContactRequest.Create.validations(&validations)
-
-        let invalidTaxNumber = ContactRequest.Create(
-            name: "John",
-            vatRegistered: true,
-            contactInformation: nil,
-            taxNumber: "123",
-            legalStatus: .individual,
-            website: nil,
-            note: nil,
-            groupId: nil,
-            paymentTermsDays: nil
-        )
-
-        let invalidName = ContactRequest.Create(
-            name: "Jo",
-            vatRegistered: true,
-            contactInformation: nil,
-            taxNumber: nil,
-            legalStatus: .individual,
-            website: nil,
-            note: nil,
-            groupId: nil,
-            paymentTermsDays: nil
-        )
-
-//        XCTAssertThrowsError(try validations.validate(invalidTaxNumber)) { error in
-//            XCTAssertEqual(error as? ValidationError, ValidationError("tax_number", "Tax number must be exactly 13 characters long."))
-//        }
-//
-//        XCTAssertThrowsError(try validations.validate(invalidName)) { error in
-//            XCTAssertEqual(error as? ValidationError, ValidationError("name", "Name must be between 3 and 200 characters long."))
-//        }
     }
 
     // MARK: - Update Tests
@@ -178,7 +131,8 @@ final class ContactRequestTests: XCTestCase {
     }
 
     func testUpdateEncode_WithValidInstance_ShouldReturnJSON() throws {
-        let contactInfo = ContactInformation(phone: "123456789", email: "test@example.com")
+        let contactInfo = ContactInformation(phone: "123456789", 
+                                             email: "test@example.com")
         let groupId = UUID()
         let update = ContactRequest.Update(
             name: "John Doe",
@@ -198,12 +152,13 @@ final class ContactRequestTests: XCTestCase {
 
         XCTAssertEqual(jsonObject?["name"] as? String, "John Doe")
         XCTAssertEqual(jsonObject?["vat_registered"] as? Bool, false)
+        
         let contactInformation = jsonObject?["contact_information"] as? [String: Any]
         XCTAssertEqual(contactInformation?["email"] as? String, "test@example.com")
+        XCTAssertEqual(contactInformation?["phone"] as? String, "123456789")
         
-        //XCTAssertEqual(jsonObject?["contact_information"] as? [String: Any], ["email": "test@example.com", "phone": "123456789"])
         XCTAssertEqual(jsonObject?["tax_number"] as? String, "1234567890123")
-        XCTAssertEqual(jsonObject?["legal_status"] as? String, "corporation")
+        XCTAssertEqual(jsonObject?["legal_status"] as? String, "COMPANY_LIMITED")
         XCTAssertEqual(jsonObject?["website"] as? String, "https://example.com")
         XCTAssertEqual(jsonObject?["note"] as? String, "Updated note")
         XCTAssertEqual(jsonObject?["payment_terms_days"] as? Int, 45)
@@ -221,7 +176,7 @@ final class ContactRequestTests: XCTestCase {
                 "phone": "123456789"
             },
             "tax_number": "1234567890123",
-            "legal_status": "corporation",
+            "legal_status": "COMPANY_LIMITED",
             "website": "https://example.com",
             "note": "Updated note",
             "payment_terms_days": 45,
@@ -243,45 +198,7 @@ final class ContactRequestTests: XCTestCase {
         XCTAssertEqual(update.paymentTermsDays, 45)
         XCTAssertEqual(update.groupId, groupId)
     }
-
-    func testUpdateValidation_WithInvalidValues_ShouldFail() {
-        var validations = Validations()
-
-        ContactRequest.Update.validations(&validations)
-
-        let invalidTaxNumber = ContactRequest.Update(
-            name: "John",
-            vatRegistered: true,
-            contactInformation: nil,
-            taxNumber: "123",
-            legalStatus: .individual,
-            website: nil,
-            note: nil,
-            paymentTermsDays: nil, 
-            groupId: nil
-        )
-
-        let invalidName = ContactRequest.Update(
-            name: "Jo",
-            vatRegistered: true,
-            contactInformation: nil,
-            taxNumber: nil,
-            legalStatus: .individual,
-            website: nil,
-            note: nil,
-            paymentTermsDays: nil, 
-            groupId: nil
-        )
-//
-//        XCTAssertThrowsError(try validations.validate(invalidTaxNumber)) { error in
-//            XCTAssertEqual(error as? ValidationError, ValidationError("tax_number", "Tax number must be exactly 13 characters long."))
-//        }
-//
-//        XCTAssertThrowsError(try validations.validate(invalidName)) { error in
-//            XCTAssertEqual(error as? ValidationError, ValidationError("name", "Name must be between 3 and 200 characters long."))
-//        }
-    }
-
+    
     // MARK: - Update Business Address Tests
 
     func testUpdateBusinessAddressInit_WithValidValues_ShouldReturnCorrectValues() {

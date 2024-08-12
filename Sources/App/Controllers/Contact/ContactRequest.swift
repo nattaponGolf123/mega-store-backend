@@ -62,6 +62,18 @@ struct ContactRequest {
                             is: .count(13...13),
                             required: false)
         }
+        
+        enum CodingKeys: String, CodingKey {
+            case name
+            case groupId = "group_id"
+            case vatRegistered = "vat_registered"
+            case contactInformation = "contact_information"
+            case taxNumber = "tax_number"
+            case legalStatus = "legal_status"
+            case website
+            case note
+            case paymentTermsDays = "payment_terms_days"
+        }
     }
     
     struct UpdateBussineseAddress: Content, Validatable {
