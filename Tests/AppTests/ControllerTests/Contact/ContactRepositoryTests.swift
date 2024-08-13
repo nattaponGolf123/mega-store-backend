@@ -1,6 +1,6 @@
 //
 //  ContactRepositoryTests.swift
-//  
+//
 //
 //  Created by IntrodexMac on 22/7/2567 BE.
 //
@@ -9,6 +9,7 @@ import XCTest
 import Vapor
 import Fluent
 import FluentMongoDriver
+import MockableTest
 
 @testable import App
 
@@ -16,7 +17,9 @@ final class ContactRepositoryTests: XCTestCase {
     
     var app: Application!
     var db: Database!
-    var contactRepository: ContactRepository!
+    
+    private(set) var contactRepository: ContactRepository!
+    lazy var contactGroupRepository = MockContactGroupRepositoryProtocol()
     
     // Database configuration
     var dbHost: String!
@@ -33,7 +36,7 @@ final class ContactRepositoryTests: XCTestCase {
         
         db = app.db
         
-        contactRepository = ContactRepository()
+        contactRepository = ContactRepository(contactGroupRepository: contactGroupRepository)
         
         try await dropCollection(db,
                                  schema: Contact.schema)
@@ -244,116 +247,18 @@ final class ContactRepositoryTests: XCTestCase {
         }
     }
     
-    /*
-     final class Contact: Model, Content {
-         static let schema = "Contacts"
-         
-         @ID(key: .id)
-         var id: UUID?
-         
-         @Field(key: "number")
-         var number: Int
-         
-         @Enum(key: "kind")
-         var kind: ContactKind
-         
-         @Field(key: "group_id")
-         var groupId: UUID?
-         
-         @Field(key: "name")
-         var name: String
-         
-         @Field(key: "vat_registered")
-         var vatRegistered: Bool
-         
-         @Field(key: "contact_information")
-         var contactInformation: ContactInformation
-         
-         @Field(key: "tax_number")
-         var taxNumber: String?
-         
-         @Enum(key: "legal_status")
-         var legalStatus: BusinessType
-         
-         @Field(key: "website")
-         var website: String?
-         
-         @Field(key: "business_address")
-         var businessAddress: [BusinessAddress]
-         
-         @Field(key: "shipping_address")
-         var shippingAddress: [ShippingAddress]
-         
-         @Field(key: "payment_terms_days")
-         var paymentTermsDays: Int
-         
-         @Field(key: "note")
-         var note: String?
-         
-         @Timestamp(key: "created_at",
-                    on: .create,
-                    format: .iso8601)
-         var createdAt: Date?
-         
-         @Timestamp(key: "updated_at",
-                    on: .update,
-                    format: .iso8601)
-         var updatedAt: Date?
-         
-         @Timestamp(key: "deleted_at",
-                    on: .delete,
-                    format: .iso8601)
-         var deletedAt: Date?
-         
-         init() { }
-         
-         init(id: UUID? = nil,
-              number: Int = 1,
-              name: String = "",
-              groupId: UUID? = nil,
-              kind: ContactKind = .both,
-              vatRegistered: Bool = false,
-              contactInformation: ContactInformation = .init(),
-              taxNumber: String? = nil,
-              legalStatus: BusinessType = .individual,
-              website: String? = nil,
-              businessAddress: [BusinessAddress] = [.init()],
-              shippingAddress: [ShippingAddress] = [.init()],
-              paymentTermsDays: Int = 30,
-              note: String? = nil,
-              createAt: Date? = nil,
-              updatedAt: Date? = nil,
-              deletedAt: Date? = nil) {
-             
-             self.id = id ?? UUID()
-             self.number = number
-             self.groupId = groupId
-             self.kind = kind
-             self.name = name
-             self.vatRegistered = vatRegistered
-             self.contactInformation = contactInformation
-             self.taxNumber = taxNumber
-             self.legalStatus = legalStatus
-             self.website = website
-             self.businessAddress = businessAddress
-             self.shippingAddress = shippingAddress
-             self.paymentTermsDays = paymentTermsDays
-             self.note = note
-             self.createdAt = createAt ?? .init()
-             self.updatedAt = updatedAt
-             self.deletedAt = deletedAt
-             
-         }
-         
-     }
-     */
     //MARK: create
     func testCreate_ShouldCreateContact() async throws {
         
         // Given
+        let group1 = ContactGroup(name: "Group 1")
+        given(contactGroupRepository).fetchById(request: .any,
+                                                on: .any).willReturn(group1)
+        
         let request = ContactRequest.Create(name: "Contact",
-                                            vatRegistered: false, 
-                                            legalStatus: .individual)
+                                            vatRegistered: false,
+                                            legalStatus: .individual,
+                                            groupId: group1.id)
         
         // When
         let result = try await contactRepository.create(request: request,
@@ -363,7 +268,7 @@ final class ContactRepositoryTests: XCTestCase {
         XCTAssertNotNil(result.id)
         XCTAssertEqual(result.number, 1)
         XCTAssertEqual(result.name, "Contact")
-        XCTAssertNil(result.groupId)
+        XCTAssertEqual(result.groupId, group1.id)
         XCTAssertEqual(result.kind, .both)
         XCTAssertEqual(result.vatRegistered, false)
         XCTAssertNil(result.taxNumber)
@@ -398,6 +303,53 @@ final class ContactRepositoryTests: XCTestCase {
         } catch {
             // Then
             XCTAssertEqual(error as? CommonError, .duplicateName)
+        }
+    }
+    
+    func testCreate_WithDuplicateTaxNumber_ShouldThrowError() async throws {
+        
+        // Given
+        let group = Contact(name: "Contact",
+                            vatRegistered: false,
+                            taxNumber: "123456789",
+                            legalStatus: .individual)
+        try await group.create(on: db)
+        
+        let request = ContactRequest.Create(name: "Contact 2",
+                                            vatRegistered: false,
+                                            taxNumber: "123456789",
+                                            legalStatus: .individual)
+        
+        // When
+        do {
+            _ = try await contactRepository.create(request: request,
+                                                        on: db)
+            XCTFail("Should throw error")
+        } catch {
+            // Then
+            XCTAssertEqual(error as? CommonError, .duplicateTaxNumber)
+        }
+    }
+    
+    func testCreate_WithNotExistGroupID_ShouldThrowError() async throws {
+        
+        // Given
+        given(contactGroupRepository).fetchById(request: .any,
+                                                on: .any).willThrow(DefaultError.notFound)
+        
+        let request = ContactRequest.Create(name: "Contact",
+                                            vatRegistered: false,
+                                            legalStatus: .individual,
+                                            groupId: UUID())
+        
+        // When
+        do {
+            _ = try await contactRepository.create(request: request,
+                                                        on: db)
+            XCTFail("Should throw error")
+        } catch {
+            // Then
+            XCTAssertEqual(error as? DefaultError, DefaultError.notFound)
         }
     }
     

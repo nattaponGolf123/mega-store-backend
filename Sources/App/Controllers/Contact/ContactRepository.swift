@@ -156,13 +156,14 @@ class ContactRepository: ContactRepositoryProtocol {
         if let taxNumber = request.taxNumber,
            let _ = try? await fetchByTaxNumber(request: .init(taxNumber: taxNumber),
                                                on: db) {
-            throw CommonError.duplicateName
+            throw CommonError.duplicateTaxNumber
         }
         
-        if let groupId = request.groupId,
-           let _ = try? await contactGroupRepository.fetchById(request: .init(id: groupId),
-                                                               on: db) {
-            throw DefaultError.notFound
+        if let groupId = request.groupId {
+            guard 
+                let _ = try? await contactGroupRepository.fetchById(request: .init(id: groupId),
+                                                                                 on: db)
+            else { throw DefaultError.notFound }
         }
         
         let lastedNumber = try await fetchLastedNumber(on: db)
