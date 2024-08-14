@@ -22,10 +22,10 @@ struct ContactRequest {
         let paymentTermsDays: Int?
         
         init(name: String, 
-             vatRegistered: Bool,
+             vatRegistered: Bool = false,
              contactInformation: ContactInformation? = nil,
              taxNumber: String? = nil,
-             legalStatus: BusinessType,
+             legalStatus: BusinessType = .individual,
              website: String? = nil,
              note: String? = nil,
              groupId: UUID? = nil,

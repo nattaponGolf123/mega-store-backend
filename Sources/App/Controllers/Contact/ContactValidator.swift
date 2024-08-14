@@ -35,10 +35,10 @@ class ContactValidator: ContactValidatorProtocol {
     }
 
     func validateUpdateBussineseAddress(_ req: Request) throws -> ContactRequest.UpdateBusineseAdressResponse {
-        
         do {
-            let content = try req.content.decode(ContactRequest.UpdateBussineseAddress.self)
             try ContactRequest.UpdateBussineseAddress.validate(content: req)
+            
+            let content = try req.content.decode(ContactRequest.UpdateBussineseAddress.self)
             guard 
                 let id = req.parameters.get("id", as: UUID.self),
                 let addressID: UUID = req.parameters.get("address_id", as: UUID.self)
@@ -56,10 +56,10 @@ class ContactValidator: ContactValidatorProtocol {
     }
 
     func validateUpdateShippingAddress(_ req: Request) throws -> ContactRequest.UpdateShippingAddressResponse {
-        
         do {
-            let content = try req.content.decode(ContactRequest.UpdateShippingAddress.self)
             try ContactRequest.UpdateShippingAddress.validate(content: req)
+            
+            let content = try req.content.decode(ContactRequest.UpdateShippingAddress.self)
             guard 
                 let id = req.parameters.get("id", as: UUID.self),
                 let addressID: UUID = req.parameters.get("address_id", as: UUID.self)

@@ -4,88 +4,104 @@ import Fluent
 import FluentMongoDriver
 
 protocol MyBusineseRepositoryProtocol {
-    func fetchAll(on db: Database) async throws -> [MyBusinese]
-    //func create(with content: MyBusineseRepository.Create, on db: Database) async throws -> MyBusinese
-    func find(id: UUID, on db: Database) async throws -> MyBusinese
-    func update(id: UUID, with content: MyBusineseRepository.Update, on db: Database) async throws -> MyBusinese
-    //func delete(id: UUID, on db: Database) async throws -> MyBusinese
-    func updateBussineseAddress(id: UUID, addressID: UUID, with content: MyBusineseRepository.UpdateBussineseAddress, on db: Database) async throws -> MyBusinese
-    func updateShippingAddress(id: UUID, addressID: UUID, with content: MyBusineseRepository.UpdateShippingAddress, on db: Database) async throws -> MyBusinese
+    func fetchAll(
+        on db: Database
+    ) async throws -> [MyBusinese]
+    
+    func fetchById(
+        request: GeneralRequest.FetchById,
+        on db: Database
+    ) async throws -> MyBusinese
+    
+    func update(
+        byId: GeneralRequest.FetchById,
+        request: MyBusineseRequest.Update,
+        on db: Database
+    ) async throws -> MyBusinese
+    
+    func updateBussineseAddress(
+        byId: GeneralRequest.FetchById,
+        addressID: GeneralRequest.FetchById,
+        request: MyBusineseRequest.UpdateBussineseAddress,
+        on db: Database
+    ) async throws -> MyBusinese
+    
+    func updateShippingAddress(
+        byId: GeneralRequest.FetchById,
+        addressID: GeneralRequest.FetchById,
+        request: MyBusineseRequest.UpdateShippingAddress,
+        on db: Database
+    ) async throws -> MyBusinese
 }
 
 class MyBusineseRepository: MyBusineseRepositoryProtocol {
      
-    func fetchAll(on db: Database) async throws -> [MyBusinese] {
-        let debug =  try await MyBusinese.query(on: db).all()
-        return debug
+    func fetchAll(
+        on db: Database
+    ) async throws -> [MyBusinese] {
+        return try await MyBusinese.query(on: db).all()
     }
-
-    // func create(with content: MyBusineseRepository.Create, on db: Database) async throws -> MyBusinese {
-    //     let newBusinese = MyBusinese(name: content.name,
-    //                                 vatRegistered: content.vatRegistered, 
-    //                                 contactInformation: content.contactInformation ?? .init(),
-    //                                 taxNumber: content.taxNumber,
-    //                                 legalStatus: content.legalStatus,
-    //                                 website: content.website ?? "",
-    //                                 businessAddress: [.init()],
-    //                                 shippingAddress: [.init()],
-    //                                 logo: nil,
-    //                                 stampLogo: nil,
-    //                                 authorizedSignSignature: nil,
-    //                                 note: content.note ?? "")
-              
-    //     try await newBusinese.save(on: db)
-    //     return newBusinese
-    // }
-
-    func find(id: UUID, on db: Database) async throws -> MyBusinese {
-        guard let businese = try await MyBusinese.find(id, on: db) else { throw DefaultError.notFound }
+    
+    func fetchById(
+        request: GeneralRequest.FetchById,
+        on db: Database
+    ) async throws -> MyBusinese {
+        guard 
+            let businese = try await MyBusinese.find(request.id,
+                                                     on: db)
+        else { throw DefaultError.notFound }
+        
         return businese
     }
 
-    func update(id: UUID, with content: MyBusineseRepository.Update, on db: Database) async throws -> MyBusinese {
-        guard let businese = try await MyBusinese.find(id, on: db) else { throw DefaultError.notFound }
-        if let name = content.name {
-            guard 
+    func update(
+        byId: GeneralRequest.FetchById,
+        request: MyBusineseRequest.Update,
+        on db: Database
+    ) async throws -> MyBusinese {
+        let businese = try await fetchById(request: .init(id: byId.id), on: db)
+                
+        if let name = request.name {
+            guard
                 try await MyBusinese.query(on: db).filter(\.$name == name).count() == 0
             else { throw CommonError.duplicateName }
             
             businese.name = name
         }
         
-        if let vatRegistered = content.vatRegistered {
+        if let vatRegistered = request.vatRegistered {
             businese.vatRegistered = vatRegistered
         }
         
-        if let contactInformation = content.contactInformation {
+        if let contactInformation = request.contactInformation {
             businese.contactInformation = contactInformation
         }
 
-        if let taxNumber = content.taxNumber {
+        if let taxNumber = request.taxNumber {
             businese.taxNumber = taxNumber
         }
 
-        if let legalStatus = content.legalStatus {
+        if let legalStatus = request.legalStatus {
             businese.legalStatus = legalStatus
         }
 
-        if let website = content.website {
+        if let website = request.website {
             businese.website = website
         }
 
-        if let logo = content.logo {
+        if let logo = request.logo {
             businese.logo = logo
         }
 
-        if let stampLogo = content.stampLogo {
+        if let stampLogo = request.stampLogo {
             businese.stampLogo = stampLogo
         }
         
-        if let authorizedSignSignature = content.authorizedSignSignature {
+        if let authorizedSignSignature = request.authorizedSignSignature {
             businese.authorizedSignSignature = authorizedSignSignature
         }
 
-        if let note = content.note {
+        if let note = request.note {
             businese.note = note
         }
         
@@ -93,106 +109,113 @@ class MyBusineseRepository: MyBusineseRepositoryProtocol {
         return businese
     }
 
-    func updateBussineseAddress(id: UUID, addressID: UUID , with content: MyBusineseRepository.UpdateBussineseAddress, on db: Database) async throws -> MyBusinese {
-        guard 
-            let myBusinese = try await MyBusinese.find(id, on: db),
-            var addr = myBusinese.businessAddress.first(where: { $0.id == addressID })
+    func updateBussineseAddress(
+        byId: GeneralRequest.FetchById,
+        addressID: GeneralRequest.FetchById,
+        request: MyBusineseRequest.UpdateBussineseAddress,
+        on db: Database
+    ) async throws -> MyBusinese {
+        let businese = try await fetchById(request: .init(id: byId.id), on: db)
+        
+        guard
+            var addr = businese.businessAddress.first(where: { $0.id == addressID.id })
         else { throw DefaultError.notFound }
         
-        if let address = content.address {
+        if let address = request.address {
             addr.address = address
         }
 
-        if let branch = content.branch {
+        if let branch = request.branch {
             addr.branch = branch
         }
 
-        if let branchCode = content.branchCode {
+        if let branchCode = request.branchCode {
             addr.branchCode = branchCode
         }
 
-        if let subDistrict = content.subDistrict {
+        if let subDistrict = request.subDistrict {
             addr.subDistrict = subDistrict
         }
 
-        if let city = content.city {
+        if let city = request.city {
             addr.city = city
         }
 
-        if let province = content.province {
+        if let province = request.province {
             addr.province = province
         }
 
-        if let postalCode = content.postalCode {
+        if let postalCode = request.postalCode {
             addr.postalCode = postalCode
         }
 
-        if let country = content.country {
+        if let country = request.country {
             addr.country = country
         }
 
-        if let phone = content.phone {
+        if let phone = request.phone {
             addr.phone = phone
         }
 
-        if let email = content.email {
+        if let email = request.email {
             addr.email = email
         }
 
-        if let fax = content.fax {
+        if let fax = request.fax {
             addr.fax = fax
         }
-        myBusinese.businessAddress = [addr]
+        businese.businessAddress = [addr]
 
-        try await myBusinese.save(on: db)
-        return myBusinese
+        try await businese.save(on: db)
+        return businese
     }
 
-    func updateShippingAddress(id: UUID, addressID: UUID, with content: MyBusineseRepository.UpdateShippingAddress, on db: Database) async throws -> MyBusinese {
-        guard 
-            let myBusinese = try await MyBusinese.find(id, on: db),
-            var addr = myBusinese.shippingAddress.first(where: { $0.id == addressID })
+    func updateShippingAddress(
+        byId: GeneralRequest.FetchById,
+        addressID: GeneralRequest.FetchById,
+        request: MyBusineseRequest.UpdateShippingAddress,
+        on db: Database
+    ) async throws -> MyBusinese {
+        let businese = try await fetchById(request: .init(id: byId.id), on: db)
+        
+        guard
+            var addr = businese.shippingAddress.first(where: { $0.id == addressID.id })
         else { throw DefaultError.notFound }
         
-        if let address = content.address {
+        if let address = request.address {
             addr.address = address
         }
 
-        if let subDistrict = content.subDistrict {
+        if let subDistrict = request.subDistrict {
             addr.subDistrict = subDistrict
         }
 
-        if let city = content.city {
+        if let city = request.city {
             addr.city = city
         }
 
-        if let province = content.province {
+        if let province = request.province {
             addr.province = province
         }
 
-        if let postalCode = content.postalCode {
+        if let postalCode = request.postalCode {
             addr.postalCode = postalCode
         }
 
-        if let country = content.country {
+        if let country = request.country {
             addr.country = country
         }
 
-        if let phone = content.phone {
+        if let phone = request.phone {
             addr.phone = phone
         }
 
-        myBusinese.shippingAddress = [addr]
+        businese.shippingAddress = [addr]
 
-        try await myBusinese.save(on: db)
-        return myBusinese
+        try await businese.save(on: db)
+        return businese
     }
 
-    // func delete(id: UUID, on db: Database) async throws -> MyBusinese {
-    //     guard let businese = try await MyBusinese.find(id, on: db) else { throw DefaultError.notFound }
-    //     try await businese.delete(on: db)
-    //     return businese
-    // }
 }
 
 
