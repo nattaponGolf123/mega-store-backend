@@ -541,30 +541,117 @@ final class ContactRepositoryTests: XCTestCase {
     }
     
     //MARK: updateBussineseAddress
-    func testUpdateBusinessAddress_WithSingleAddress_ShouldUpdateContact() async throws {
+
+    func testUpdateBusinessAddress_WithExistAddressAndValidInfo_ShouldUpdateContact() async throws {
         
         // Given
-//        let contact = Contact(name: "Contact")
-//        try await contact.create(on: db)
-//        
-//        
-//        let requestId = GeneralRequest.FetchById(id: .init())
-//        let requestAddressId = GeneralRequest.FetchById(id: .init())
-//        let request = ContactRequest.UpdateBusinessAddress(address: .init(address: "Address",
-//                                                                         city: "City",
-//                                                                         postalCode: "12345",
-//                                                                         country: "Country"))
-//        
-//        let fetchById = GeneralRequest.FetchById(id: contact.id!)
-//        
-//        // When
-//        let result = try await contactRepository.updateBusinessAddress(byId: fetchById,
-//                                                                       request: request,
-//                                                                       on: db)
-//        
-//        // Then
-//        XCTAssertEqual(result.businessAddress.count, 1)
-//        XCTAssertEqual(result.businessAddress.first?.address, "Address")
+        let contact = Contact(name: "Contact")
+        try await contact.create(on: db)
+        
+        let address = contact.businessAddress.first!
+                
+        let requestId = GeneralRequest.FetchById(id: contact.id!)
+        let requestAddressId = GeneralRequest.FetchById(id: address.id)
+        let request = ContactRequest.UpdateBussineseAddress(address: "928/12",
+                                                            branch: "Head Office",
+                                                            branchCode: "00000",
+                                                            subDistrict: "Bank Chak",
+                                                            city: "Prakanong",
+                                                            province: "Bangkok",
+                                                            country: "Thailand",
+                                                            postalCode: "12345",
+                                                            phone: "0293848839",
+                                                            email: "abc@email.com",
+                                                            fax: "0293848839")        
+        
+        // When
+        let result = try await contactRepository.updateBussineseAddress(byId: requestId,
+                                                                        addressID: requestAddressId,
+                                                                        request: request,
+                                                                        on: db)
+        
+        // Then
+        XCTAssertEqual(result.businessAddress.count, 1)
+        XCTAssertEqual(result.businessAddress.first?.address, "928/12")
+        XCTAssertEqual(result.businessAddress.first?.branch, "Head Office")
+        XCTAssertEqual(result.businessAddress.first?.branchCode, "00000")
+        XCTAssertEqual(result.businessAddress.first?.subDistrict, "Bank Chak")
+        XCTAssertEqual(result.businessAddress.first?.city, "Prakanong")
+        XCTAssertEqual(result.businessAddress.first?.province, "Bangkok")
+        XCTAssertEqual(result.businessAddress.first?.country, "Thailand")
+        XCTAssertEqual(result.businessAddress.first?.postalCode, "12345")
+        XCTAssertEqual(result.businessAddress.first?.phone, "0293848839")
+        XCTAssertEqual(result.businessAddress.first?.email, "abc@email.com")
+        XCTAssertEqual(result.businessAddress.first?.fax, "0293848839")
+        
+    }
+    
+    func testUpdateBusinessAddress_WithNotContactId_ShouldThrowNotFound() async throws {
+        
+        // Given
+        let contact = Contact(name: "Contact")
+        try await contact.create(on: db)
+        
+        let address = contact.businessAddress.first!
+        
+        let requestId = GeneralRequest.FetchById(id: UUID())
+        let requestAddressId = GeneralRequest.FetchById(id: address.id)
+        let request = ContactRequest.UpdateBussineseAddress(address: "928/12",
+                                                            branch: "Head Office",
+                                                            branchCode: "00000",
+                                                            subDistrict: "Bank Chak",
+                                                            city: "Prakanong",
+                                                            province: "Bangkok",
+                                                            country: "Thailand",
+                                                            postalCode: "12345",
+                                                            phone: "0293848839",
+                                                            email: "",
+                                                            fax: "")
+        
+        // When
+        do {
+            _ = try await contactRepository.updateBussineseAddress(byId: requestId,
+                                                                   addressID: requestAddressId,
+                                                                   request: request,
+                                                                   on: db)
+            XCTFail("Should throw error")
+        } catch {
+            // Then
+            XCTAssertEqual(error as? DefaultError, .notFound)
+        }
+    }
+    
+    func testUpdateBusinessAddress_WithNotExistAddressId_ShouldThrowNotFound() async throws {
+        
+        // Given
+        let contact = Contact(name: "Contact")
+        try await contact.create(on: db)
+        
+        let requestId = GeneralRequest.FetchById(id: contact.id!)
+        let requestAddressId = GeneralRequest.FetchById(id: UUID())
+        let request = ContactRequest.UpdateBussineseAddress(address: "928/12",
+                                                            branch: "Head Office",
+                                                            branchCode: "00000",
+                                                            subDistrict: "Bank Chak",
+                                                            city: "Prakanong",
+                                                            province: "Bangkok",
+                                                            country: "Thailand",
+                                                            postalCode: "12345",
+                                                            phone: "0293848839",
+                                                            email: "", 
+                                                            fax: "")
+        
+        // When
+        do {
+            _ = try await contactRepository.updateBussineseAddress(byId: requestId,
+                                                                   addressID: requestAddressId,
+                                                                   request: request,
+                                                                   on: db)
+            XCTFail("Should throw error")
+        } catch {
+            // Then
+            XCTAssertEqual(error as? DefaultError, .notFound)
+        }
     }
     
     //MARK: delete
