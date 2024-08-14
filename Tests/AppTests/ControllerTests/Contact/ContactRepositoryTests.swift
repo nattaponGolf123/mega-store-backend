@@ -52,10 +52,10 @@ final class ContactRepositoryTests: XCTestCase {
     func testFetchAll_ShouldReturnAllContact() async throws {
         
         // Given
-        let group1 = Contact(name: "Contact1")
-        let group2 = Contact(name: "Contact2", deletedAt: Date())
-        try await group1.create(on: db)
-        try await group2.create(on: db)
+        let contact1 = Contact(name: "Contact1")
+        let contact2 = Contact(name: "Contact2", deletedAt: Date())
+        try await contact1.create(on: db)
+        try await contact2.create(on: db)
         
         // When
         let result = try await contactRepository.fetchAll(request: .init(),
@@ -69,10 +69,10 @@ final class ContactRepositoryTests: XCTestCase {
     func testFetchAll_WithShowDeleted_ShouldDeletedContact() async throws {
         
         // Given
-        let group1 = Contact(name: "Contact1")
-        let group2 = Contact(name: "Contact2", deletedAt: Date())
-        try await group1.create(on: db)
-        try await group2.create(on: db)
+        let contact1 = Contact(name: "Contact1")
+        let contact2 = Contact(name: "Contact2", deletedAt: Date())
+        try await contact1.create(on: db)
+        try await contact2.create(on: db)
         
         // When
         let result = try await contactRepository.fetchAll(request: .init(showDeleted: true),
@@ -86,8 +86,8 @@ final class ContactRepositoryTests: XCTestCase {
     func testFetchAll_WithPagination_ShouldReturnContact() async throws {
         
         // Given
-        let groups = Stub.group40
-        await createGroups(groups: groups,
+        let contacts = Stub.group40
+        await createGroups(groups: contacts,
                            db: db)
         // When
         let result = try await contactRepository.fetchAll(request: .init(page: 2,
@@ -101,10 +101,10 @@ final class ContactRepositoryTests: XCTestCase {
     func testFetchAll_WithSortByNameDesc_ShouldReturnContact() async throws {
         
         // Given
-        let group1 = Contact(name: "Contact1")
-        let group2 = Contact(name: "Contact2")
-        try await group1.create(on: db)
-        try await group2.create(on: db)
+        let contact1 = Contact(name: "Contact1")
+        let contact2 = Contact(name: "Contact2")
+        try await contact1.create(on: db)
+        try await contact2.create(on: db)
         
         // When
         let result = try await contactRepository.fetchAll(request: .init(sortBy: .name, sortOrder: .desc),
@@ -118,10 +118,10 @@ final class ContactRepositoryTests: XCTestCase {
     func testFetchAll_WithSortByNameAsc_ShouldReturnContact() async throws {
         
         // Given
-        let group1 = Contact(name: "Contact1")
-        let group2 = Contact(name: "Contact2")
-        try await group1.create(on: db)
-        try await group2.create(on: db)
+        let contact1 = Contact(name: "Contact1")
+        let contact2 = Contact(name: "Contact2")
+        try await contact1.create(on: db)
+        try await contact2.create(on: db)
         
         // When
         let result = try await contactRepository.fetchAll(request: .init(sortBy: .name, sortOrder: .asc),
@@ -135,10 +135,10 @@ final class ContactRepositoryTests: XCTestCase {
     func testFetchAll_WithSortByCreateAtDesc_ShouldReturnContact() async throws {
         
         // Given
-        let group1 = Contact(name: "Contact1")
-        let group2 = Contact(name: "Contact2")
-        try await group1.create(on: db)
-        try await group2.create(on: db)
+        let contact1 = Contact(name: "Contact1")
+        let contact2 = Contact(name: "Contact2")
+        try await contact1.create(on: db)
+        try await contact2.create(on: db)
         
         // When
         let result = try await contactRepository.fetchAll(request: .init(sortBy: .createdAt, sortOrder: .desc),
@@ -152,10 +152,10 @@ final class ContactRepositoryTests: XCTestCase {
     func testFetchAll_WithSortByCreateAtAsc_ShouldReturnContact() async throws {
         
         // Given
-        let group1 = Contact(name: "Contact1")
-        let group2 = Contact(name: "Contact2")
-        try await group1.create(on: db)
-        try await group2.create(on: db)
+        let contact1 = Contact(name: "Contact1")
+        let contact2 = Contact(name: "Contact2")
+        try await contact1.create(on: db)
+        try await contact2.create(on: db)
         
         // When
         let result = try await contactRepository.fetchAll(request: .init(sortBy: .createdAt, sortOrder: .asc),
@@ -170,11 +170,11 @@ final class ContactRepositoryTests: XCTestCase {
     func testFetchById_ShouldReturnContact() async throws {
         
         // Given
-        let group = Contact(name: "Contact")
-        try await group.create(on: db)
+        let contact = Contact(name: "Contact")
+        try await contact.create(on: db)
         
         // When
-        let result = try await contactRepository.fetchById(request: .init(id: group.id!),
+        let result = try await contactRepository.fetchById(request: .init(id: contact.id!),
                                                                 on: db)
         
         // Then
@@ -186,8 +186,8 @@ final class ContactRepositoryTests: XCTestCase {
     func testFindFirstByName_ShouldReturnContact() async throws {
         
         // Given
-        let group = Contact(name: "Contact")
-        try await group.create(on: db)
+        let contact = Contact(name: "Contact")
+        try await contact.create(on: db)
         
         // When
         let result = try await contactRepository.fetchByName(request: .init(name: "Contact"),
@@ -219,8 +219,8 @@ final class ContactRepositoryTests: XCTestCase {
     func testFetchByTaxNumber_ShouldReturnContact() async throws {
         
         // Given
-        let group = Contact(name: "Contact", taxNumber: "123456789")
-        try await group.create(on: db)
+        let contact = Contact(name: "Contact", taxNumber: "123456789")
+        try await contact.create(on: db)
         
         // When
         let result = try await contactRepository.fetchByTaxNumber(request: .init(taxNumber: "123456789"),
@@ -286,10 +286,10 @@ final class ContactRepositoryTests: XCTestCase {
     func testCreate_WithDuplicateName_ShouldThrowError() async throws {
         
         // Given
-        let group = Contact(name: "Contact",
+        let contact = Contact(name: "Contact",
                             vatRegistered: false,
                             legalStatus: .individual)
-        try await group.create(on: db)
+        try await contact.create(on: db)
         
         let request = ContactRequest.Create(name: "Contact",
                                             vatRegistered: false,
@@ -309,11 +309,11 @@ final class ContactRepositoryTests: XCTestCase {
     func testCreate_WithDuplicateTaxNumber_ShouldThrowError() async throws {
         
         // Given
-        let group = Contact(name: "Contact",
+        let contact = Contact(name: "Contact",
                             vatRegistered: false,
                             taxNumber: "123456789",
                             legalStatus: .individual)
-        try await group.create(on: db)
+        try await contact.create(on: db)
         
         let request = ContactRequest.Create(name: "Contact 2",
                                             vatRegistered: false,
@@ -390,10 +390,17 @@ final class ContactRepositoryTests: XCTestCase {
         // Given
         let group = Contact(name: "Contact")
         try await group.create(on: db)
-        
+                
         let request = ContactRequest.Update(name: "Contact2",
-                                            vatRegistered: false,
-                                            legalStatus: .individual)
+                                             vatRegistered: false,
+                                             contactInformation: .init(contactPerson: "Contact Person",
+                                                                       phone: "1234567890",
+                                                                       email: "abc@email.com"),
+                                             taxNumber: "123456788",
+                                             legalStatus: .individual,
+                                             website: "Website",
+                                             note: "Note",
+                                             paymentTermsDays: 28)
         
         let fetchById = GeneralRequest.FetchById(id: group.id!)
         
@@ -405,17 +412,43 @@ final class ContactRepositoryTests: XCTestCase {
         XCTAssertEqual(result.name, "Contact2")
     }
     
+    func testUpdate_WithExistGroupId_ShouldUpdateContact() async throws {
+        
+        // Given
+        let group = ContactGroup(name: "Group 2")
+        given(contactGroupRepository).fetchById(request: .any,
+                                                on: .any).willReturn(group)
+        
+        let contact = Contact(name: "Contact",
+                            groupId: nil)
+        try await contact.create(on: db)
+        
+        let request = ContactRequest.Update(name: "Contact 3",
+                                            vatRegistered: false,
+                                            groupId: group.id)
+        
+        let fetchById = GeneralRequest.FetchById(id: contact.id!)
+        
+        // When
+        let result = try await contactRepository.update(byId: fetchById,
+                                                        request: request,
+                                                        on: db)
+        
+        // Then
+        XCTAssertEqual(result.groupId, group.id)
+    }
+    
     func testUpdate_WithDuplicateName_ShouldThrowError() async throws {
         
         // Given
-        let group1 = Contact(name: "Contact1")
-        let group2 = Contact(name: "Contact2")
-        try await group1.create(on: db)
-        try await group2.create(on: db)
+        let contact1 = Contact(name: "Contact1")
+        let contact2 = Contact(name: "Contact2")
+        try await contact1.create(on: db)
+        try await contact2.create(on: db)
         
         let request = ContactRequest.Update(name: "Contact2")
         
-        let fetchById = GeneralRequest.FetchById(id: group1.id!)
+        let fetchById = GeneralRequest.FetchById(id: contact1.id!)
         
         // When
         do {
@@ -426,6 +459,65 @@ final class ContactRepositoryTests: XCTestCase {
         } catch {
             // Then
             XCTAssertEqual(error as? CommonError, .duplicateName)
+        }
+    }
+    
+    func testUpdate_WithDuplicateTaxNumber_ShouldThrowError() async throws {
+        
+        // Given
+        let contact1 = Contact(name: "Contact1",
+                             vatRegistered: false,
+                             taxNumber: "123456789")
+        let contact2 = Contact(name: "Contact2",
+                             vatRegistered: false,
+                             taxNumber: "123456788")
+        try await contact1.create(on: db)
+        try await contact2.create(on: db)
+        
+        
+        let request = ContactRequest.Update(name: "Contact3",
+                                            vatRegistered: false,
+                                            taxNumber: "123456788")
+        
+        let fetchById = GeneralRequest.FetchById(id: contact1.id!)
+        
+        // When
+        do {
+            _ = try await contactRepository.update(byId: fetchById,
+                                                   request: request,
+                                                   on: db)
+            XCTFail("Should throw error")
+        } catch {
+            // Then
+            XCTAssertEqual(error as? CommonError, .duplicateTaxNumber)
+        }
+    }
+    
+    func testUpdate_WithNotExistGroupId_ShouldThrowError() async throws {
+        
+        // Given
+        let contact = Contact(name: "Contact")
+        try await contact.create(on: db)
+        
+        given(contactGroupRepository).fetchById(request: .any,
+                                                on: .any).willThrow(DefaultError.notFound)
+        
+        let request = ContactRequest.Update(name: "Contact2",
+                                            vatRegistered: false,
+                                            legalStatus: .individual,
+                                            groupId: UUID())
+        
+        let fetchById = GeneralRequest.FetchById(id: contact.id!)
+        
+        // When
+        do {
+            _ = try await contactRepository.update(byId: fetchById,
+                                                   request: request,
+                                                   on: db)
+            XCTFail("Should throw error")
+        } catch {
+            // Then
+            XCTAssertEqual(error as? DefaultError, .notFound)
         }
     }
     
@@ -448,16 +540,43 @@ final class ContactRepositoryTests: XCTestCase {
         }
     }
     
+    //MARK: updateBussineseAddress
+    func testUpdateBusinessAddress_WithSingleAddress_ShouldUpdateContact() async throws {
+        
+        // Given
+//        let contact = Contact(name: "Contact")
+//        try await contact.create(on: db)
+//        
+//        
+//        let requestId = GeneralRequest.FetchById(id: .init())
+//        let requestAddressId = GeneralRequest.FetchById(id: .init())
+//        let request = ContactRequest.UpdateBusinessAddress(address: .init(address: "Address",
+//                                                                         city: "City",
+//                                                                         postalCode: "12345",
+//                                                                         country: "Country"))
+//        
+//        let fetchById = GeneralRequest.FetchById(id: contact.id!)
+//        
+//        // When
+//        let result = try await contactRepository.updateBusinessAddress(byId: fetchById,
+//                                                                       request: request,
+//                                                                       on: db)
+//        
+//        // Then
+//        XCTAssertEqual(result.businessAddress.count, 1)
+//        XCTAssertEqual(result.businessAddress.first?.address, "Address")
+    }
+    
     //MARK: delete
     func testDelete_ShouldDeleteContact() async throws {
         
         // Given
-        let group = Contact(name: "Contact",
+        let contact = Contact(name: "Contact",
                             vatRegistered: false,
                             legalStatus: .individual)
-        try await group.create(on: db)
+        try await contact.create(on: db)
         
-        let fetchById = GeneralRequest.FetchById(id: group.id!)
+        let fetchById = GeneralRequest.FetchById(id: contact.id!)
         
         // When
         let result = try await contactRepository.delete(byId: fetchById,
@@ -466,6 +585,7 @@ final class ContactRepositoryTests: XCTestCase {
         // Then
         XCTAssertNotNil(result.deletedAt)
     }
+    
 }
 
 private extension ContactRepositoryTests {

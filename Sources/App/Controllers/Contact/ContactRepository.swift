@@ -214,14 +214,12 @@ class ContactRepository: ContactRepositoryProtocol {
         
         if let groupId = request.groupId {
             // try to fetch group id to check is exist
-            if let _ = try? await contactGroupRepository.fetchById(request: .init(id: groupId),
-                                                                   on: db) {
-                contact.groupId = groupId
-            }
-            else {
-                throw DefaultError.notFound
-                
-            }
+            guard
+                let _ = try? await contactGroupRepository.fetchById(request: .init(id: groupId),
+                                                                   on: db)
+            else { throw DefaultError.notFound }
+            
+            contact.groupId = groupId
         }
         
         if let vatRegistered = request.vatRegistered {
