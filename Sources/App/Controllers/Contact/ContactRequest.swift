@@ -129,6 +129,30 @@ struct ContactRequest {
         let email: String?
         let fax: String?
         
+        init(address: String? = nil,
+             branch: String? = nil,
+             branchCode: String? = nil,
+             subDistrict: String? = nil,
+             city: String? = nil,
+             province: String? = nil,
+             country: String? = nil,
+             postalCode: String? = nil,
+             phone: String? = nil,
+             email: String? = nil,
+             fax: String? = nil) {
+            self.address = address
+            self.branch = branch
+            self.branchCode = branchCode
+            self.subDistrict = subDistrict
+            self.city = city
+            self.province = province
+            self.country = country
+            self.postalCode = postalCode
+            self.phone = phone
+            self.email = email
+            self.fax = fax
+        }
+        
         static func validations(_ validations: inout Validations) {
             validations.add("postal_code",
                             as: String.self,
@@ -180,6 +204,22 @@ struct ContactRequest {
         let country: String?
         let postalCode: String?
         let phone: String?
+        
+        init(address: String? = nil,
+             subDistrict: String? = nil,
+             city: String? = nil,
+             province: String? = nil,
+             country: String? = nil,
+             postalCode: String? = nil,
+             phone: String? = nil) {
+            self.address = address
+            self.subDistrict = subDistrict
+            self.city = city
+            self.province = province
+            self.country = country
+            self.postalCode = postalCode
+            self.phone = phone
+        }
         
         static func validations(_ validations: inout Validations) {
             validations.add("postal_code",

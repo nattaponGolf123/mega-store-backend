@@ -1,6 +1,6 @@
 //
 //  ContactControllerTests.swift
-//  
+//
 //
 //  Created by IntrodexMac on 23/7/2567 BE.
 //
@@ -15,7 +15,7 @@ import MockableTest
 @testable import App
 
 final class ContactControllerTests: XCTestCase {
-
+    
     var app: Application!
     var db: Database!
     
@@ -47,557 +47,471 @@ final class ContactControllerTests: XCTestCase {
                            validator: validator)
         try app.register(collection: controller)
     }
-
+    
     override func tearDown() async throws {
         
         app.shutdown()
         try await super.tearDown()
     }
     
-//    // MARK: - Tests GET /contact_groups
-//    func testAll_WithNoRequestParam_ShouldReturnEmptyGroups() async throws {
-//        
-//        // Given
-//        given(repo).fetchAll(request: .any,
-//                             on: .any).willReturn(Stub.emptyPageGroup)
-//        
-//        try app.test(.GET, "contact_groups") { res in
-//            XCTAssertEqual(res.status, .ok)
-//            let groups = try res.content.decode(PaginatedResponse<Contact>.self)
-//            XCTAssertEqual(groups.items.count, 0)
-//        }
-//    }
-//        
-//    func testAll_WithNoRequestParam_ShouldReturnAllGroups() async throws {
-//        
-//        // Given
-//        given(repo).fetchAll(request: .any,
-//                             on: .any).willReturn(Stub.pageGroup)
-//    
-//        try app.test(.GET, "contact_groups") { res in
-//            XCTAssertEqual(res.status, .ok)
-//            let groups = try res.content.decode(PaginatedResponse<Contact>.self)
-//            XCTAssertEqual(groups.items.count, 2)
-//        }
-//    }
-//    
-//    func testAll_WithShowDeleted_ShouldReturnAllGroups() async throws {
-//        
-//        // Given
-//        given(repo).fetchAll(request: .matching({ $0.showDeleted == true}),
-//                             on: .any).willReturn(Stub.pageGroupWithDeleted)
-//        
-//        try app.test(.GET, "contact_groups?show_deleted=true") { res in
-//            XCTAssertEqual(res.status, .ok)
-//            let groups = try res.content.decode(PaginatedResponse<Contact>.self)
-//            XCTAssertEqual(groups.items.count, 3)
-//        }
-//    }
-//    
-//    // MARK: - Test GET /contact_groups/:id
-//    func testGetByID_WithID_ShouldReturnNotFound() async throws {
-//        
-//        // Given
-//        let id = UUID()
-//        let request = ContactRequest.FetchById(id: id)
-//        given(repo).fetchById(request: .matching({ $0.id == id}),
-//                              on: .any).willThrow(DefaultError.notFound)
-//        given(validator).validateID(.any).willReturn(request)
-//        
-//        try app.test(.GET, "contact_groups/\(id.uuidString)") { res in
-//            XCTAssertEqual(res.status, .notFound)
-//        }
-//        
-//    }
-//    
-//    func testGetByID_WithMatchID_ShouldReturnGroup() async throws {
-//        
-//        // Given
-//        let id = UUID()
-//        let request = ContactRequest.FetchById(id: id)
-//        given(repo).fetchById(request: .matching({ $0.id == id}),
-//                              on: .any).willReturn(Stub.group)
-//        given(validator).validateID(.any).willReturn(request)
-//        
-//        try app.test(.GET, "contact_groups/\(id.uuidString)") { res in
-//            XCTAssertEqual(res.status, .ok)
-//            let group = try res.content.decode(Contact.self)
-//            XCTAssertEqual(group.name, "Test")
-//        }
-//    }
-//    
-//    // MARK: - Test POST /contact_groups
-//    func testCreate_WithInvalidGroup_ShouldReturnBadRequest() async throws {
-//        
-//        // Given
-//        let request = ContactRequest.Create(name: "")
-//        given(validator).validateCreate(.any).willReturn(request)
-//                
-//        given(repo).create(request: .matching({ $0.name == request.name }),
-//                           on: .any).willThrow(DefaultError.insertFailed)
-//        
-//        try app.test(.POST, "contact_groups",
-//                     beforeRequest: { req in
-//                        try req.content.encode(request)
-//                     }) { res in
-//            XCTAssertEqual(res.status, .badRequest)
-//        }
-//    }
-//    
-//    func testCreate_WithValidName_ShouldReturnGroup() async throws {
-//        
-//        // Given
-//        let request = ContactRequest.Create(name: "Test")
-//        given(validator).validateCreate(.any).willReturn(request)
-//        
-//        given(repo).create(request: .matching({ $0.name == request.name }),
-//                           on: .any).willReturn(Stub.group)
-//        
-//        try app.test(.POST, "contact_groups",
-//                     beforeRequest: { req in
-//                        try req.content.encode(request)
-//                     }) { res in
-//            XCTAssertEqual(res.status, .ok)
-//            let group = try res.content.decode(Contact.self)
-//            XCTAssertEqual(group.name, "Test")
-//        }
-//    }
-//    
-//    func testCreate_WithValidNameDescription_ShouldReturnGroup() async throws {
-//        
-//        // Given
-//        let request = ContactRequest.Create(name: "Test",
-//                                                 description: "Test")
-//        given(validator).validateCreate(.any).willReturn(request)
-//        
-//        let stub = Contact(id: .init(),
-//                                name: request.name,
-//                                description: request.description, 
-//                                createdAt: .now,
-//                                updatedAt: .now)
-//        given(repo).create(request: .matching({
-//            $0.name == request.name &&
-//            $0.description == request.description
-//        }),
-//                           on: .any).willReturn(stub)
-//        
-//        try app.test(.POST, "contact_groups",
-//                     beforeRequest: { req in
-//                        try req.content.encode(request)
-//                     }) { res in
-//            XCTAssertEqual(res.status, .ok)
-//            let group = try res.content.decode(Contact.self)
-//            XCTAssertEqual(group.name, "Test")
-//            XCTAssertEqual(group.description ?? "", "Test")
-//        }
-//    }
-//    
-//    // MARK: - Test PUT /contact_groups/:id
-//    func testUpdate_WithInvalidGroup_ShouldReturnBadRequest() async throws {
-//        
-//        // Given
-//        let id = UUID()
-//        let requestId = ContactRequest.FetchById(id: id)
-//        let requestUpdate = ContactRequest.Update(name: "")
-//        given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
-//        
-//        given(repo).update(byId: .matching({ $0.id.uuidString == id.uuidString }),
-//                           request: .matching({ $0.name == requestUpdate.name }),
-//                           on: .any).willThrow(DefaultError.invalidInput)
-//        
-//        try app.test(.PUT, "contact_groups/\(id.uuidString)",
-//                     beforeRequest: { req in
-//                        try req.content.encode(requestUpdate)
-//                     }) { res in
-//            XCTAssertEqual(res.status, .badRequest)
-//        }
-//    }
-//    
-//    func testUpdate_WithValidName_ShouldReturnGroup() async throws {
-//        
-//        // Given
-//        let id = UUID()
-//        let requestId = ContactRequest.FetchById(id: id)
-//        let requestUpdate = ContactRequest.Update(name: "Test")
-//        given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
-//        
-//        given(repo).update(byId: .matching({ $0.id.uuidString == id.uuidString }),
-//                           request: .matching({ $0.name == requestUpdate.name }),
-//                           on: .any).willReturn(Stub.group)
-//        
-//        try app.test(.PUT, "contact_groups/\(id.uuidString)",
-//                     beforeRequest: { req in
-//                        try req.content.encode(requestUpdate)
-//                     }) { res in
-//            XCTAssertEqual(res.status, .ok)
-//            let group = try res.content.decode(Contact.self)
-//            XCTAssertEqual(group.name, "Test")
-//        }
-//    }
-//    
-//    func testUpdate_WithValidNameDescription_ShouldReturnGroup() async throws {
-//        
-//        // Given
-//        let id = UUID()
-//        let requestId = ContactRequest.FetchById(id: id)
-//        let requestUpdate = ContactRequest.Update(description: "Test")
-//        given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
-//        
-//        let stub = Contact(id: .init(),
-//                                name: "Name",
-//                                description: requestUpdate.description,
-//                                createdAt: .now,
-//                                updatedAt: .now)
-//        given(repo).update(byId: .matching({ $0.id.uuidString == id.uuidString }),
-//                           request: .matching({ $0.name == requestUpdate.name &&
-//                                                $0.description == requestUpdate.description }),
-//                           on: .any).willReturn(stub)
-//        
-//        try app.test(.PUT, "contact_groups/\(id.uuidString)",
-//                     beforeRequest: { req in
-//                        try req.content.encode(requestUpdate)
-//                     }) { res in
-//            XCTAssertEqual(res.status, .ok)
-//            let group = try res.content.decode(Contact.self)
-//            XCTAssertEqual(group.name, "Name")
-//            XCTAssertEqual(group.description ?? "", "Test")
-//        }
-//    }
-//    
-//    // MARK: - Test DELETE /contact_groups/:id
-//    func testDelete_WithInvalidGroup_ShouldReturnBadRequest() async throws {
-//        
-//        // Given
-//        let id = UUID()
-//        given(validator).validateID(.any).willThrow(DefaultError.invalidInput)
-//        
-//        given(repo).delete(byId: .matching({ $0.id.uuidString == id.uuidString }),
-//                           on: .any).willThrow(DefaultError.invalidInput)
-//        
-//        try app.test(.DELETE, "contact_groups/\(id.uuidString)") { res in
-//            XCTAssertEqual(res.status, .badRequest)
-//        }
-//    }
-//    
-//    func testDelete_WithNotExistId_ShouldReturnNotFound() async throws {
-//        
-//        // Given
-//        let id = UUID()
-//        let reqId = ContactRequest.FetchById(id: id)
-//        given(validator).validateID(.any).willReturn(reqId)
-//        
-//        given(repo).delete(byId: .matching({ $0.id.uuidString == id.uuidString }),
-//                           on: .any).willThrow(DefaultError.notFound)
-//        
-//        try app.test(.DELETE, "contact_groups/\(id.uuidString)") { res in
-//            XCTAssertEqual(res.status, .notFound)
-//        }
-//    }
-//    
-//    func testDelete_WithValidGroup_ShouldReturnGroup() async throws {
-//        
-//        // Given
-//        let id = UUID()
-//        let reqId = ContactRequest.FetchById(id: id)
-//        given(validator).validateID(.any).willReturn(reqId)
-//        
-//        let stub = Contact(id: .init(),
-//                                name: "Name",
-//                                description: "Test",
-//                                createdAt: .now,
-//                                updatedAt: .now,
-//                                deletedAt: .now)
-//        given(repo).delete(byId: .matching({ $0.id.uuidString == id.uuidString }),
-//                           on: .any).willReturn(stub)
-//        
-//        try app.test(.DELETE, "contact_groups/\(id.uuidString)") { res in
-//            XCTAssertEqual(res.status, .ok)
-//            let group = try res.content.decode(Contact.self)
-//            XCTAssertEqual(group.name, "Name")
-//            XCTAssertEqual(group.description ?? "", "Test")
-//            XCTAssertNotNil(group.deletedAt)
-//        }
-//    }
-//    
-//    // MARK: - Test GET /contact_groups/search
-//    func testSearch_WithEmptyQuery_ShouldReturnBadRequest() async throws {
-//        
-//        // Given
-//        let query = ContactRequest.Search(query: "")
-//        given(validator).validateSearchQuery(.any).willThrow(DefaultError.invalidInput)
-//        
-//        given(repo).searchByName(request: .matching({ $0.query == query.query }),
-//                                 on: .any).willThrow(DefaultError.invalidInput)
-//        
-//        try app.test(.GET, "contact_groups/search") { res in
-//            XCTAssertEqual(res.status, .badRequest)
-//        }
-//    }
-//    
-//    func testSearch_WithMore200CharQuery_ShouldReturnBadRequest() async throws {
-//        
-//        // Given
-//        let query = ContactRequest.Search(query: String(repeating: "A", count: 210))
-//        given(validator).validateSearchQuery(.any).willThrow(DefaultError.invalidInput)
-//        
-//        given(repo).searchByName(request: .matching({ $0.query == query.query }),
-//                                 on: .any).willThrow(DefaultError.invalidInput)
-//        
-//        try app.test(.GET, "contact_groups/search?query=\(query.query)") { res in
-//            XCTAssertEqual(res.status, .badRequest)
-//        }
-//    }
-//    
-//    func testSearch_WithValidQuery_ShouldReturnEmptyGroups() async throws {
-//        
-//        // Given
-//        let query = ContactRequest.Search(query: "Test")
-//        given(validator).validateSearchQuery(.any).willReturn(query)
-//        
-//        let stub = PaginatedResponse<Contact>(page: 1, perPage: 20, total: 0, items: [])
-//        given(repo).searchByName(request: .matching({ $0.query == query.query }),
-//                                 on: .any).willReturn(stub)
-//        
-//        try app.test(.GET, "contact_groups/search?query=Test") { res in
-//            XCTAssertEqual(res.status, .ok)
-//            let groups = try res.content.decode(PaginatedResponse<Contact>.self)
-//            XCTAssertEqual(groups.total, 0)
-//        }
-//    }
-//    
-//    func testSearch_WithValidQuery_ShouldReturnGroups() async throws {
-//        
-//        // Given
-//        let query = ContactRequest.Search(query: "Test")
-//        given(validator).validateSearchQuery(.any).willReturn(query)
-//        
-//        let stub = PaginatedResponse<Contact>(page: 1, perPage: 20, total: 2,
-//                                                   items: [Contact(name: "Test 1"),
-//                                                           Contact(name: "Test 2")])
-//        given(repo).searchByName(request: .matching({ $0.query == query.query }),
-//                                 on: .any).willReturn(stub)
-//        
-//        try app.test(.GET, "contact_groups/search?query=Test") { res in
-//            XCTAssertEqual(res.status, .ok)
-//            let groups = try res.content.decode(PaginatedResponse<Contact>.self)
-//            XCTAssertEqual(groups.total, 2)
-//        }
-//    }
+    // MARK: - Tests GET /contacts
+    func testAll_WithNoRequestParam_ShouldReturnEmptyContacts() async throws {
+        
+        // Given
+        given(repo).fetchAll(request: .any,
+                             on: .any).willReturn(Stub.emptyContact)
+        
+        try app.test(.GET, "contacts") { res in
+            XCTAssertEqual(res.status, .ok)
+            let groups = try res.content.decode(PaginatedResponse<Contact>.self)
+            XCTAssertEqual(groups.items.count, 0)
+        }
+    }
+    
+    func testAll_WithNoRequestParam_ShouldReturnAllContacts() async throws {
+        
+        // Given
+        given(repo).fetchAll(request: .any,
+                             on: .any).willReturn(Stub.pageContact)
+        
+        try app.test(.GET, "contacts") { res in
+            XCTAssertEqual(res.status, .ok)
+            let groups = try res.content.decode(PaginatedResponse<Contact>.self)
+            XCTAssertEqual(groups.items.count, 2)
+        }
+    }
+    
+    func testAll_WithShowDeleted_ShouldReturnAllContacts() async throws {
+        
+        // Given
+        given(repo).fetchAll(request: .matching({ $0.showDeleted == true}),
+                             on: .any).willReturn(Stub.pageContactWithDeleted)
+        
+        try app.test(.GET, "contacts?show_deleted=true") { res in
+            XCTAssertEqual(res.status, .ok)
+            let groups = try res.content.decode(PaginatedResponse<Contact>.self)
+            XCTAssertEqual(groups.items.count, 3)
+        }
+    }
+    
+    // MARK: - Test GET /contacts/:id
+    func testGetByID_WithID_ShouldReturnNotFound() async throws {
+        
+        // Given
+        let id = UUID()
+        let request = GeneralRequest.FetchById(id: id)
+        given(repo).fetchById(request: .matching({ $0.id == id}),
+                              on: .any).willThrow(DefaultError.notFound)
+        given(validator).validateID(.any).willReturn(request)
+        
+        try app.test(.GET, "contacts/\(id.uuidString)") { res in
+            XCTAssertEqual(res.status, .notFound)
+        }
+        
+    }
+    
+    func testGetByID_WithMatchID_ShouldReturnContact() async throws {
+        
+        // Given
+        let id = UUID()
+        let request = GeneralRequest.FetchById(id: id)
+        given(repo).fetchById(request: .matching({ $0.id == id}),
+                              on: .any).willReturn(Stub.contact)
+        given(validator).validateID(.any).willReturn(request)
+        
+        try app.test(.GET, "contacts/\(id.uuidString)") { res in
+            XCTAssertEqual(res.status, .ok)
+            let group = try res.content.decode(Contact.self)
+            XCTAssertEqual(group.name, "Test")
+        }
+    }
+    
+    // MARK: - Test POST /contacts
+    func testCreate_WithEmptyContactName_ShouldReturnBadRequest() async throws {
+        
+        // Given
+        let request = ContactRequest.Create(name: "",
+                                            vatRegistered: false,
+                                            legalStatus: .individual)
+        given(validator).validateCreate(.any).willReturn(request)
+        
+        given(repo).create(request: .matching({ $0.name == request.name }),
+                           on: .any).willThrow(DefaultError.insertFailed)
+        
+        try app.test(.POST, "contacts",
+                     beforeRequest: { req in
+            try req.content.encode(request)
+        }) { res in
+            XCTAssertEqual(res.status, .badRequest)
+        }
+    }
+    
+    func testCreate_WithValidName_ShouldReturnContact() async throws {
+        
+        // Given
+        let request = ContactRequest.Create(name: "Test",
+                                            vatRegistered: false,
+                                            legalStatus: .individual)
+        given(validator).validateCreate(.any).willReturn(request)
+        
+        given(repo).create(request: .matching({ $0.name == request.name }),
+                           on: .any).willReturn(Stub.contact)
+        
+        try app.test(.POST, "contacts",
+                     beforeRequest: { req in
+            try req.content.encode(request)
+        }) { res in
+            XCTAssertEqual(res.status, .ok)
+            let group = try res.content.decode(Contact.self)
+            XCTAssertEqual(group.name, "Test")
+        }
+    }
+    
+    func testCreate_WithValidInfo_ShouldReturnContact() async throws {
+        
+        // Given
+        let request = ContactRequest.Create(name: "Test",
+                                            vatRegistered: false,
+                                            contactInformation: .init(contactPerson: "John",
+                                                                      phone: "0123456789",
+                                                                      email: "ab@email.com"),
+                                            taxNumber: "123456",
+                                            legalStatus: .companyLimited,
+                                            website: "website",
+                                            note: "note",
+                                            groupId: nil,
+                                            paymentTermsDays: 30)
+        given(validator).validateCreate(.any).willReturn(request)
+        
+        let stub = Contact(id: .init(),
+                           name: request.name,
+                           groupId: request.groupId,
+                           vatRegistered: request.vatRegistered,
+                           contactInformation: request.contactInformation!,
+                           taxNumber: request.taxNumber,
+                           legalStatus: request.legalStatus,
+                           website: request.website,
+                           paymentTermsDays: request.paymentTermsDays!,
+                           note: request.note,
+                           createAt: .now,
+                           updatedAt: .now)
+        given(repo).create(request: .matching({
+            $0.name == request.name &&
+            $0.taxNumber == request.taxNumber &&
+            $0.legalStatus == request.legalStatus &&
+            $0.paymentTermsDays == request.paymentTermsDays &&
+            $0.contactInformation == request.contactInformation &&
+            $0.website == request.website &&
+            $0.note == request.note &&
+            $0.groupId == request.groupId &&
+            $0.vatRegistered == request.vatRegistered
+        }),on: .any).willReturn(stub)
+        
+        try app.test(.POST, "contacts",
+                     beforeRequest: { req in
+            try req.content.encode(request)
+        }) { res in
+            XCTAssertEqual(res.status, .ok)
+            let contact = try res.content.decode(Contact.self)
+            XCTAssertEqual(contact.name, "Test")
+            XCTAssertEqual(contact.taxNumber, "123456")
+            XCTAssertEqual(contact.legalStatus, .companyLimited)
+            XCTAssertEqual(contact.paymentTermsDays, 30)
+            XCTAssertEqual(contact.contactInformation, request.contactInformation)
+            XCTAssertEqual(contact.website, "website")
+            XCTAssertEqual(contact.note, "note")
+            XCTAssertNil(contact.groupId)
+            XCTAssertEqual(contact.vatRegistered, false)
+        }
+    }
+    
+    // MARK: - Test PUT /contacts/:id
+    func testUpdate_WithInvalidContact_ShouldReturnBadRequest() async throws {
+        
+        // Given
+        let id = UUID()
+        let requestId = GeneralRequest.FetchById(id: id)
+        let requestUpdate = ContactRequest.Update(name: "")
+        given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
+        
+        given(repo).update(byId: .matching({ $0.id.uuidString == id.uuidString }),
+                           request: .matching({ $0.name == requestUpdate.name }),
+                           on: .any).willThrow(DefaultError.invalidInput)
+        
+        try app.test(.PUT, "contacts/\(id.uuidString)",
+                     beforeRequest: { req in
+            try req.content.encode(requestUpdate)
+        }) { res in
+            XCTAssertEqual(res.status, .badRequest)
+        }
+    }
+    
+    func testUpdate_WithValidName_ShouldReturnContact() async throws {
+        
+        // Given
+        let id = UUID()
+        let requestId = GeneralRequest.FetchById(id: id)
+        let requestUpdate = ContactRequest.Update(name: "Test")
+        given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
+        
+        given(repo).update(byId: .matching({ $0.id.uuidString == id.uuidString }),
+                           request: .matching({ $0.name == requestUpdate.name }),
+                           on: .any).willReturn(Stub.contact)
+        
+        try app.test(.PUT, "contacts/\(id.uuidString)",
+                     beforeRequest: { req in
+            try req.content.encode(requestUpdate)
+        }) { res in
+            XCTAssertEqual(res.status, .ok)
+            let group = try res.content.decode(Contact.self)
+            XCTAssertEqual(group.name, "Test")
+        }
+    }
+    
+    // MARK: - Test DELETE /contacts/:id
+    func testDelete_WithInvalidContact_ShouldReturnBadRequest() async throws {
+        
+        // Given
+        let id = UUID()
+        given(validator).validateID(.any).willThrow(DefaultError.invalidInput)
+        
+        given(repo).delete(byId: .matching({ $0.id.uuidString == id.uuidString }),
+                           on: .any).willThrow(DefaultError.invalidInput)
+        
+        try app.test(.DELETE, "contacts/\(id.uuidString)") { res in
+            XCTAssertEqual(res.status, .badRequest)
+        }
+    }
+    
+    func testDelete_WithNotExistId_ShouldReturnNotFound() async throws {
+        
+        // Given
+        let id = UUID()
+        let reqId = GeneralRequest.FetchById(id: id)
+        given(validator).validateID(.any).willReturn(reqId)
+        
+        given(repo).delete(byId: .matching({ $0.id.uuidString == id.uuidString }),
+                           on: .any).willThrow(DefaultError.notFound)
+        
+        try app.test(.DELETE, "contacts/\(id.uuidString)") { res in
+            XCTAssertEqual(res.status, .notFound)
+        }
+    }
+    
+    func testDelete_WithValidContact_ShouldReturnContact() async throws {
+        
+        // Given
+        let id = UUID()
+        let reqId = GeneralRequest.FetchById(id: id)
+        given(validator).validateID(.any).willReturn(reqId)
+        
+        let stub = Contact(id: .init(),
+                           name: "Name",
+                           createAt: .now,
+                           updatedAt: .now,
+                           deletedAt: .now)
+        given(repo).delete(byId: .matching({ $0.id.uuidString == id.uuidString }),
+                           on: .any).willReturn(stub)
+        
+        try app.test(.DELETE, "contacts/\(id.uuidString)") { res in
+            XCTAssertEqual(res.status, .ok)
+            let group = try res.content.decode(Contact.self)
+            XCTAssertEqual(group.name, "Name")
+            XCTAssertNotNil(group.deletedAt)
+        }
+    }
+    
+    // MARK: - Test GET /contacts/search
+    func testSearch_WithEmptyQuery_ShouldReturnBadRequest() async throws {
+        
+        // Given
+        let query = GeneralRequest.Search(query: "")
+        given(validator).validateSearchQuery(.any).willThrow(DefaultError.invalidInput)
+        
+        given(repo).search(request: .matching({ $0.query == query.query }),
+                           on: .any).willThrow(DefaultError.invalidInput)
+        
+        try app.test(.GET, "contacts/search") { res in
+            XCTAssertEqual(res.status, .badRequest)
+        }
+    }
+    
+    func testSearch_WithMore200CharQuery_ShouldReturnBadRequest() async throws {
+        
+        // Given
+        let query = GeneralRequest.Search(query: String(repeating: "A", count: 210))
+        given(validator).validateSearchQuery(.any).willThrow(DefaultError.invalidInput)
+        
+        given(repo).search(request: .matching({ $0.query == query.query }),
+                           on: .any).willThrow(DefaultError.invalidInput)
+        
+        try app.test(.GET, "contacts/search?query=\(query.query)") { res in
+            XCTAssertEqual(res.status, .badRequest)
+        }
+    }
+    
+    func testSearch_WithValidQuery_ShouldReturnEmptyContacts() async throws {
+        
+        // Given
+        let query = GeneralRequest.Search(query: "Test")
+        given(validator).validateSearchQuery(.any).willReturn(query)
+        
+        let stub = PaginatedResponse<Contact>(page: 1, perPage: 20, total: 0, items: [])
+        given(repo).search(request: .matching({ $0.query == query.query }),
+                           on: .any).willReturn(stub)
+        
+        try app.test(.GET, "contacts/search?query=Test") { res in
+            XCTAssertEqual(res.status, .ok)
+            let groups = try res.content.decode(PaginatedResponse<Contact>.self)
+            XCTAssertEqual(groups.total, 0)
+        }
+    }
+    
+    func testSearch_WithValidQuery_ShouldReturnContacts() async throws {
+        
+        // Given
+        let query = GeneralRequest.Search(query: "Test")
+        given(validator).validateSearchQuery(.any).willReturn(query)
+        
+        let stub = PaginatedResponse<Contact>(page: 1, perPage: 20, total: 2,
+                                              items: [Contact(name: "Test 1"),
+                                                      Contact(name: "Test 2")])
+        given(repo).search(request: .matching({ $0.query == query.query }),
+                           on: .any).willReturn(stub)
+        
+        try app.test(.GET, "contacts/search?query=Test") { res in
+            XCTAssertEqual(res.status, .ok)
+            let groups = try res.content.decode(PaginatedResponse<Contact>.self)
+            XCTAssertEqual(groups.total, 2)
+        }
+    }
+    
+    // MARK: - Test GET /contacts/:id/addresses/:address_id
+    func testUpdateBussineseAddress_WithInvalidID_ShouldReturnBadRequest() async throws {
+        
+        // Given
+        let id = UUID()
+        let addressID = UUID()
+        let content = ContactRequest.UpdateBussineseAddress(address: "Address")
+        given(validator).validateUpdateBussineseAddress(.any).willThrow(DefaultError.invalidInput)
+        
+        given(repo).updateBussineseAddress(byId: .matching({ $0.id.uuidString == id.uuidString }),
+                                           addressID: .matching({ $0.id.uuidString == addressID.uuidString }),
+                                           request: .matching({ $0.address == content.address }),
+                                           on: .any).willThrow(DefaultError.invalidInput)
+        
+        try app.test(.PUT, "contacts/\(id.uuidString)/businese_address/\(addressID.uuidString)") { res in
+            XCTAssertEqual(res.status, .badRequest)
+        }
+    }
+    
+    func testUpdateBussineseAddress_WithValidID_ShouldReturnContact() async throws {
+        
+        // Given
+        let id = UUID()
+        let addressID = UUID()
+        let content = ContactRequest.UpdateBussineseAddress(address: "Address")
+        let response = ContactRequest.UpdateBusineseAdressResponse(id: .init(id: id),
+                                                                   addressID: .init(id: addressID),
+                                                                   content: content)
+        given(validator).validateUpdateBussineseAddress(.any).willReturn(response)
+        
+        let stub = Contact(id: .init(),
+                           name: "Name",
+                           createAt: .now,
+                           updatedAt: .now,
+                           deletedAt: .now)
+        given(repo).updateBussineseAddress(byId: .matching({ $0.id.uuidString == id.uuidString }),
+                                           addressID: .matching({ $0.id.uuidString == addressID.uuidString }),
+                                           request: .matching({ $0.address == content.address }),
+                                           on: .any).willReturn(stub)
+        
+        try app.test(.PUT, "contacts/\(id.uuidString)/businese_address/\(addressID.uuidString)") { res in
+            XCTAssertEqual(res.status, .ok)
+            let group = try res.content.decode(Contact.self)
+            XCTAssertEqual(group.name, "Name")
+        }
+    }
+    
+    //MARK: - Test GET /contacts/:id/shipping_address/:address_id
+    func testUpdateShippingAddress_WithInvalidID_ShouldReturnBadRequest() async throws {
+        
+        // Given
+        let id = UUID()
+        let addressID = UUID()
+        let content = ContactRequest.UpdateShippingAddress(address: "Address")
+        given(validator).validateUpdateShippingAddress(.any).willThrow(DefaultError.invalidInput)
+        
+        given(repo).updateShippingAddress(byId: .matching({ $0.id.uuidString == id.uuidString }),
+                                          addressID: .matching({ $0.id.uuidString == addressID.uuidString }),
+                                          request: .matching({ $0.address == content.address }),
+                                          on: .any).willThrow(DefaultError.invalidInput)
+        
+        try app.test(.PUT, "contacts/\(id.uuidString)/shipping_address/\(addressID.uuidString)") { res in
+            XCTAssertEqual(res.status, .badRequest)
+        }
+    }
+    
+    func testUpdateShippingAddress_WithValidID_ShouldReturnContact() async throws {
+        
+        // Given
+        let id = UUID()
+        let addressID = UUID()
+        let content = ContactRequest.UpdateShippingAddress(address: "Address")
+        let response = ContactRequest.UpdateShippingAddressResponse(id: .init(id: id),
+                                                                     addressID: .init(id: addressID),
+                                                                     content: content)
+        given(validator).validateUpdateShippingAddress(.any).willReturn(response)
+        
+        let stub = Contact(id: .init(),
+                           name: "Name",
+                           createAt: .now,
+                           updatedAt: .now,
+                           deletedAt: .now)
+        given(repo).updateShippingAddress(byId: .matching({ $0.id.uuidString == id.uuidString }),
+                                          addressID: .matching({ $0.id.uuidString == addressID.uuidString }),
+                                          request: .matching({ $0.address == content.address }),
+                                          on: .any).willReturn(stub)
+        
+        try app.test(.PUT, "contacts/\(id.uuidString)/shipping_address/\(addressID.uuidString)") { res in
+            XCTAssertEqual(res.status, .ok)
+            let group = try res.content.decode(Contact.self)
+            XCTAssertEqual(group.name, "Name")
+        }
+    }
     
 }
 
 extension ContactControllerTests {
-//    struct Stub {
-//        
-//        static var emptyPageGroup: PaginatedResponse<Contact> {
-//            .init(page: 1,
-//                  perPage: 10,
-//                  total: 0,
-//                  items: [])
-//        }
-//        
-//        static var pageGroup: PaginatedResponse<Contact> {
-//            .init(page: 1,
-//                  perPage: 10,
-//                  total: 2,
-//                  items: [Contact(name: "Supplier"),
-//                          Contact(name: "Manufactor")])
-//        }
-//        
-//        static var pageGroupWithDeleted: PaginatedResponse<Contact> {
-//            .init(page: 1,
-//                  perPage: 10,
-//                  total: 3,
-//                  items: [Contact(name: "Supplier"),
-//                          Contact(name: "Manufactor"),
-//                          Contact(name: "Customer",
-//                                       deletedAt: .now)])
-//        }
-//        
-//        static var group: Contact {
-//            .init(name: "Test")
-//        }
-//    }
+    struct Stub {
+        
+        static var emptyContact: PaginatedResponse<Contact> {
+            .init(page: 1,
+                  perPage: 10,
+                  total: 0,
+                  items: [])
+        }
+        
+        static var pageContact: PaginatedResponse<Contact> {
+            .init(page: 1,
+                  perPage: 10,
+                  total: 2,
+                  items: [Contact(name: "Supplier"),
+                          Contact(name: "Manufactor")])
+        }
+        
+        static var pageContactWithDeleted: PaginatedResponse<Contact> {
+            .init(page: 1,
+                  perPage: 10,
+                  total: 3,
+                  items: [Contact(name: "Supplier"),
+                          Contact(name: "Manufactor"),
+                          Contact(name: "Customer",
+                                  deletedAt: .now)])
+        }
+        
+        static var contact: Contact {
+            .init(name: "Test")
+        }
+    }
 }
-
-/*
- import Foundation
- import Fluent
- import Vapor
-
- class ContactController: RouteCollection {
-     
-     private(set) var repository: ContactRepositoryProtocol
-     private(set) var validator: ContactValidatorProtocol
-     
-     init(repository: ContactRepositoryProtocol = ContactRepository(),
-          validator: ContactValidatorProtocol = ContactValidator()) {
-         self.repository = repository
-         self.validator = validator
-     }
-     
-     func boot(routes: RoutesBuilder) throws {
-         
-         let groups = routes.grouped("contact_groups")
-         groups.get(use: all)
-         groups.post(use: create)
-         
-         groups.group(":id") { withID in
-             withID.get(use: getByID)
-             withID.put(use: update)
-             withID.delete(use: delete)
-         }
-         
-         groups.group("search") { _search in
-             _search.get(use: search)
-         }
-     }
-     
-     // GET /contact_groups?show_deleted=true&page=1&per_page=10
-     func all(req: Request) async throws -> PaginatedResponse<Contact> {
-         let content = try req.query.decode(ContactRequest.FetchAll.self)
-
-         return try await repository.fetchAll(request: content,
-                                              on: req.db)
-     }
-     
-     // POST /contact_groups
-     func create(req: Request) async throws -> Contact {
-         let content = try validator.validateCreate(req)
-         
-         return try await repository.create(request: content,
-                                            on: req.db)
-     }
-     
-     // GET /contact_groups/:id
-     func getByID(req: Request) async throws -> Contact {
-         let content = try validator.validateID(req)
-         
-         return try await repository.fetchById(request: content,
-                                               on: req.db)
-     }
-     
-     // PUT /contact_groups/:id
-     func update(req: Request) async throws -> Contact {
-         let (id, content) = try validator.validateUpdate(req)
-         
-         return try await repository.update(byId: id,
-                                            request: content,
-                                            on: req.db)
-     }
-
-     // DELETE /contact_groups/:id
-     func delete(req: Request) async throws -> Contact {
-         let id = try validator.validateID(req)
-         
-         return try await repository.delete(byId: id,
-                                            on: req.db)
-     }
-     
-     // GET /contact_groups/search?name=xxx&page=1&per_page=10
-     func search(req: Request) async throws -> PaginatedResponse<Contact> {
-         
-         let content = try validator.validateSearchQuery(req)
-         
-         return try await repository.searchByName(request: content,
-                                                  on: req.db)
-     }
- }
-
- */
-
-/*
- protocol ContactRepositoryProtocol {
-
-     func fetchAll(
-         request: ContactRequest.FetchAll,
-         on db: Database
-     ) async throws -> PaginatedResponse<Contact>
-     
-     func fetchById(
-         request: ContactRequest.FetchById,
-         on db: Database
-     ) async throws -> Contact
-     
-     func fetchByName(
-         request: ContactRequest.FetchByName,
-         on db: Database
-     ) async throws -> Contact
-     
-     func searchByName(
-         request: ContactRequest.Search,
-         on db: Database
-     ) async throws -> PaginatedResponse<Contact>
-     
-     func create(
-         request: ContactRequest.Create,
-         on db: Database
-     ) async throws -> Contact
-     
-     func update(
-         byId: ContactRequest.FetchById,
-         request: ContactRequest.Update,
-         on db: Database
-     ) async throws -> Contact
-     
-     func delete(
-         byId: ContactRequest.FetchById,
-         on db: Database
-     ) async throws -> Contact
- }
-
- */
-
-/*
- 
- @Mockable
- protocol ContactValidatorProtocol {
-     func validateCreate(_ req: Request) throws -> ContactRequest.Create
-     func validateUpdate(_ req: Request) throws -> (id: ContactRequest.FetchById, content: ContactRequest.Update)
-     func validateID(_ req: Request) throws -> ContactRequest.FetchById
-     func validateSearchQuery(_ req: Request) throws -> ContactRequest.Search
- }
-
- class ContactValidator: ContactValidatorProtocol {
-     typealias CreateContent = ContactRequest.Create
-     typealias UpdateContent = (id: ContactRequest.FetchById, content: ContactRequest.Update)
-
-     func validateCreate(_ req: Request) throws -> CreateContent {
-         try CreateContent.validate(content: req)
-         
-         return try req.content.decode(CreateContent.self)
-     }
-
-     func validateUpdate(_ req: Request) throws -> UpdateContent {
-         try ContactRequest.Update.validate(content: req)
-         
-         let id = try req.parameters.require("id", as: UUID.self)
-         let fetchById = ContactRequest.FetchById(id: id)
-         let content = try req.content.decode(ContactRequest.Update.self)
-         
-         return (fetchById, content)
-     }
-
-     func validateID(_ req: Request) throws -> ContactRequest.FetchById {
-         do {
-             return try req.query.decode(ContactRequest.FetchById.self)
-         } catch {
-             throw DefaultError.invalidInput
-         }
-     }
-
-     func validateSearchQuery(_ req: Request) throws -> ContactRequest.Search {
-         do {
-             let content = try req.query.decode(ContactRequest.Search.self)
-             
-             guard content.query.isEmpty == false else { throw DefaultError.invalidInput }
-             
-             return content
-         }
-         catch {
-             throw DefaultError.invalidInput
-         }
-     }
- }
-
- */
