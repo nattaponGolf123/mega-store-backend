@@ -16,13 +16,13 @@ class ContactGroupValidator: ContactGroupValidatorProtocol {
     typealias Create = ContactGroupRequest.Create
     typealias Update = (id: GeneralRequest.FetchById, content: ContactGroupRequest.Update)
     typealias Search = GeneralRequest.Search
-
+    
     func validateCreate(_ req: Request) throws -> Create {
         try Create.validate(content: req)
         
         return try req.content.decode(Create.self)
     }
-
+    
     func validateUpdate(_ req: Request) throws -> Update {
         try ContactGroupRequest.Update.validate(content: req)
         
@@ -31,27 +31,18 @@ class ContactGroupValidator: ContactGroupValidatorProtocol {
         let content = try req.content.decode(ContactGroupRequest.Update.self)
         return (fetchById, content)
     }
-
+    
     func validateID(_ req: Request) throws -> GeneralRequest.FetchById {
-        do {
-            return try req.query.decode(GeneralRequest.FetchById.self)
-        } catch {
-            throw DefaultError.invalidInput
-        }
+        return try req.query.decode(GeneralRequest.FetchById.self)
     }
-
+    
     func validateSearchQuery(_ req: Request) throws -> Search {
-        do {
-            try Search.validate(content: req)
-            
-            let content = try req.query.decode(Search.self)
-            
-            guard content.query.isEmpty == false else { throw DefaultError.invalidInput }
-            
-            return content
-        }
-        catch {
-            throw DefaultError.invalidInput
-        }
+        try Search.validate(content: req)
+        
+        let content = try req.query.decode(Search.self)
+        
+        guard content.query.isEmpty == false else { throw DefaultError.invalidInput }
+        
+        return content
     }
 }
