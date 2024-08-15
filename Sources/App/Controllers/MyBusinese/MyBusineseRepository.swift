@@ -15,6 +15,11 @@ protocol MyBusineseRepositoryProtocol {
         on db: Database
     ) async throws -> MyBusinese
     
+    func create(
+        request: MyBusineseRequest.Create,
+        on db: Database
+    ) async throws -> MyBusinese
+    
     func update(
         byId: GeneralRequest.FetchById,
         request: MyBusineseRequest.Update,
@@ -56,6 +61,27 @@ class MyBusineseRepository: MyBusineseRepositoryProtocol {
         return businese
     }
 
+    func create(
+        request: MyBusineseRequest.Create,
+        on db: Database
+    ) async throws -> MyBusinese {
+        guard
+            try await MyBusinese.query(on: db).filter(\.$name == request.name).count() == 0
+        else { throw CommonError.duplicateName }
+                
+        let businese = MyBusinese(name: request.name,
+                                  vatRegistered: request.vatRegistered,
+                                  contactInformation: request.contactInformation,
+                                  taxNumber: request.taxNumber,
+                                  legalStatus: request.legalStatus,
+                                  website: request.website,
+                                  note: request.note)
+        
+        try await businese.save(on: db)
+        
+        return businese
+    }
+    
     func update(
         byId: GeneralRequest.FetchById,
         request: MyBusineseRequest.Update,

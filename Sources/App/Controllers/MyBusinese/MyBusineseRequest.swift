@@ -66,6 +66,41 @@ struct MyBusineseRequest {
         let authorizedSignSignature: String?
         let note: String?
         
+        init(name: String? = nil,
+             vatRegistered: Bool? = nil,
+             contactInformation: ContactInformation? = nil,
+             taxNumber: String? = nil,
+             legalStatus: BusinessType? = nil,
+             website: String? = nil,
+             logo: String? = nil,
+             stampLogo: String? = nil,
+             authorizedSignSignature: String? = nil,
+             note: String? = nil) {
+            self.name = name
+            self.vatRegistered = vatRegistered
+            self.contactInformation = contactInformation
+            self.taxNumber = taxNumber
+            self.legalStatus = legalStatus
+            self.website = website
+            self.logo = logo
+            self.stampLogo = stampLogo
+            self.authorizedSignSignature = authorizedSignSignature
+            self.note = note
+        }
+        
+        enum CodingKeys: String, CodingKey {
+            case name
+            case vatRegistered = "vat_registered"
+            case contactInformation = "contact_information"
+            case taxNumber = "tax_number"
+            case legalStatus = "legal_status"
+            case website
+            case logo
+            case stampLogo = "stamp_logo"
+            case authorizedSignSignature = "authorized_sign_signature"
+            case note
+        }
+        
         static func validations(_ validations: inout Validations) {
             validations.add("name", as: String.self,
                             is: .count(3...200),
@@ -77,86 +112,4 @@ struct MyBusineseRequest {
         }
     }
 
-//    struct UpdateBussineseAddress: Content, Validatable {                
-//        let address: String?
-//        let branch: String?
-//        let branchCode: String?
-//        let subDistrict: String?  
-//        let city: String?
-//        let province: String?
-//        let country: String?
-//
-//        //@ThailandPostCode
-//        let postalCode: String?
-//
-//        let phone: String?
-//        let email: String?
-//        let fax: String?
-//        
-//        static func validations(_ validations: inout Validations) {
-////            if let postalCode {
-////                validations.add("postal_code", as: String.self,
-////                                is: .count(5...5))
-////            }
-//
-//        //     validations.add("address", as: String.self,
-//        //                     is: .count(1...200))
-//        //     validations.add("postalCode", as: String.self,
-//        //                     is: .count(5...5))        
-//        }
-//
-//        enum CodingKeys: String, CodingKey {            
-//            case branch
-//            case branchCode = "branch_code"
-//            case address
-//            case subDistrict = "sub_district"
-//            case city
-//            case province
-//            case postalCode = "postal_code"
-//            case country
-//            case phone 
-//            case email
-//            case fax
-//        }
-//    }
-//
-//    struct UpdateShippingAddress: Content, Validatable {
-//        let address: String?        
-//        let subDistrict: String?
-//        let city: String?
-//        let province: String?
-//        let country: String?
-//
-//        //@ThailandPostCode
-//        let postalCode: String?
-//
-//        let phone: String?
-//        
-//        static func validations(_ validations: inout Validations) {
-////            if let postalCode {
-////                validations.add("postal_code", as: String.self,
-////                                is: .count(5...5))
-////            }
-////
-////            if let address {
-////                validations.add("address", as: String.self,
-////                                is: .count(1...200))
-////            }
-//
-//        //     validations.add("address", as: String.self,
-//        //                     is: .count(1...200))
-//        //     validations.add("postalCode", as: String.self,
-//        //                     is: .count(5...5))        
-//        }
-//
-//        enum CodingKeys: String, CodingKey {
-//            case address
-//            case subDistrict = "sub_district"
-//            case city
-//            case province
-//            case postalCode = "postal_code"
-//            case country
-//            case phone
-//        }
-//    }
 }

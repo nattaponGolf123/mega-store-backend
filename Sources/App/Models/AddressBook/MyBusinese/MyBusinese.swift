@@ -81,7 +81,7 @@ final class MyBusinese: Model, Content {
     init(id: UUID? = nil,
          name: String,
          vatRegistered: Bool = false,
-         contactInformation: ContactInformation = .init(),
+         contactInformation: ContactInformation? = .init(),
          taxNumber: String,
          legalStatus: BusinessType = .individual,
          website: String? = nil,
@@ -97,7 +97,7 @@ final class MyBusinese: Model, Content {
         self.id = id ?? UUID()
         self.name = name
         self.vatRegistered = vatRegistered
-        self.contactInformation = contactInformation
+        self.contactInformation = contactInformation ?? .init()
         self.taxNumber = taxNumber
         self.legalStatus = legalStatus
         self.website = website
