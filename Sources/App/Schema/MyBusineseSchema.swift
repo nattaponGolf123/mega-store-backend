@@ -28,7 +28,7 @@ class MyBusineseSchema {
             .field("logo", .string)
             .field("stamp_logo", .string)
             .field("authorized_sign_signature", .string)
-            .field("note", .string, .required)      
+            .field("note", .string)
             .field("created_at", .datetime)
             .field("updated_at", .datetime)
             .field("deleted_at", .datetime)      

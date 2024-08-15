@@ -2,7 +2,9 @@ import Foundation
 import Vapor
 import Fluent
 import FluentMongoDriver
+import Mockable
 
+@Mockable
 protocol MyBusineseRepositoryProtocol {
     func fetchAll(
         on db: Database

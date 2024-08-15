@@ -38,7 +38,7 @@ final class MyBusinese: Model, Content {
     var legalStatus: BusinessType
     
     @Field(key: "website")
-    var website: String
+    var website: String?
     
     @Field(key: "business_address")
     var businessAddress: [BusinessAddress]
@@ -59,7 +59,7 @@ final class MyBusinese: Model, Content {
     var authorizedSignSignature: String?
     
     @Field(key: "note")
-    var note: String
+    var note: String?
     
     @Timestamp(key: "created_at",
                on: .create,
@@ -80,17 +80,20 @@ final class MyBusinese: Model, Content {
     
     init(id: UUID? = nil,
          name: String,
-         vatRegistered: Bool,
+         vatRegistered: Bool = false,
          contactInformation: ContactInformation = .init(),
          taxNumber: String,
-         legalStatus: BusinessType,
-         website: String = "",
+         legalStatus: BusinessType = .individual,
+         website: String? = nil,
          businessAddress: [BusinessAddress] = [.init()],
          shippingAddress: [ShippingAddress] = [.init()],
          logo: String? = nil,
          stampLogo: String? = nil,
          authorizedSignSignature: String? = nil,
-         note: String = "") {
+         note: String? = nil,
+         createdAt: Date? = .init(),
+         updatedAt: Date? = nil,
+         deletedAt: Date? = nil) {
         self.id = id ?? UUID()
         self.name = name
         self.vatRegistered = vatRegistered
@@ -104,6 +107,9 @@ final class MyBusinese: Model, Content {
         self.stampLogo = stampLogo
         self.authorizedSignSignature = authorizedSignSignature
         self.note = note
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
     }
     
 }

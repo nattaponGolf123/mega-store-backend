@@ -1,6 +1,8 @@
 import Foundation
 import Vapor
+import Mockable
 
+@Mockable
 protocol MyBusineseValidatorProtocol {
     typealias CreateContent = MyBusineseRequest.Create
     typealias UpdateContent = MyBusineseRequest.Update
