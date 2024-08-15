@@ -10,7 +10,6 @@ final class MyBusineseRequestTests: XCTestCase {
         
         let contactInfo = ContactInformation(phone: "123456789",
                                              email: "test@example.com")
-        let groupId = UUID()
         let create = MyBusineseRequest.Create(
             name: "John Doe",
             vatRegistered: true,
@@ -97,52 +96,6 @@ final class MyBusineseRequestTests: XCTestCase {
     }
 
     // MARK: - Update Tests
-    /*
-     struct Update: Content, Validatable {
-         let name: String?
-         let vatRegistered: Bool?
-         let contactInformation: ContactInformation?
-         let taxNumber: String?
-         let legalStatus: BusinessType?
-         let website: String?
-         let logo: String?
-         let stampLogo: String?
-         let authorizedSignSignature: String?
-         let note: String?
-         
-         init(name: String? = nil,
-              vatRegistered: Bool? = nil,
-              contactInformation: ContactInformation? = nil,
-              taxNumber: String? = nil,
-              legalStatus: BusinessType? = nil,
-              website: String? = nil,
-              logo: String? = nil,
-              stampLogo: String? = nil,
-              authorizedSignSignature: String? = nil,
-              note: String? = nil) {
-             self.name = name
-             self.vatRegistered = vatRegistered
-             self.contactInformation = contactInformation
-             self.taxNumber = taxNumber
-             self.legalStatus = legalStatus
-             self.website = website
-             self.logo = logo
-             self.stampLogo = stampLogo
-             self.authorizedSignSignature = authorizedSignSignature
-             self.note = note
-         }
-         
-         static func validations(_ validations: inout Validations) {
-             validations.add("name", as: String.self,
-                             is: .count(3...200),
-                             required: false)
-             validations.add("tax_number",
-                             as: String.self,
-                             is: .count(13...13),
-                             required: false)
-         }
-     }
-     */
     func testUpdateInit_WithValidValues_ShouldReturnCorrectValues() {
         let contactInfo = ContactInformation(contactPerson: "John doe",
                                              phone: "123456789",
