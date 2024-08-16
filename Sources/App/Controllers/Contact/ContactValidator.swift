@@ -5,11 +5,13 @@ import Mockable
 @Mockable
 protocol ContactValidatorProtocol {
     typealias Search = GeneralRequest.Search
+    typealias UpdateBusineseAdressResponse = ContactRequest.UpdateBusineseAdressResponse
+    typealias UpdateShippingAddressResponse = ContactRequest.UpdateShippingAddressResponse
     
     func validateCreate(_ req: Request) throws -> ContactRequest.Create
     func validateUpdate(_ req: Request) throws -> (id: GeneralRequest.FetchById, content: ContactRequest.Update)
-    func validateUpdateBussineseAddress(_ req: Request) throws -> ContactRequest.UpdateBusineseAdressResponse
-    func validateUpdateShippingAddress(_ req: Request) throws -> ContactRequest.UpdateShippingAddressResponse
+    func validateUpdateBussineseAddress(_ req: Request) throws -> UpdateBusineseAdressResponse
+    func validateUpdateShippingAddress(_ req: Request) throws -> UpdateShippingAddressResponse
     func validateID(_ req: Request) throws -> GeneralRequest.FetchById
     func validateSearchQuery(_ req: Request) throws -> Search
 }
@@ -18,6 +20,8 @@ class ContactValidator: ContactValidatorProtocol {
     typealias Create = ContactRequest.Create
     typealias Update = (id: GeneralRequest.FetchById, content: ContactRequest.Update)
     typealias Search = GeneralRequest.Search
+    typealias UpdateBusineseAdressResponse = ContactRequest.UpdateBusineseAdressResponse
+    typealias UpdateShippingAddressResponse = ContactRequest.UpdateShippingAddressResponse
     
     func validateCreate(_ req: Request) throws -> Create {
         try Create.validate(content: req)
@@ -34,7 +38,7 @@ class ContactValidator: ContactValidatorProtocol {
         return (fetchById, content)
     }
     
-    func validateUpdateBussineseAddress(_ req: Request) throws -> ContactRequest.UpdateBusineseAdressResponse {
+    func validateUpdateBussineseAddress(_ req: Request) throws -> UpdateBusineseAdressResponse {
         try ContactRequest.UpdateBussineseAddress.validate(content: req)
         
         let content = try req.content.decode(ContactRequest.UpdateBussineseAddress.self)
@@ -48,8 +52,7 @@ class ContactValidator: ContactValidatorProtocol {
                      content: content)
     }
     
-    func validateUpdateShippingAddress(_ req: Request) throws -> ContactRequest.UpdateShippingAddressResponse {
-        
+    func validateUpdateShippingAddress(_ req: Request) throws -> UpdateShippingAddressResponse {
         try ContactRequest.UpdateShippingAddress.validate(content: req)
         
         let content = try req.content.decode(ContactRequest.UpdateShippingAddress.self)
@@ -68,7 +71,6 @@ class ContactValidator: ContactValidatorProtocol {
     }
     
     func validateSearchQuery(_ req: Request) throws -> Search {
-        
         try Search.validate(content: req)
         
         let content = try req.query.decode(Search.self)

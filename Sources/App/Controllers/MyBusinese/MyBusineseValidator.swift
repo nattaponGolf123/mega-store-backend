@@ -6,17 +6,21 @@ import Mockable
 protocol MyBusineseValidatorProtocol {
     typealias CreateContent = MyBusineseRequest.Create
     typealias UpdateContent = MyBusineseRequest.Update
+    typealias UpdateBusineseAdressResponse = MyBusineseRequest.UpdateBusineseAdressResponse
+    typealias UpdateShippingAddressResponse = MyBusineseRequest.UpdateShippingAddressResponse
     
     func validateCreate(_ req: Request) throws -> CreateContent
     func validateUpdate(_ req: Request) throws -> (id: GeneralRequest.FetchById, content: UpdateContent)
-    func validateUpdateBussineseAddress(_ req: Request) throws -> MyBusineseValidator.ValidateBusineseAdressResponse
-    func validateUpdateShippingAddress(_ req: Request) throws -> MyBusineseValidator.ValidateShippingAddressResponse
+    func validateUpdateBussineseAddress(_ req: Request) throws -> UpdateBusineseAdressResponse
+    func validateUpdateShippingAddress(_ req: Request) throws -> UpdateShippingAddressResponse
     func validateID(_ req: Request) throws -> GeneralRequest.FetchById
 }
 
 class MyBusineseValidator: MyBusineseValidatorProtocol {
     typealias CreateContent = MyBusineseRequest.Create
     typealias UpdateContent = MyBusineseRequest.Update
+    typealias UpdateBusineseAdressResponse = MyBusineseRequest.UpdateBusineseAdressResponse
+    typealias UpdateShippingAddressResponse = MyBusineseRequest.UpdateShippingAddressResponse
     
     func validateCreate(_ req: Request) throws -> CreateContent {
         try CreateContent.validate(content: req)
@@ -33,7 +37,7 @@ class MyBusineseValidator: MyBusineseValidatorProtocol {
         return (fetchById, content)
     }
     
-    func validateUpdateBussineseAddress(_ req: Request) throws -> ValidateBusineseAdressResponse {
+    func validateUpdateBussineseAddress(_ req: Request) throws -> UpdateBusineseAdressResponse {
         try MyBusineseRequest.UpdateBussineseAddress.validate(content: req)
         
         let content = try req.content.decode(MyBusineseRequest.UpdateBussineseAddress.self)
@@ -48,7 +52,7 @@ class MyBusineseValidator: MyBusineseValidatorProtocol {
                      content: content)
     }
     
-    func validateUpdateShippingAddress(_ req: Request) throws -> ValidateShippingAddressResponse {
+    func validateUpdateShippingAddress(_ req: Request) throws -> UpdateShippingAddressResponse {
         try MyBusineseRequest.UpdateShippingAddress.validate(content: req)
         
         let content = try req.content.decode(MyBusineseRequest.UpdateShippingAddress.self)
@@ -65,20 +69,5 @@ class MyBusineseValidator: MyBusineseValidatorProtocol {
     
     func validateID(_ req: Request) throws -> GeneralRequest.FetchById {
         return try req.query.decode(GeneralRequest.FetchById.self)
-    }
-}
-
-extension MyBusineseValidator {
-    
-    struct ValidateBusineseAdressResponse {
-        let id: GeneralRequest.FetchById
-        let addressID: GeneralRequest.FetchById
-        let content: MyBusineseRequest.UpdateBussineseAddress
-    }
-    
-    struct ValidateShippingAddressResponse {
-        let id: GeneralRequest.FetchById
-        let addressID: GeneralRequest.FetchById
-        let content: MyBusineseRequest.UpdateShippingAddress
     }
 }

@@ -7,7 +7,7 @@ struct MyBusineseRequest {
     
     typealias UpdateShippingAddress = ContactRequest.UpdateShippingAddress
     typealias UpdateBussineseAddress = ContactRequest.UpdateBussineseAddress
-
+    
     struct Create: Content, Validatable {
         let name: String
         let vatRegistered: Bool
@@ -112,4 +112,15 @@ struct MyBusineseRequest {
         }
     }
 
+    struct UpdateBusineseAdressResponse {
+        let id: GeneralRequest.FetchById
+        let addressID: GeneralRequest.FetchById
+        let content: UpdateBussineseAddress
+    }
+    
+    struct UpdateShippingAddressResponse {
+        let id: GeneralRequest.FetchById
+        let addressID: GeneralRequest.FetchById
+        let content: UpdateShippingAddress
+    }
 }

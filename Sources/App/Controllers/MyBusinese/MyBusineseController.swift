@@ -16,6 +16,7 @@ class MyBusineseController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
         let busineses = routes.grouped("my_busineses")
         busineses.get(use: all)
+        busineses.post(use: create)
         
         busineses.group(":id") { withID in
             withID.get(use: getByID)
@@ -38,6 +39,12 @@ class MyBusineseController: RouteCollection {
     // GET /my_busineses
     func all(req: Request) async throws -> [MyBusinese] {
         return try await repository.fetchAll(on: req.db)
+    }
+    
+    // POST /my_busineses
+    func create(req: Request) async throws -> MyBusinese {
+        let content = try validator.validateCreate(req)
+        return try await repository.create(request: content, on: req.db)
     }
     
      // GET /my_busineses:id
