@@ -137,6 +137,7 @@ extension XCTestCase {
         app: Application = Application(.testing),
         method: HTTPMethod = .POST,
         url: String = "mock",
+        header: [(String, String)]? = nil,
         pathParameters: [String: UUID] = [:],
         content: any Content
     ) -> Request {
@@ -183,6 +184,13 @@ extension XCTestCase {
             request.parameters = parameters
         }
         
+        // header
+        if let header = header {
+            for (key, value) in header {
+                request.headers.add(name: key, value: value)
+            }
+        }
+            
         return request
     }
     

@@ -15,6 +15,7 @@ enum AuthError {
     case invalidRefreshToken
     case userNotFound
     case userNotAuthorized
+    case tokenExpired
     case error(message: String)
 }
 
@@ -33,6 +34,8 @@ extension AuthError: AbortError {
             return "User not found"
         case .userNotAuthorized:
             return "User not authorized"
+        case .tokenExpired:
+            return "Token expired"
         case .error(let message):
             return message
         }
@@ -51,6 +54,8 @@ extension AuthError: AbortError {
         case .userNotFound:
             return .notFound
         case .userNotAuthorized:
+            return .unauthorized
+        case .tokenExpired:
             return .unauthorized
         case .error:
             return .badRequest

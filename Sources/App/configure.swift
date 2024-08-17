@@ -71,7 +71,8 @@ public func configure(_ app: Application) async throws {
     try await configMigrations(app)
 }
 
-private func getJWTKey() -> String {
+// allow access on Test
+func getJWTKey() -> String {
     let _defaultKey = "Ddk_JfGFRFde7eOW71DX8-0RnAvN1741rFme3ESBE2A="
     return Environment.get("JWT_KEY") ?? _defaultKey
 }
