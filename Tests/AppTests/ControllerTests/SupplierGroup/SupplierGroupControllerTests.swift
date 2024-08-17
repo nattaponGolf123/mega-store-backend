@@ -56,14 +56,14 @@ final class SupplierGroupControllerTests: XCTestCase {
         try await super.tearDown()
     }
     
-    // MARK: - Tests GET /contact_groups
+    // MARK: - Tests GET /supplier_group
     func testAll_WithNoRequestParam_ShouldReturnEmptyGroups() async throws {
         
         // Given
         given(repo).fetchAll(request: .any,
                              on: .any).willReturn(Stub.emptyPageGroup)
         
-        try app.test(.GET, "contact_groups") { res in
+        try app.test(.GET, "supplier_group") { res in
             XCTAssertEqual(res.status, .ok)
             let groups = try res.content.decode(PaginatedResponse<SupplierGroup>.self)
             XCTAssertEqual(groups.items.count, 0)
@@ -76,7 +76,7 @@ final class SupplierGroupControllerTests: XCTestCase {
         given(repo).fetchAll(request: .any,
                              on: .any).willReturn(Stub.pageGroup)
     
-        try app.test(.GET, "contact_groups") { res in
+        try app.test(.GET, "supplier_group") { res in
             XCTAssertEqual(res.status, .ok)
             let groups = try res.content.decode(PaginatedResponse<SupplierGroup>.self)
             XCTAssertEqual(groups.items.count, 2)
@@ -89,14 +89,14 @@ final class SupplierGroupControllerTests: XCTestCase {
         given(repo).fetchAll(request: .matching({ $0.showDeleted == true}),
                              on: .any).willReturn(Stub.pageGroupWithDeleted)
         
-        try app.test(.GET, "contact_groups?show_deleted=true") { res in
+        try app.test(.GET, "supplier_group?show_deleted=true") { res in
             XCTAssertEqual(res.status, .ok)
             let groups = try res.content.decode(PaginatedResponse<SupplierGroup>.self)
             XCTAssertEqual(groups.items.count, 3)
         }
     }
     
-    // MARK: - Test GET /contact_groups/:id
+    // MARK: - Test GET /supplier_group/:id
     func testGetByID_WithID_ShouldReturnNotFound() async throws {
         
         // Given
@@ -106,7 +106,7 @@ final class SupplierGroupControllerTests: XCTestCase {
                               on: .any).willThrow(DefaultError.notFound)
         given(validator).validateID(.any).willReturn(request)
         
-        try app.test(.GET, "contact_groups/\(id.uuidString)") { res in
+        try app.test(.GET, "supplier_group/\(id.uuidString)") { res in
             XCTAssertEqual(res.status, .notFound)
         }
         
@@ -121,14 +121,14 @@ final class SupplierGroupControllerTests: XCTestCase {
                               on: .any).willReturn(Stub.group)
         given(validator).validateID(.any).willReturn(request)
         
-        try app.test(.GET, "contact_groups/\(id.uuidString)") { res in
+        try app.test(.GET, "supplier_group/\(id.uuidString)") { res in
             XCTAssertEqual(res.status, .ok)
             let group = try res.content.decode(SupplierGroup.self)
             XCTAssertEqual(group.name, "Test")
         }
     }
     
-    // MARK: - Test POST /contact_groups
+    // MARK: - Test POST /supplier_group
     func testCreate_WithInvalidGroup_ShouldReturnBadRequest() async throws {
         
         // Given
@@ -138,7 +138,7 @@ final class SupplierGroupControllerTests: XCTestCase {
         given(repo).create(request: .matching({ $0.name == request.name }),
                            on: .any).willThrow(DefaultError.insertFailed)
         
-        try app.test(.POST, "contact_groups",
+        try app.test(.POST, "supplier_group",
                      beforeRequest: { req in
                         try req.content.encode(request)
                      }) { res in
@@ -155,7 +155,7 @@ final class SupplierGroupControllerTests: XCTestCase {
         given(repo).create(request: .matching({ $0.name == request.name }),
                            on: .any).willReturn(Stub.group)
         
-        try app.test(.POST, "contact_groups",
+        try app.test(.POST, "supplier_group",
                      beforeRequest: { req in
                         try req.content.encode(request)
                      }) { res in
@@ -183,7 +183,7 @@ final class SupplierGroupControllerTests: XCTestCase {
         }),
                            on: .any).willReturn(stub)
         
-        try app.test(.POST, "contact_groups",
+        try app.test(.POST, "supplier_group",
                      beforeRequest: { req in
                         try req.content.encode(request)
                      }) { res in
@@ -194,7 +194,7 @@ final class SupplierGroupControllerTests: XCTestCase {
         }
     }
     
-    // MARK: - Test PUT /contact_groups/:id
+    // MARK: - Test PUT /supplier_group/:id
     func testUpdate_WithInvalidGroup_ShouldReturnBadRequest() async throws {
         
         // Given
@@ -207,7 +207,7 @@ final class SupplierGroupControllerTests: XCTestCase {
                            request: .matching({ $0.name == requestUpdate.name }),
                            on: .any).willThrow(DefaultError.invalidInput)
         
-        try app.test(.PUT, "contact_groups/\(id.uuidString)",
+        try app.test(.PUT, "supplier_group/\(id.uuidString)",
                      beforeRequest: { req in
                         try req.content.encode(requestUpdate)
                      }) { res in
@@ -227,7 +227,7 @@ final class SupplierGroupControllerTests: XCTestCase {
                            request: .matching({ $0.name == requestUpdate.name }),
                            on: .any).willReturn(Stub.group)
         
-        try app.test(.PUT, "contact_groups/\(id.uuidString)",
+        try app.test(.PUT, "supplier_group/\(id.uuidString)",
                      beforeRequest: { req in
                         try req.content.encode(requestUpdate)
                      }) { res in
@@ -255,7 +255,7 @@ final class SupplierGroupControllerTests: XCTestCase {
                                                 $0.description == requestUpdate.description }),
                            on: .any).willReturn(stub)
         
-        try app.test(.PUT, "contact_groups/\(id.uuidString)",
+        try app.test(.PUT, "supplier_group/\(id.uuidString)",
                      beforeRequest: { req in
                         try req.content.encode(requestUpdate)
                      }) { res in
@@ -266,7 +266,7 @@ final class SupplierGroupControllerTests: XCTestCase {
         }
     }
     
-    // MARK: - Test DELETE /contact_groups/:id
+    // MARK: - Test DELETE /supplier_group/:id
     func testDelete_WithInvalidGroup_ShouldReturnBadRequest() async throws {
         
         // Given
@@ -276,7 +276,7 @@ final class SupplierGroupControllerTests: XCTestCase {
         given(repo).delete(byId: .matching({ $0.id.uuidString == id.uuidString }),
                            on: .any).willThrow(DefaultError.invalidInput)
         
-        try app.test(.DELETE, "contact_groups/\(id.uuidString)") { res in
+        try app.test(.DELETE, "supplier_group/\(id.uuidString)") { res in
             XCTAssertEqual(res.status, .badRequest)
         }
     }
@@ -291,7 +291,7 @@ final class SupplierGroupControllerTests: XCTestCase {
         given(repo).delete(byId: .matching({ $0.id.uuidString == id.uuidString }),
                            on: .any).willThrow(DefaultError.notFound)
         
-        try app.test(.DELETE, "contact_groups/\(id.uuidString)") { res in
+        try app.test(.DELETE, "supplier_group/\(id.uuidString)") { res in
             XCTAssertEqual(res.status, .notFound)
         }
     }
@@ -312,7 +312,7 @@ final class SupplierGroupControllerTests: XCTestCase {
         given(repo).delete(byId: .matching({ $0.id.uuidString == id.uuidString }),
                            on: .any).willReturn(stub)
         
-        try app.test(.DELETE, "contact_groups/\(id.uuidString)") { res in
+        try app.test(.DELETE, "supplier_group/\(id.uuidString)") { res in
             XCTAssertEqual(res.status, .ok)
             let group = try res.content.decode(SupplierGroup.self)
             XCTAssertEqual(group.name, "Name")
@@ -321,7 +321,7 @@ final class SupplierGroupControllerTests: XCTestCase {
         }
     }
     
-    // MARK: - Test GET /contact_groups/search
+    // MARK: - Test GET /supplier_group/search
     func testSearch_WithEmptyQuery_ShouldReturnBadRequest() async throws {
         
         // Given
@@ -331,7 +331,7 @@ final class SupplierGroupControllerTests: XCTestCase {
         given(repo).searchByName(request: .matching({ $0.query == query.query }),
                                  on: .any).willThrow(DefaultError.invalidInput)
         
-        try app.test(.GET, "contact_groups/search") { res in
+        try app.test(.GET, "supplier_group/search") { res in
             XCTAssertEqual(res.status, .badRequest)
         }
     }
@@ -345,7 +345,7 @@ final class SupplierGroupControllerTests: XCTestCase {
         given(repo).searchByName(request: .matching({ $0.query == query.query }),
                                  on: .any).willThrow(DefaultError.invalidInput)
         
-        try app.test(.GET, "contact_groups/search?query=\(query.query)") { res in
+        try app.test(.GET, "supplier_group/search?query=\(query.query)") { res in
             XCTAssertEqual(res.status, .badRequest)
         }
     }
@@ -360,7 +360,7 @@ final class SupplierGroupControllerTests: XCTestCase {
         given(repo).searchByName(request: .matching({ $0.query == query.query }),
                                  on: .any).willReturn(stub)
         
-        try app.test(.GET, "contact_groups/search?query=Test") { res in
+        try app.test(.GET, "supplier_group/search?query=Test") { res in
             XCTAssertEqual(res.status, .ok)
             let groups = try res.content.decode(PaginatedResponse<SupplierGroup>.self)
             XCTAssertEqual(groups.total, 0)
@@ -379,7 +379,7 @@ final class SupplierGroupControllerTests: XCTestCase {
         given(repo).searchByName(request: .matching({ $0.query == query.query }),
                                  on: .any).willReturn(stub)
         
-        try app.test(.GET, "contact_groups/search?query=Test") { res in
+        try app.test(.GET, "supplier_group/search?query=Test") { res in
             XCTAssertEqual(res.status, .ok)
             let groups = try res.content.decode(PaginatedResponse<SupplierGroup>.self)
             XCTAssertEqual(groups.total, 2)

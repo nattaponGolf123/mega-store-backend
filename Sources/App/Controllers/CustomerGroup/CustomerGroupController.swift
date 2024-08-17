@@ -17,7 +17,7 @@ class CustomerGroupController: RouteCollection {
     
     func boot(routes: RoutesBuilder) throws {
         
-        let groups = routes.grouped("customers")
+        let groups = routes.grouped("customer_group")
         groups.get(use: all)
         groups.post(use: create)
         
@@ -32,7 +32,7 @@ class CustomerGroupController: RouteCollection {
         }
     }
     
-    // GET /customers?show_deleted=true&page=1&per_page=10
+    // GET /customer_group?show_deleted=true&page=1&per_page=10
     func all(req: Request) async throws -> PaginatedResponse<CustomerGroup> {        
         let content = try req.query.decode(FetchAll.self)
         
@@ -40,7 +40,7 @@ class CustomerGroupController: RouteCollection {
                                              on: req.db)
     }
     
-    // POST /customers
+    // POST /customer_group
     func create(req: Request) async throws -> CustomerGroup {
         let content = try validator.validateCreate(req)
         
@@ -48,7 +48,7 @@ class CustomerGroupController: RouteCollection {
                                            on: req.db)
     }
     
-    // GET /customers/:id
+    // GET /customer_group/:id
     func getByID(req: Request) async throws -> CustomerGroup {
         let content = try validator.validateID(req)
         
@@ -56,7 +56,7 @@ class CustomerGroupController: RouteCollection {
                                               on: req.db)
     }
     
-    // PUT /customers/:id
+    // PUT /customer_group/:id
     func update(req: Request) async throws -> CustomerGroup {
         let (id, content) = try validator.validateUpdate(req)
         
@@ -65,7 +65,7 @@ class CustomerGroupController: RouteCollection {
                                            on: req.db)
     }
 
-    // DELETE /customers/:id
+    // DELETE /customer_group/:id
     func delete(req: Request) async throws -> CustomerGroup {
         let id = try validator.validateID(req)
         
@@ -73,7 +73,7 @@ class CustomerGroupController: RouteCollection {
                                            on: req.db)
     }
     
-    // GET /customers/search?name=xxx&page=1&per_page=10
+    // GET /customer_group/search?name=xxx&page=1&per_page=10
     func search(req: Request) async throws -> PaginatedResponse<CustomerGroup> {
         let content = try validator.validateSearchQuery(req)
         

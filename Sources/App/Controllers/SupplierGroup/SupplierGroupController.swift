@@ -17,7 +17,7 @@ class SupplierGroupController: RouteCollection {
     
     func boot(routes: RoutesBuilder) throws {
         
-        let groups = routes.grouped("suppliers")
+        let groups = routes.grouped("supplier_group")
         groups.get(use: all)
         groups.post(use: create)
         
@@ -32,7 +32,7 @@ class SupplierGroupController: RouteCollection {
         }
     }
     
-    // GET /suppliers?show_deleted=true&page=1&per_page=10
+    // GET /supplier_group?show_deleted=true&page=1&per_page=10
     func all(req: Request) async throws -> PaginatedResponse<SupplierGroup> {        
         let content = try req.query.decode(FetchAll.self)
         
@@ -40,7 +40,7 @@ class SupplierGroupController: RouteCollection {
                                              on: req.db)
     }
     
-    // POST /suppliers
+    // POST /supplier_group
     func create(req: Request) async throws -> SupplierGroup {
         let content = try validator.validateCreate(req)
         
@@ -48,7 +48,7 @@ class SupplierGroupController: RouteCollection {
                                            on: req.db)
     }
     
-    // GET /suppliers/:id
+    // GET /supplier_group/:id
     func getByID(req: Request) async throws -> SupplierGroup {
         let content = try validator.validateID(req)
         
@@ -56,7 +56,7 @@ class SupplierGroupController: RouteCollection {
                                               on: req.db)
     }
     
-    // PUT /suppliers/:id
+    // PUT /supplier_group/:id
     func update(req: Request) async throws -> SupplierGroup {
         let (id, content) = try validator.validateUpdate(req)
         
@@ -65,7 +65,7 @@ class SupplierGroupController: RouteCollection {
                                            on: req.db)
     }
 
-    // DELETE /suppliers/:id
+    // DELETE /supplier_group/:id
     func delete(req: Request) async throws -> SupplierGroup {
         let id = try validator.validateID(req)
         
@@ -73,7 +73,7 @@ class SupplierGroupController: RouteCollection {
                                            on: req.db)
     }
     
-    // GET /suppliers/search?name=xxx&page=1&per_page=10
+    // GET /supplier_group/search?name=xxx&page=1&per_page=10
     func search(req: Request) async throws -> PaginatedResponse<SupplierGroup> {
         let content = try validator.validateSearchQuery(req)
         

@@ -1,5 +1,5 @@
 //
-//  CustomerGroupControllerTests.swift
+//  ServiceCategoryControllerTests.swift
 //  
 //
 //  Created by IntrodexMac on 23/7/2567 BE.
@@ -14,17 +14,17 @@ import MockableTest
 
 @testable import App
 
-final class CustomerGroupControllerTests: XCTestCase {
+final class ServiceCategoryControllerTests: XCTestCase {
 
     typealias Search = GeneralRequest.Search
     
     var app: Application!
     var db: Database!
     
-    lazy var repo = MockCustomerGroupRepositoryProtocol()
-    lazy var validator = MockCustomerGroupValidatorProtocol()
+    lazy var repo = MockServiceCategoryRepositoryProtocol()
+    lazy var validator = MockServiceCategoryValidatorProtocol()
     
-    var controller: CustomerGroupController!
+    var controller: ServiceCategoryController!
     
     // Database configuration
     var dbHost: String!
@@ -37,12 +37,12 @@ final class CustomerGroupControllerTests: XCTestCase {
         
         try configure(app,
                       dbHost: dbHost,
-                      migration: CustomerGroupMigration())
+                      migration: ServiceCategoryMigration())
         
         db = app.db
         
         try await dropCollection(db,
-                                 schema: CustomerGroup.schema)
+                                 schema: ServiceCategory.schema)
         
         //register service controller
         controller = .init(repository: repo,
@@ -56,16 +56,16 @@ final class CustomerGroupControllerTests: XCTestCase {
         try await super.tearDown()
     }
     
-    // MARK: - Tests GET /customer_group
+    // MARK: - Tests GET /service_categories
     func testAll_WithNoRequestParam_ShouldReturnEmptyGroups() async throws {
         
         // Given
         given(repo).fetchAll(request: .any,
                              on: .any).willReturn(Stub.emptyPageGroup)
         
-        try app.test(.GET, "customer_group") { res in
+        try app.test(.GET, "service_categories") { res in
             XCTAssertEqual(res.status, .ok)
-            let groups = try res.content.decode(PaginatedResponse<CustomerGroup>.self)
+            let groups = try res.content.decode(PaginatedResponse<ServiceCategory>.self)
             XCTAssertEqual(groups.items.count, 0)
         }
     }
@@ -76,9 +76,9 @@ final class CustomerGroupControllerTests: XCTestCase {
         given(repo).fetchAll(request: .any,
                              on: .any).willReturn(Stub.pageGroup)
     
-        try app.test(.GET, "customer_group") { res in
+        try app.test(.GET, "service_categories") { res in
             XCTAssertEqual(res.status, .ok)
-            let groups = try res.content.decode(PaginatedResponse<CustomerGroup>.self)
+            let groups = try res.content.decode(PaginatedResponse<ServiceCategory>.self)
             XCTAssertEqual(groups.items.count, 2)
         }
     }
@@ -89,14 +89,14 @@ final class CustomerGroupControllerTests: XCTestCase {
         given(repo).fetchAll(request: .matching({ $0.showDeleted == true}),
                              on: .any).willReturn(Stub.pageGroupWithDeleted)
         
-        try app.test(.GET, "customer_group?show_deleted=true") { res in
+        try app.test(.GET, "service_categories?show_deleted=true") { res in
             XCTAssertEqual(res.status, .ok)
-            let groups = try res.content.decode(PaginatedResponse<CustomerGroup>.self)
+            let groups = try res.content.decode(PaginatedResponse<ServiceCategory>.self)
             XCTAssertEqual(groups.items.count, 3)
         }
     }
     
-    // MARK: - Test GET /customer_group/:id
+    // MARK: - Test GET /service_categories/:id
     func testGetByID_WithID_ShouldReturnNotFound() async throws {
         
         // Given
@@ -106,7 +106,7 @@ final class CustomerGroupControllerTests: XCTestCase {
                               on: .any).willThrow(DefaultError.notFound)
         given(validator).validateID(.any).willReturn(request)
         
-        try app.test(.GET, "customer_group/\(id.uuidString)") { res in
+        try app.test(.GET, "service_categories/\(id.uuidString)") { res in
             XCTAssertEqual(res.status, .notFound)
         }
         
@@ -121,24 +121,24 @@ final class CustomerGroupControllerTests: XCTestCase {
                               on: .any).willReturn(Stub.group)
         given(validator).validateID(.any).willReturn(request)
         
-        try app.test(.GET, "customer_group/\(id.uuidString)") { res in
+        try app.test(.GET, "service_categories/\(id.uuidString)") { res in
             XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(CustomerGroup.self)
+            let group = try res.content.decode(ServiceCategory.self)
             XCTAssertEqual(group.name, "Test")
         }
     }
     
-    // MARK: - Test POST /customer_group
+    // MARK: - Test POST /service_categories
     func testCreate_WithInvalidGroup_ShouldReturnBadRequest() async throws {
         
         // Given
-        let request = CustomerGroupRequest.Create(name: "")
+        let request = ServiceCategoryRequest.Create(name: "")
         given(validator).validateCreate(.any).willReturn(request)
                 
         given(repo).create(request: .matching({ $0.name == request.name }),
                            on: .any).willThrow(DefaultError.insertFailed)
         
-        try app.test(.POST, "customer_group",
+        try app.test(.POST, "service_categories",
                      beforeRequest: { req in
                         try req.content.encode(request)
                      }) { res in
@@ -149,18 +149,18 @@ final class CustomerGroupControllerTests: XCTestCase {
     func testCreate_WithValidName_ShouldReturnGroup() async throws {
         
         // Given
-        let request = CustomerGroupRequest.Create(name: "Test")
+        let request = ServiceCategoryRequest.Create(name: "Test")
         given(validator).validateCreate(.any).willReturn(request)
         
         given(repo).create(request: .matching({ $0.name == request.name }),
                            on: .any).willReturn(Stub.group)
         
-        try app.test(.POST, "customer_group",
+        try app.test(.POST, "service_categories",
                      beforeRequest: { req in
                         try req.content.encode(request)
                      }) { res in
             XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(CustomerGroup.self)
+            let group = try res.content.decode(ServiceCategory.self)
             XCTAssertEqual(group.name, "Test")
         }
     }
@@ -168,11 +168,11 @@ final class CustomerGroupControllerTests: XCTestCase {
     func testCreate_WithValidNameDescription_ShouldReturnGroup() async throws {
         
         // Given
-        let request = CustomerGroupRequest.Create(name: "Test",
+        let request = ServiceCategoryRequest.Create(name: "Test",
                                                  description: "Test")
         given(validator).validateCreate(.any).willReturn(request)
         
-        let stub = CustomerGroup(id: .init(),
+        let stub = ServiceCategory(id: .init(),
                                 name: request.name,
                                 description: request.description, 
                                 createdAt: .now,
@@ -183,31 +183,31 @@ final class CustomerGroupControllerTests: XCTestCase {
         }),
                            on: .any).willReturn(stub)
         
-        try app.test(.POST, "customer_group",
+        try app.test(.POST, "service_categories",
                      beforeRequest: { req in
                         try req.content.encode(request)
                      }) { res in
             XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(CustomerGroup.self)
+            let group = try res.content.decode(ServiceCategory.self)
             XCTAssertEqual(group.name, "Test")
             XCTAssertEqual(group.description ?? "", "Test")
         }
     }
     
-    // MARK: - Test PUT /customer_group/:id
+    // MARK: - Test PUT /service_categories/:id
     func testUpdate_WithInvalidGroup_ShouldReturnBadRequest() async throws {
         
         // Given
         let id = UUID()
         let requestId = GeneralRequest.FetchById(id: id)
-        let requestUpdate = CustomerGroupRequest.Update(name: "")
+        let requestUpdate = ServiceCategoryRequest.Update(name: "")
         given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
         
         given(repo).update(byId: .matching({ $0.id.uuidString == id.uuidString }),
                            request: .matching({ $0.name == requestUpdate.name }),
                            on: .any).willThrow(DefaultError.invalidInput)
         
-        try app.test(.PUT, "customer_group/\(id.uuidString)",
+        try app.test(.PUT, "service_categories/\(id.uuidString)",
                      beforeRequest: { req in
                         try req.content.encode(requestUpdate)
                      }) { res in
@@ -220,19 +220,19 @@ final class CustomerGroupControllerTests: XCTestCase {
         // Given
         let id = UUID()
         let requestId = GeneralRequest.FetchById(id: id)
-        let requestUpdate = CustomerGroupRequest.Update(name: "Test")
+        let requestUpdate = ServiceCategoryRequest.Update(name: "Test")
         given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
         
         given(repo).update(byId: .matching({ $0.id.uuidString == id.uuidString }),
                            request: .matching({ $0.name == requestUpdate.name }),
                            on: .any).willReturn(Stub.group)
         
-        try app.test(.PUT, "customer_group/\(id.uuidString)",
+        try app.test(.PUT, "service_categories/\(id.uuidString)",
                      beforeRequest: { req in
                         try req.content.encode(requestUpdate)
                      }) { res in
             XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(CustomerGroup.self)
+            let group = try res.content.decode(ServiceCategory.self)
             XCTAssertEqual(group.name, "Test")
         }
     }
@@ -242,10 +242,10 @@ final class CustomerGroupControllerTests: XCTestCase {
         // Given
         let id = UUID()
         let requestId = GeneralRequest.FetchById(id: id)
-        let requestUpdate = CustomerGroupRequest.Update(description: "Test")
+        let requestUpdate = ServiceCategoryRequest.Update(description: "Test")
         given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
         
-        let stub = CustomerGroup(id: .init(),
+        let stub = ServiceCategory(id: .init(),
                                 name: "Name",
                                 description: requestUpdate.description,
                                 createdAt: .now,
@@ -255,18 +255,18 @@ final class CustomerGroupControllerTests: XCTestCase {
                                                 $0.description == requestUpdate.description }),
                            on: .any).willReturn(stub)
         
-        try app.test(.PUT, "customer_group/\(id.uuidString)",
+        try app.test(.PUT, "service_categories/\(id.uuidString)",
                      beforeRequest: { req in
                         try req.content.encode(requestUpdate)
                      }) { res in
             XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(CustomerGroup.self)
+            let group = try res.content.decode(ServiceCategory.self)
             XCTAssertEqual(group.name, "Name")
             XCTAssertEqual(group.description ?? "", "Test")
         }
     }
     
-    // MARK: - Test DELETE /customer_group/:id
+    // MARK: - Test DELETE /service_categories/:id
     func testDelete_WithInvalidGroup_ShouldReturnBadRequest() async throws {
         
         // Given
@@ -276,7 +276,7 @@ final class CustomerGroupControllerTests: XCTestCase {
         given(repo).delete(byId: .matching({ $0.id.uuidString == id.uuidString }),
                            on: .any).willThrow(DefaultError.invalidInput)
         
-        try app.test(.DELETE, "customer_group/\(id.uuidString)") { res in
+        try app.test(.DELETE, "service_categories/\(id.uuidString)") { res in
             XCTAssertEqual(res.status, .badRequest)
         }
     }
@@ -291,7 +291,7 @@ final class CustomerGroupControllerTests: XCTestCase {
         given(repo).delete(byId: .matching({ $0.id.uuidString == id.uuidString }),
                            on: .any).willThrow(DefaultError.notFound)
         
-        try app.test(.DELETE, "customer_group/\(id.uuidString)") { res in
+        try app.test(.DELETE, "service_categories/\(id.uuidString)") { res in
             XCTAssertEqual(res.status, .notFound)
         }
     }
@@ -303,7 +303,7 @@ final class CustomerGroupControllerTests: XCTestCase {
         let reqId = GeneralRequest.FetchById(id: id)
         given(validator).validateID(.any).willReturn(reqId)
         
-        let stub = CustomerGroup(id: .init(),
+        let stub = ServiceCategory(id: .init(),
                                 name: "Name",
                                 description: "Test",
                                 createdAt: .now,
@@ -312,16 +312,16 @@ final class CustomerGroupControllerTests: XCTestCase {
         given(repo).delete(byId: .matching({ $0.id.uuidString == id.uuidString }),
                            on: .any).willReturn(stub)
         
-        try app.test(.DELETE, "customer_group/\(id.uuidString)") { res in
+        try app.test(.DELETE, "service_categories/\(id.uuidString)") { res in
             XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(CustomerGroup.self)
+            let group = try res.content.decode(ServiceCategory.self)
             XCTAssertEqual(group.name, "Name")
             XCTAssertEqual(group.description ?? "", "Test")
             XCTAssertNotNil(group.deletedAt)
         }
     }
     
-    // MARK: - Test GET /customer_group/search
+    // MARK: - Test GET /service_categories/search
     func testSearch_WithEmptyQuery_ShouldReturnBadRequest() async throws {
         
         // Given
@@ -331,7 +331,7 @@ final class CustomerGroupControllerTests: XCTestCase {
         given(repo).searchByName(request: .matching({ $0.query == query.query }),
                                  on: .any).willThrow(DefaultError.invalidInput)
         
-        try app.test(.GET, "customer_group/search") { res in
+        try app.test(.GET, "service_categories/search") { res in
             XCTAssertEqual(res.status, .badRequest)
         }
     }
@@ -345,7 +345,7 @@ final class CustomerGroupControllerTests: XCTestCase {
         given(repo).searchByName(request: .matching({ $0.query == query.query }),
                                  on: .any).willThrow(DefaultError.invalidInput)
         
-        try app.test(.GET, "customer_group/search?query=\(query.query)") { res in
+        try app.test(.GET, "service_categories/search?query=\(query.query)") { res in
             XCTAssertEqual(res.status, .badRequest)
         }
     }
@@ -356,13 +356,13 @@ final class CustomerGroupControllerTests: XCTestCase {
         let query = Search(query: "Test")
         given(validator).validateSearchQuery(.any).willReturn(query)
         
-        let stub = PaginatedResponse<CustomerGroup>(page: 1, perPage: 20, total: 0, items: [])
+        let stub = PaginatedResponse<ServiceCategory>(page: 1, perPage: 20, total: 0, items: [])
         given(repo).searchByName(request: .matching({ $0.query == query.query }),
                                  on: .any).willReturn(stub)
         
-        try app.test(.GET, "customer_group/search?query=Test") { res in
+        try app.test(.GET, "service_categories/search?query=Test") { res in
             XCTAssertEqual(res.status, .ok)
-            let groups = try res.content.decode(PaginatedResponse<CustomerGroup>.self)
+            let groups = try res.content.decode(PaginatedResponse<ServiceCategory>.self)
             XCTAssertEqual(groups.total, 0)
         }
     }
@@ -373,50 +373,50 @@ final class CustomerGroupControllerTests: XCTestCase {
         let query = Search(query: "Test")
         given(validator).validateSearchQuery(.any).willReturn(query)
         
-        let stub = PaginatedResponse<CustomerGroup>(page: 1, perPage: 20, total: 2,
-                                                   items: [CustomerGroup(name: "Test 1"),
-                                                           CustomerGroup(name: "Test 2")])
+        let stub = PaginatedResponse<ServiceCategory>(page: 1, perPage: 20, total: 2,
+                                                   items: [ServiceCategory(name: "Test 1"),
+                                                           ServiceCategory(name: "Test 2")])
         given(repo).searchByName(request: .matching({ $0.query == query.query }),
                                  on: .any).willReturn(stub)
         
-        try app.test(.GET, "customer_group/search?query=Test") { res in
+        try app.test(.GET, "service_categories/search?query=Test") { res in
             XCTAssertEqual(res.status, .ok)
-            let groups = try res.content.decode(PaginatedResponse<CustomerGroup>.self)
+            let groups = try res.content.decode(PaginatedResponse<ServiceCategory>.self)
             XCTAssertEqual(groups.total, 2)
         }
     }
     
 }
 
-extension CustomerGroupControllerTests {
+extension ServiceCategoryControllerTests {
     struct Stub {
         
-        static var emptyPageGroup: PaginatedResponse<CustomerGroup> {
+        static var emptyPageGroup: PaginatedResponse<ServiceCategory> {
             .init(page: 1,
                   perPage: 10,
                   total: 0,
                   items: [])
         }
         
-        static var pageGroup: PaginatedResponse<CustomerGroup> {
+        static var pageGroup: PaginatedResponse<ServiceCategory> {
             .init(page: 1,
                   perPage: 10,
                   total: 2,
-                  items: [CustomerGroup(name: "Supplier"),
-                          CustomerGroup(name: "Manufactor")])
+                  items: [ServiceCategory(name: "Supplier"),
+                          ServiceCategory(name: "Manufactor")])
         }
         
-        static var pageGroupWithDeleted: PaginatedResponse<CustomerGroup> {
+        static var pageGroupWithDeleted: PaginatedResponse<ServiceCategory> {
             .init(page: 1,
                   perPage: 10,
                   total: 3,
-                  items: [CustomerGroup(name: "Supplier"),
-                          CustomerGroup(name: "Manufactor"),
-                          CustomerGroup(name: "Customer",
+                  items: [ServiceCategory(name: "Supplier"),
+                          ServiceCategory(name: "Manufactor"),
+                          ServiceCategory(name: "Customer",
                                        deletedAt: .now)])
         }
         
-        static var group: CustomerGroup {
+        static var group: ServiceCategory {
             .init(name: "Test")
         }
     }

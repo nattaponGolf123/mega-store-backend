@@ -1,220 +1,232 @@
-import Foundation
-import Vapor
-import Fluent
-import FluentMongoDriver
+//
+//  File.swift
+//
+//
+//  Created by IntrodexMac on 22/7/2567 BE.
+//
 
+import Foundation
+import Fluent
+import Vapor
+import Mockable
+
+@Mockable
 protocol ServiceCategoryRepositoryProtocol {
-    func fetchAll(req: ServiceCategoryRepository.Fetch,
-                  on db: Database) async throws -> PaginatedResponse<ServiceCategory>
-    func create(content: ServiceCategoryRepository.Create, on db: Database) async throws -> ServiceCategory
-    func find(id: UUID, on db: Database) async throws -> ServiceCategory
-    func find(name: String, on db: Database) async throws -> ServiceCategory
-    func update(id: UUID, with content: ServiceCategoryRepository.Update, on db: Database) async throws -> ServiceCategory
-    func delete(id: UUID, on db: Database) async throws -> ServiceCategory
-    func search(req: ServiceCategoryRepository.Search, on db: Database) async throws -> PaginatedResponse<ServiceCategory>
+    
+    typealias FetchAll = GeneralRequest.FetchAll
+    typealias Search = GeneralRequest.Search
+    
+    func fetchAll(
+        request: FetchAll,
+        on db: Database
+    ) async throws -> PaginatedResponse<ServiceCategory>
+    
+    func fetchById(
+        request: GeneralRequest.FetchById,
+        on db: Database
+    ) async throws -> ServiceCategory
+    
+    func fetchByName(
+        request: GeneralRequest.FetchByName,
+        on db: Database
+    ) async throws -> ServiceCategory
+    
+    func searchByName(
+        request: Search,
+        on db: Database
+    ) async throws -> PaginatedResponse<ServiceCategory>
+    
+    func create(
+        request: ServiceCategoryRequest.Create,
+        on db: Database
+    ) async throws -> ServiceCategory
+    
+    func update(
+        byId: GeneralRequest.FetchById,
+        request: ServiceCategoryRequest.Update,
+        on db: Database
+    ) async throws -> ServiceCategory
+    
+    func delete(
+        byId: GeneralRequest.FetchById,
+        on db: Database
+    ) async throws -> ServiceCategory
 }
 
 class ServiceCategoryRepository: ServiceCategoryRepositoryProtocol {
     
-    func fetchAll(req: ServiceCategoryRepository.Fetch,
-                  on db: Database) async throws -> PaginatedResponse<ServiceCategory> {
-        do {
-            let page = req.page
-            let perPage = req.perPage
-            let sortBy = req.sortBy
-            let sortOrder = req.sortOrder
-            
-            guard
-                page > 0,
-                perPage > 0
-            else { throw DefaultError.invalidInput }
-            
-            let query = ServiceCategory.query(on: db)
-            
-            if req.showDeleted {
-                query.withDeleted()
-            } else {
-                query.filter(\.$deletedAt == nil)
+    typealias FetchAll = GeneralRequest.FetchAll
+    typealias Search = GeneralRequest.Search
+        
+    func fetchAll(
+        request: FetchAll,
+        on db: Database
+    ) async throws -> PaginatedResponse<ServiceCategory> {
+        let query = ServiceCategory.query(on: db)
+        
+        if request.showDeleted {
+            query.withDeleted()
+        } else {
+            query.filter(\.$deletedAt == nil)
+        }
+        
+        let total = try await query.count()
+        let items = try await sortQuery(
+            query: query,
+            sortBy: request.sortBy,
+            sortOrder: request.sortOrder,
+            page: request.page,
+            perPage: request.perPage
+        )
+        
+        let response = PaginatedResponse(
+            page: request.page,
+            perPage: request.perPage,
+            total: total,
+            items: items
+        )
+        
+        return response
+    }
+    
+    func fetchById(
+        request: GeneralRequest.FetchById,
+        on db: Database
+    ) async throws -> ServiceCategory {
+        guard
+            let found = try await ServiceCategory.query(on: db).filter(\.$id == request.id).first()
+        else {
+            throw DefaultError.notFound
+        }
+        
+        return found
+    }
+    
+    func fetchByName(
+        request: GeneralRequest.FetchByName,
+        on db: Database
+    ) async throws -> ServiceCategory {
+        guard
+            let found = try await ServiceCategory.query(on: db).filter(\.$name == request.name).first()
+        else {
+            throw DefaultError.notFound
+        }
+        
+        return found
+    }
+    
+    func searchByName(
+        request: Search,
+        on db: Database
+    ) async throws -> PaginatedResponse<ServiceCategory> {
+        let regexPattern = "(?i)\(request.query)"
+        let query = ServiceCategory.query(on: db).filter(\.$name =~ regexPattern)
+        
+        let total = try await query.count()
+        let items = try await sortQuery(
+            query: query,
+            sortBy: request.sortBy,
+            sortOrder: request.sortOrder,
+            page: request.page,
+            perPage: request.perPage
+        )
+        
+        let response = PaginatedResponse(
+            page: request.page,
+            perPage: request.perPage,
+            total: total,
+            items: items
+        )
+        
+        return response
+    }
+    
+    func create(
+        request: ServiceCategoryRequest.Create,
+        on db: Database
+    ) async throws -> ServiceCategory {
+        // prevent duplicate name
+        if let _ = try? await fetchByName(request: .init(name: request.name),
+                                          on: db) {
+            throw CommonError.duplicateName
+        }
+        else {
+            let group = ServiceCategory(name: request.name,
+                                     description: request.description)
+            try await group.save(on: db)
+            return group
+        }
+    }
+    
+    func update(
+        byId: GeneralRequest.FetchById,
+        request: ServiceCategoryRequest.Update,
+        on db: Database
+    ) async throws -> ServiceCategory {
+        let group = try await fetchById(request: .init(id: byId.id), on: db)
+      
+        if let name = request.name {
+            // prevent duplicate name
+            let found = try? await fetchByName(request: .init(name: name),
+                                              on: db)
+            if let _ = found {
+                throw CommonError.duplicateName
             }
             
-            let total = try await query.count()
-            let items = try await sortQuery(query: query,
-                                            sortBy: sortBy,
-                                            sortOrder: sortOrder,
-                                            page: page,
-                                            perPage: perPage)
-            
-            let response = PaginatedResponse(page: page,
-                                             perPage: perPage,
-                                             total: total,
-                                             items: items)
-            
-            return response
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
+            group.name = name
         }
+        
+        if let description = request.description {
+            group.description = description
+        }
+        
+        try await group.save(on: db)
+        return group
     }
     
-    func create(content: ServiceCategoryRepository.Create, on db: Database) async throws -> ServiceCategory {
-        do {
-            // Initialize the ServiceCategory from the validated content
-            let newGroup = ServiceCategory(name: content.name, description: content.description)
-            
-            // Attempt to save the new group to the database
-            try await newGroup.save(on: db)
-            
-            // Return the newly created group
-            return newGroup
-        } catch let error as FluentMongoDriver.FluentMongoError where error == .insertFailed {
-            throw CommonError.duplicateName
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
-        }
-    }
-    
-    func find(id: UUID, on db: Database) async throws -> ServiceCategory {
-        do {
-            guard let group = try await ServiceCategory.query(on: db).filter(\.$id == id).first() else { throw DefaultError.notFound }
-            
-            return group
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
-        }
-    }
-    
-    func find(name: String, on db: Database) async throws -> ServiceCategory {
-        do {
-            guard let group = try await ServiceCategory.query(on: db).filter(\.$name == name).first() else { throw DefaultError.notFound }
-            
-            return group
-        } catch let error as DefaultError {
-            throw error
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
-        }
-    }
-    
-    func update(id: UUID, with content: ServiceCategoryRepository.Update, on db: Database) async throws -> ServiceCategory {
-        do {
-            
-            // Update the supplier group in the database
-            let updateBuilder = Self.updateFieldsBuilder(uuid: id, content: content, db: db)
-            try await updateBuilder.update()
-            
-            // Retrieve the updated supplier group
-            guard let group = try await Self.getByIDBuilder(uuid: id, db: db).first() else { throw DefaultError.notFound }
-            
-            return group
-        } catch let error as FluentMongoDriver.FluentMongoError where error == .insertFailed {
-            throw CommonError.duplicateName
-        } catch let error as DefaultError {
-            throw error
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
-        }
-    }
-    
-    func delete(id: UUID, on db: Database) async throws -> ServiceCategory {
-        do {
-            guard let group = try await ServiceCategory.query(on: db).filter(\.$id == id).first() else { throw DefaultError.notFound }
-            
-            try await group.delete(on: db).get()
-            
-            return group
-        } catch let error as DefaultError {
-            throw error
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
-        }
-    }
-    
-    func search(req: ServiceCategoryRepository.Search, on db: Database) async throws -> PaginatedResponse<ServiceCategory> {
-        do {
-            let perPage = req.perPage
-            let page = req.page
-            let q = req.q
-            let sortBy = req.sortBy
-            let sortOrder = req.sortOrder
-            
-            guard
-                q.count > 0,
-                perPage > 0,
-                page > 0
-            else { throw DefaultError.invalidInput }
-            
-            let regexPattern = "(?i)\(q)"  // (?i) makes the regex case-insensitive
-            let query = ServiceCategory.query(on: db).filter(\.$name =~ regexPattern)
-                        
-            let total = try await query.count()
-            let items = try await sortQuery(query: query, 
-                                            sortBy: sortBy,
-                                            sortOrder: sortOrder,
-                                            page: page,
-                                            perPage: perPage)
-            
-            let response = PaginatedResponse(page: page,
-                                             perPage: perPage,
-                                             total: total,
-                                             items: items)
-            
-            return response
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
-        }
+    func delete(
+        byId: GeneralRequest.FetchById,
+        on db: Database
+    ) async throws -> ServiceCategory {
+        let group = try await fetchById(request: .init(id: byId.id),
+                                        on: db)
+        try await group.delete(on: db)
+        return group
     }
     
 }
 
 private extension ServiceCategoryRepository {
-    func sortQuery(query: QueryBuilder<ServiceCategory>,
-                           sortBy: ServiceCategoryRepository.SortBy,
-                           sortOrder: ServiceCategoryRepository.SortOrder,
-                           page: Int,
-                           perPage: Int) async throws -> [ServiceCategory] {
-         switch sortBy {
-         case .name:
-             switch sortOrder {
-             case .asc:
-                 return try await query.sort(\.$name).range((page - 1) * perPage..<(page * perPage)).all()
-             case .desc:
-                 return try await query.sort(\.$name, .descending).range((page - 1) * perPage..<(page * perPage)).all()
-             }
-         case .createdAt:
-             switch sortOrder {
-             case .asc:
-                 return try await query.sort(\.$createdAt).range((page - 1) * perPage..<(page * perPage)).all()
-             case .desc:
-                 return try await query.sort(\.$createdAt, .descending).range((page - 1) * perPage..<(page * perPage)).all()
-             }
-         }
-     }
-}
-
-extension ServiceCategoryRepository {
-    
-    // Helper function to update supplier group fields in the database
-    static func updateFieldsBuilder(uuid: UUID, content: ServiceCategoryRepository.Update, db: Database) -> QueryBuilder<ServiceCategory> {
-        let updateBuilder = ServiceCategory.query(on: db).filter(\.$id == uuid)
+    func sortQuery(
+        query: QueryBuilder<ServiceCategory>,
+        sortBy: SortBy,
+        sortOrder: SortOrder,
+        page: Int,
+        perPage: Int
+    ) async throws -> [ServiceCategory] {
+        let pageIndex = (page - 1)
+        let pageStart = pageIndex * perPage
+        let pageEnd = pageStart + perPage
         
-        if let name = content.name {
-            updateBuilder.set(\.$name, to: name)
+        let range = pageStart..<pageEnd
+        
+        switch sortBy {
+        case .name:
+            switch sortOrder {
+            case .asc:
+                return try await query.sort(\.$name).range(range).all()
+            case .desc:
+                return try await query.sort(\.$name, .descending).range(range).all()
+            }
+        case .createdAt:
+            switch sortOrder {
+            case .asc:
+                return try await query.sort(\.$createdAt).range(range).all()
+            case .desc:
+                return try await query.sort(\.$createdAt, .descending).range(range).all()
+            }
+        default:
+            return try await query.range(range).all()
         }
-        
-        if let description = content.description {
-            updateBuilder.set(\.$description, to: description)
-        }
-        
-        return updateBuilder
-    }
-    
-    static func getByIDBuilder(uuid: UUID, db: Database) -> QueryBuilder<ServiceCategory> {
-        return ServiceCategory.query(on: db).filter(\.$id == uuid)
     }
 }
