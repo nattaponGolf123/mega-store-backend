@@ -12,6 +12,22 @@ import JWT
 
 struct UserController: RouteCollection {
     
+    private(set) var repository: UserRepositoryProtocol
+    private(set) var jwtRepository: JWTRepositoryProtocol
+    
+    private(set) var validator: UserValidatorProtocol
+    private(set) var jwtValidator: JWTValidatorProtocol
+        
+    init(repository: UserRepositoryProtocol = UserRepository(),
+         jwtRepository: JWTRepositoryProtocol = JWTRepository(),
+         validator: UserValidatorProtocol = UserValidator(),
+         jwtValidator: JWTValidatorProtocol = JWTValidator()) {
+        self.repository = repository
+        self.jwtRepository = jwtRepository
+        self.validator = validator
+        self.jwtValidator = jwtValidator
+    }
+    
     func boot(routes: RoutesBuilder) throws {
         let users = routes.grouped("users")
         users.post(use: create)
@@ -22,50 +38,95 @@ struct UserController: RouteCollection {
         
     }
     
+//    func create(req: Request) async throws -> User {
+//        
+//        let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
+//        
+//        // allow only admin
+//        guard
+//            userPayload.isAdmin
+//        else { throw Abort(.unauthorized) }
+//                
+//        // validate
+//        try UserRequest.Create.validate(content: req)
+//        
+//        let content = try req.content.decode(UserRequest.Create.self)
+//        
+//        let hashPwd = try getPwd(env: req.application.environment,
+//                             pwd: content.password)
+//        
+//        let newUser = User(username: content.username,
+//                           passwordHash: hashPwd,
+//                           personalInformation: .init(fullname: content.fullname),
+//                           userType: .user)
+//        try await newUser.save(on: req.db).get()
+//        
+//        return newUser
+//    }
+    
+    // PUT /users/:id
+//    func update(req: Request) async throws -> User {
+//        let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
+//        
+//        // allow only admin
+//        guard
+//            userPayload.isAdmin
+//        else { throw Abort(.unauthorized) }
+//        
+//        guard let id = req.parameters.get("id", as: UUID.self) else {
+//            throw Abort(.badRequest)
+//        }
+//        
+//        let content = try req.content.decode(UserRequest.Update.self)
+//        
+//        // validate
+//        //try UserRequest.Update.validate(content: req)
+//        
+//        guard let user = try await User.find(id, on: req.db).get() else {
+//            throw Abort(.notFound)
+//        }
+//                
+//        user.personalInformation.fullname = content.fullname
+//        
+//        try await user.update(on: req.db).get()
+//        
+//        return user
+//    }
+    
     // POST /users
     func create(req: Request) async throws -> User {
+        let content = try validator.validateCreate(req)
         
-        let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
+        return try await repository.create(request: content,
+                                           env: req.application.environment,
+                                           on: req.db)
+    }
+    
+    // PUT /users/:id
+    func update(req: Request) async throws -> User {
+        let content = try validator.validateUpdate(req)
         
-        // allow only admin
-        guard
-            userPayload.isAdmin
-        else { throw Abort(.unauthorized) }
+        return try await repository.update(byId: content.id,
+                                           request: content.content,
+                                           on: req.db)
+    }
+    
+    // DELETE /users/:id
+    func delete(req: Request) async throws -> User {
+        let id = try validator.validateID(req)
         
-        let content = try req.content.decode(CreateUser.self)
-
-        // validate
-        try CreateUser.validate(content: req)
-        
-        
-        let hashPwd = try getPwd(env: req.application.environment,
-                             pwd: content.password)
-        
-        let newUser = User(username: content.username,
-                           passwordHash: hashPwd,
-                           personalInformation: .init(fullname: content.fullname),
-                           userType: .user)
-        try await newUser.save(on: req.db).get()
-        
-        return newUser
+        return try await repository.delete(byId: id,
+                                           on: req.db)
     }
     
     // GET /users/me
     func me(req: Request) async throws -> User {
-        do {
-            let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
-            guard
-                let foundUser = try await User.find(userPayload.userID,
-                                                    on: req.db),
-                foundUser.tokenExpried != nil
-            else {
-                throw Abort(.notFound)
-            }
-            
-            return foundUser
-        } catch {
-            throw Abort(.notFound)
-        }
+        let payload: UserJWTPayload = try jwtValidator.validateToken(req,
+                                                                     now: .now)
+        let fetchById = GeneralRequest.FetchById(id: payload.userID)
+        
+        return try await repository.fetchById(request: fetchById,
+                                              on: req.db)
     }
     
 }

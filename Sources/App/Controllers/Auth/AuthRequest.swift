@@ -32,4 +32,9 @@ struct AuthRequest {
         }
     }
     
+    struct GenerateToken: Content {
+        let payload: UserJWTPayload
+        let token: String
+    }
+    
 }

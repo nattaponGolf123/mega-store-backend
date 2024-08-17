@@ -93,6 +93,7 @@ class ContactController: RouteCollection {
                                                           on: req.db)
     }
     
+    // DELETE /contacts/:id
    func delete(req: Request) async throws -> Contact {
        let id = try validator.validateID(req)
        

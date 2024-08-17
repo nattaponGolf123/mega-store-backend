@@ -79,6 +79,8 @@ extension AuthError: ErrorMessageProtocol {
             return "USER_NOT_FOUND"
         case .userNotAuthorized:
             return "USER_NOT_AUTHORIZED"
+        case .tokenExpired:
+            return "TOKEN_EXPIRED"
         case .error:
             return "ERROR"
         }
@@ -130,6 +132,8 @@ extension AuthError: Content {
             try container.encode("USER_NOT_FOUND", forKey: .code)
         case .userNotAuthorized:
             try container.encode("USER_NOT_AUTHORIZED", forKey: .code)
+        case .tokenExpired:
+            try container.encode("TOKEN_EXPIRED", forKey: .code)
         case .error:
             try container.encode("ERROR", forKey: .code)
         }
@@ -140,5 +144,30 @@ extension AuthError: Content {
     private enum CodingKeys: String, CodingKey {
         case code
         case message
+    }
+}
+
+extension AuthError: Equatable {
+    static func == (lhs: AuthError, rhs: AuthError) -> Bool {
+        switch (lhs, rhs) {
+        case (.invalidUsernameOrPassword, .invalidUsernameOrPassword):
+            return true
+        case (.userAlreadyExists, .userAlreadyExists):
+            return true
+        case (.invalidToken, .invalidToken):
+            return true
+        case (.invalidRefreshToken, .invalidRefreshToken):
+            return true
+        case (.userNotFound, .userNotFound):
+            return true
+        case (.userNotAuthorized, .userNotAuthorized):
+            return true
+        case (.tokenExpired, .tokenExpired):
+            return true
+        case (.error, .error):
+            return true
+        default:
+            return false
+        }
     }
 }
