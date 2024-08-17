@@ -40,7 +40,7 @@ final class CustomerGroup: Model, Content {
     
     init(id: UUID? = nil,
          name: String,
-         description: String?,
+         description: String? = nil,
          createdAt: Date? = nil,
          updatedAt: Date? = nil,
          deletedAt: Date? = nil) {
