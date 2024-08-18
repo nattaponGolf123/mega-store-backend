@@ -104,16 +104,16 @@ struct UserController: RouteCollection {
     
     // PUT /users/:id
     func update(req: Request) async throws -> User {
-        let content = try validator.validateUpdate(req)
+        let (id, content) = try validator.validateUpdate(req)
         
-        return try await repository.update(byId: content.id,
-                                           request: content.content,
+        return try await repository.update(byId: id,
+                                           request: content,
                                            on: req.db)
     }
     
     // DELETE /users/:id
     func delete(req: Request) async throws -> User {
-        let id = try validator.validateID(req)
+        let (id, content) = try validator.validateUpdate(req)
         
         return try await repository.delete(byId: id,
                                            on: req.db)
@@ -121,10 +121,9 @@ struct UserController: RouteCollection {
     
     // GET /users/me
     func me(req: Request) async throws -> User {
-        let payload: UserJWTPayload = try jwtValidator.validateToken(req)
-        let fetchById = GeneralRequest.FetchById(id: payload.userID)
+        let (id, content) = try validator.validateUpdate(req)
         
-        return try await repository.fetchById(request: fetchById,
+        return try await repository.fetchById(request: id,
                                               on: req.db)
     }
     

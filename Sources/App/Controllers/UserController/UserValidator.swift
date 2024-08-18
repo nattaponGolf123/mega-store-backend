@@ -13,7 +13,6 @@ import Mockable
 protocol UserValidatorProtocol {
     func validateCreate(_ req: Request) throws -> UserRequest.Create
     func validateUpdate(_ req: Request) throws -> (id: GeneralRequest.FetchById, content: UserRequest.Update)
-    func validateID(_ req: Request) throws -> GeneralRequest.FetchById
 }
 
 class UserValidator: UserValidatorProtocol {
@@ -57,17 +56,6 @@ class UserValidator: UserValidatorProtocol {
         
         let fetchById = GeneralRequest.FetchById(id: id)
         return (fetchById, content)
-    }
-    
-    func validateID(_ req: Request) throws -> GeneralRequest.FetchById {
-        let payload: UserJWTPayload = try jwtValidator.validateToken(req)
-        
-        // allow only admin
-        guard
-            payload.isAdmin
-        else { throw DefaultError.unauthorized }
-        
-        return try req.query.decode(GeneralRequest.FetchById.self)
     }
     
 }
