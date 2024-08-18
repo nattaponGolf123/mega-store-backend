@@ -28,8 +28,7 @@ class UserValidator: UserValidatorProtocol {
     }
  
     func validateCreate(_ req: Request) throws -> UserRequest.Create {
-        let payload: UserJWTPayload = try jwtValidator.validateToken(req, 
-                                                                     now: .init())
+        let payload: UserJWTPayload = try jwtValidator.validateToken(req)
         
         // allow only admin
         guard
@@ -44,8 +43,7 @@ class UserValidator: UserValidatorProtocol {
     }
     
     func validateUpdate(_ req: Request) throws -> (id: GeneralRequest.FetchById, content: UserRequest.Update) {
-        let payload: UserJWTPayload = try jwtValidator.validateToken(req,
-                                                                     now: .init())
+        let payload: UserJWTPayload = try jwtValidator.validateToken(req)
         
         // allow only admin
         guard
@@ -62,8 +60,7 @@ class UserValidator: UserValidatorProtocol {
     }
     
     func validateID(_ req: Request) throws -> GeneralRequest.FetchById {
-        let payload: UserJWTPayload = try jwtValidator.validateToken(req, 
-                                                                     now: .init())
+        let payload: UserJWTPayload = try jwtValidator.validateToken(req)
         
         // allow only admin
         guard

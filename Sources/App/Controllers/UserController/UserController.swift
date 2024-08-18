@@ -121,8 +121,7 @@ struct UserController: RouteCollection {
     
     // GET /users/me
     func me(req: Request) async throws -> User {
-        let payload: UserJWTPayload = try jwtValidator.validateToken(req,
-                                                                     now: .now)
+        let payload: UserJWTPayload = try jwtValidator.validateToken(req)
         let fetchById = GeneralRequest.FetchById(id: payload.userID)
         
         return try await repository.fetchById(request: fetchById,

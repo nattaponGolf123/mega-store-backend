@@ -8,23 +8,17 @@
 import Foundation
 import Vapor
 import Mockable
+import JWTKit
 
 @Mockable
 protocol JWTValidatorProtocol {
-    func validateToken(_ content: Request,
-                       now: Date) throws -> UserJWTPayload
+    func validateToken(_ content: Request) throws -> UserJWTPayload
 }
 
 class JWTValidator: JWTValidatorProtocol {
     
-    func validateToken(_ content: Request,
-                       now: Date = .init()) throws -> UserJWTPayload {
-        let payload = try verifyPayload(content)
-        
-        try verifyExpried(payload.expiration.value,
-                          now: now)
-        
-        return payload
+    func validateToken(_ content: Request) throws -> UserJWTPayload {
+        return try verifyPayload(content)
     }
     
 }
@@ -33,15 +27,19 @@ private extension JWTValidator {
     func verifyPayload(_ content: Request) throws -> UserJWTPayload {
         do {
             return try content.jwt.verify(as: UserJWTPayload.self)
+        } catch let error as JWTError {
+            switch error {
+            case .claimVerificationFailure(_ ,let reason):
+                if reason == "expired" {
+                    throw AuthError.tokenExpired
+                }
+                throw AuthError.invalidToken
+            default:
+                throw AuthError.invalidToken
+            }
         } catch {
             throw AuthError.invalidToken
         }
     }
     
-    func verifyExpried(_ tokenExpried: Date,
-                       now: Date) throws {
-        guard
-            tokenExpried >= now
-        else { throw AuthError.tokenExpired }
-    }
 }

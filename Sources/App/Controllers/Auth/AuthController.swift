@@ -71,8 +71,7 @@ class AuthController: RouteCollection {
     // POST /user/token_verify
     func verifyToken(req: Request) async throws -> HTTPStatus {
         let now = Date()
-        let _ = try jwtValidator.validateToken(req,
-                                               now: now)
+        let _ = try jwtValidator.validateToken(req)
         
         return .ok
     }
@@ -80,8 +79,7 @@ class AuthController: RouteCollection {
     //POST /user/logout
     func logout(req: Request) async throws -> HTTPStatus {
         let now = Date()
-        let payload: UserJWTPayload = try jwtValidator.validateToken(req,
-                                                                     now: now)
+        let payload: UserJWTPayload = try jwtValidator.validateToken(req)
         let _ = try await userRepository.clearToken(byId: .init(id: payload.userID),
                                                     on: req.db)
         

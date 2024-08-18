@@ -139,7 +139,7 @@ extension XCTestCase {
         url: String = "mock",
         header: [(String, String)]? = nil,
         pathParameters: [String: UUID] = [:],
-        content: any Content
+        content: (any Content)? = nil
     ) -> Request {
         
         // Construct the URL with the path parameters
@@ -157,10 +157,17 @@ extension XCTestCase {
         
         // Encode the JSON body into a ByteBuffer
         var buffer = byteBufferAllocator.buffer(capacity: 0)
-        if let jsonData = try? JSONEncoder().encode(content) {
-            buffer.writeBytes(jsonData)
-            headers.add(name: "Content-Length", value: "\(buffer.readableBytes)")
+        if let content = content {
+            let encoder = JSONEncoder()
+            if let data = try? encoder.encode(content) {
+                buffer.writeBytes(data)
+                headers.add(name: "Content-Length", value: "\(buffer.readableBytes)")
+            }
         }
+//        if let jsonData = try? JSONEncoder().encode(content) {
+//            buffer.writeBytes(jsonData)
+//            headers.add(name: "Content-Length", value: "\(buffer.readableBytes)")
+//        }
         
         let request = Request(
             application: app,
