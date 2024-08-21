@@ -32,6 +32,11 @@ struct UserController: RouteCollection {
         let users = routes.grouped("users")
         users.post(use: create)
         
+        users.group(":id") { withID in
+            withID.put(use: update)
+            withID.delete(use: delete)
+        }
+        
         users.group("me") { usersMe in
             usersMe.get(use: me)
         }
@@ -113,7 +118,7 @@ struct UserController: RouteCollection {
     
     // DELETE /users/:id
     func delete(req: Request) async throws -> User {
-        let (id, content) = try validator.validateUpdate(req)
+        let (id, _) = try validator.validateUpdate(req)
         
         return try await repository.delete(byId: id,
                                            on: req.db)
@@ -121,26 +126,26 @@ struct UserController: RouteCollection {
     
     // GET /users/me
     func me(req: Request) async throws -> User {
-        let (id, content) = try validator.validateUpdate(req)
+        let (id, _) = try validator.validateUpdate(req)
         
         return try await repository.fetchById(request: id,
                                               on: req.db)
     }
     
 }
-
-private extension UserController {
-    func getPwd(env: Environment,
-                pwd: String) throws -> String {
-        switch env {
-            // bcrypt
-        case .production,
-             .development:
-            return try Bcrypt.hash(pwd)
-            
-        //plaintext on testing
-        default:
-            return pwd
-        }
-    }
-}
+//
+//private extension UserController {
+//    func getPwd(env: Environment,
+//                pwd: String) throws -> String {
+//        switch env {
+//            // bcrypt
+//        case .production,
+//             .development:
+//            return try Bcrypt.hash(pwd)
+//            
+//        //plaintext on testing
+//        default:
+//            return pwd
+//        }
+//    }
+//}

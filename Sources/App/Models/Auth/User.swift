@@ -90,6 +90,7 @@ final class User: Model, Content {
         self.lastLoginAt = lastLoginAt        
         self.createdAt = createAt
         self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
     }
     
     func newUser(username: String,
