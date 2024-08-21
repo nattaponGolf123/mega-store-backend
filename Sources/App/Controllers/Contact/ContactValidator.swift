@@ -66,8 +66,12 @@ class ContactValidator: ContactValidatorProtocol {
                      content: content)
     }
     
-    func validateID(_ req: Request) throws -> GeneralRequest.FetchById {
-        return try req.query.decode(GeneralRequest.FetchById.self)
+    func validateID(_ req: Request) throws -> GeneralRequest.FetchById {        
+        guard
+            let id = req.parameters.get("id", as: UUID.self)
+        else { throw DefaultError.invalidInput }
+        
+        return .init(id: id)
     }
     
     func validateSearchQuery(_ req: Request) throws -> Search {

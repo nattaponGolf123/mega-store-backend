@@ -68,6 +68,10 @@ class MyBusineseValidator: MyBusineseValidatorProtocol {
     }
     
     func validateID(_ req: Request) throws -> GeneralRequest.FetchById {
-        return try req.query.decode(GeneralRequest.FetchById.self)
+        guard
+            let id = req.parameters.get("id", as: UUID.self)
+        else { throw DefaultError.invalidInput }
+        
+        return .init(id: id)
     }
 }

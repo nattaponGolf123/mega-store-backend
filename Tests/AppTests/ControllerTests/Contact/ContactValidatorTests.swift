@@ -271,8 +271,11 @@ final class ContactValidatorTests: XCTestCase {
     // MARK: - Fetch By ID Tests
 
     func testValidateID_WithValidRequest_ShouldReturnCorrectValues() {
-        let content = GeneralRequest.FetchById(id: .init())
-        let request = mockGETRequest(param: content)
+        let id = UUID()
+        let request = mockRequest(url: "/mock/:id",
+                                  pathParameters: [
+                                    "id": id
+                                  ])
 
         XCTAssertNoThrow(try validator.validateID(request))
     }

@@ -28,25 +28,25 @@ struct ContactResponse: Content {
     let updatedAt: Date?
     let deletedAt: Date?
 
-    init(contact: Contact) {
-        self.id = contact.id
-        self.code = ContactCode(number: contact.number).code
-        self.name = contact.name
-        self.kind = contact.kind
-        self.groupId = contact.groupId
-        self.number = contact.number
-        self.vatRegistered = contact.vatRegistered
-        self.contactInformation = contact.contactInformation
-        self.taxNumber = contact.taxNumber
-        self.legalStatus = contact.legalStatus
-        self.website = contact.website
-        self.businessAddress = contact.businessAddress
-        self.shippingAddress = contact.shippingAddress
-        self.paymentTermsDays = contact.paymentTermsDays
-        self.note = contact.note
-        self.createdAt = contact.createdAt
-        self.updatedAt = contact.updatedAt
-        self.deletedAt = contact.deletedAt    
+    init(from: Contact) {
+        self.id = from.id
+        self.code = ContactCode(number: from.number).code
+        self.name = from.name
+        self.kind = from.kind
+        self.groupId = from.groupId
+        self.number = from.number
+        self.vatRegistered = from.vatRegistered
+        self.contactInformation = from.contactInformation
+        self.taxNumber = from.taxNumber
+        self.legalStatus = from.legalStatus
+        self.website = from.website
+        self.businessAddress = from.businessAddress
+        self.shippingAddress = from.shippingAddress
+        self.paymentTermsDays = from.paymentTermsDays
+        self.note = from.note
+        self.createdAt = from.createdAt
+        self.updatedAt = from.updatedAt
+        self.deletedAt = from.deletedAt    
     }
 
     enum CodingKeys: String, CodingKey {

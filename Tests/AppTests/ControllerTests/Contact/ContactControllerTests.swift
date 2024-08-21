@@ -63,7 +63,7 @@ final class ContactControllerTests: XCTestCase {
         
         try app.test(.GET, "contacts") { res in
             XCTAssertEqual(res.status, .ok)
-            let groups = try res.content.decode(PaginatedResponse<Contact>.self)
+            let groups = try res.content.decode(PaginatedResponse<ContactResponse>.self)
             XCTAssertEqual(groups.items.count, 0)
         }
     }
@@ -76,7 +76,7 @@ final class ContactControllerTests: XCTestCase {
         
         try app.test(.GET, "contacts") { res in
             XCTAssertEqual(res.status, .ok)
-            let groups = try res.content.decode(PaginatedResponse<Contact>.self)
+            let groups = try res.content.decode(PaginatedResponse<ContactResponse>.self)
             XCTAssertEqual(groups.items.count, 2)
         }
     }
@@ -89,7 +89,7 @@ final class ContactControllerTests: XCTestCase {
         
         try app.test(.GET, "contacts?show_deleted=true") { res in
             XCTAssertEqual(res.status, .ok)
-            let groups = try res.content.decode(PaginatedResponse<Contact>.self)
+            let groups = try res.content.decode(PaginatedResponse<ContactResponse>.self)
             XCTAssertEqual(groups.items.count, 3)
         }
     }
@@ -121,7 +121,7 @@ final class ContactControllerTests: XCTestCase {
         
         try app.test(.GET, "contacts/\(id.uuidString)") { res in
             XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(Contact.self)
+            let group = try res.content.decode(ContactResponse.self)
             XCTAssertEqual(group.name, "Test")
         }
     }
@@ -162,7 +162,7 @@ final class ContactControllerTests: XCTestCase {
             try req.content.encode(request)
         }) { res in
             XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(Contact.self)
+            let group = try res.content.decode(ContactResponse.self)
             XCTAssertEqual(group.name, "Test")
         }
     }
@@ -212,8 +212,9 @@ final class ContactControllerTests: XCTestCase {
             try req.content.encode(request)
         }) { res in
             XCTAssertEqual(res.status, .ok)
-            let contact = try res.content.decode(Contact.self)
+            let contact = try res.content.decode(ContactResponse.self)
             XCTAssertEqual(contact.name, "Test")
+            XCTAssertEqual(contact.code, "C00001")
             XCTAssertEqual(contact.taxNumber, "123456")
             XCTAssertEqual(contact.legalStatus, .companyLimited)
             XCTAssertEqual(contact.paymentTermsDays, 30)
@@ -263,7 +264,7 @@ final class ContactControllerTests: XCTestCase {
             try req.content.encode(requestUpdate)
         }) { res in
             XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(Contact.self)
+            let group = try res.content.decode(ContactResponse.self)
             XCTAssertEqual(group.name, "Test")
         }
     }
@@ -315,7 +316,7 @@ final class ContactControllerTests: XCTestCase {
         
         try app.test(.DELETE, "contacts/\(id.uuidString)") { res in
             XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(Contact.self)
+            let group = try res.content.decode(ContactResponse.self)
             XCTAssertEqual(group.name, "Name")
             XCTAssertNotNil(group.deletedAt)
         }
@@ -362,7 +363,7 @@ final class ContactControllerTests: XCTestCase {
         
         try app.test(.GET, "contacts/search?query=Test") { res in
             XCTAssertEqual(res.status, .ok)
-            let groups = try res.content.decode(PaginatedResponse<Contact>.self)
+            let groups = try res.content.decode(PaginatedResponse<ContactResponse>.self)
             XCTAssertEqual(groups.total, 0)
         }
     }
@@ -381,7 +382,7 @@ final class ContactControllerTests: XCTestCase {
         
         try app.test(.GET, "contacts/search?query=Test") { res in
             XCTAssertEqual(res.status, .ok)
-            let groups = try res.content.decode(PaginatedResponse<Contact>.self)
+            let groups = try res.content.decode(PaginatedResponse<ContactResponse>.self)
             XCTAssertEqual(groups.total, 2)
         }
     }
@@ -428,7 +429,7 @@ final class ContactControllerTests: XCTestCase {
         
         try app.test(.PUT, "contacts/\(id.uuidString)/businese_address/\(addressID.uuidString)") { res in
             XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(Contact.self)
+            let group = try res.content.decode(ContactResponse.self)
             XCTAssertEqual(group.name, "Name")
         }
     }
@@ -475,7 +476,7 @@ final class ContactControllerTests: XCTestCase {
         
         try app.test(.PUT, "contacts/\(id.uuidString)/shipping_address/\(addressID.uuidString)") { res in
             XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(Contact.self)
+            let group = try res.content.decode(ContactResponse.self)
             XCTAssertEqual(group.name, "Name")
         }
     }
