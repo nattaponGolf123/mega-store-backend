@@ -4,6 +4,8 @@ import Vapor
 
 class ServiceController: RouteCollection {
     
+    typealias FetchAll = GeneralRequest.FetchAll
+    
     private(set) var repository: ServiceRepositoryProtocol
     private(set) var validator: ServiceValidatorProtocol
     
@@ -32,67 +34,67 @@ class ServiceController: RouteCollection {
     
     // GET /services?show_deleted=true&page=1&per_page=10
     func all(req: Request) async throws -> PaginatedResponse<ServiceResponse> {
-        let reqContent = try req.query.decode(ServiceRepository.Fetch.self)
+        let reqContent = try req.query.decode(FetchAll.self)
 
-        return try await repository.fetchAll(req: reqContent, on: req.db)
+        let pageResponse = try await repository.fetchAll(request: reqContent,
+                                                         on: req.db)
+                     
+        let responseItems: [ServiceResponse] = pageResponse.items.map({ .init(from: $0) })
+        return .init(page: pageResponse.page,
+                     perPage: pageResponse.perPage,
+                     total: pageResponse.total,
+                     items: responseItems)
     }
     
     // POST /services
     func create(req: Request) async throws -> ServiceResponse {
         let content = try validator.validateCreate(req)
         
-        return try await repository.create(content: content, on: req.db)
+        let service = try await repository.create(request: content,
+                                                  on: req.db)
+        return .init(from: service)
     }
     
     // GET /services/:id
     func getByID(req: Request) async throws -> ServiceResponse {
-        let uuid = try validator.validateID(req)
+        let content = try validator.validateID(req)
         
-        return try await repository.find(id: uuid, on: req.db)
+        let service = try await repository.fetchById(request: content,
+                                                     on: req.db)
+        return .init(from: service)
     }
     
     // PUT /services/:id
     func update(req: Request) async throws -> ServiceResponse {
-        let (uuid, content) = try validator.validateUpdate(req)
+        let (id, content) = try validator.validateUpdate(req)
         
-        do {
-            // check if name is duplicate
-            guard let name = content.name else { throw DefaultError.invalidInput }
-            
-            let _ = try await repository.find(name: name, on: req.db)
-            
-            throw CommonError.duplicateName
-            
-        } catch let error as DefaultError {
-            switch error {
-            case .notFound: // no duplicate
-                return try await repository.update(id: uuid, with: content, on: req.db)
-            default:
-                throw error
-            }
-            
-        } catch let error as CommonError {
-            throw error
-            
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
-        }
+        let service = try await repository.update(byId: id,
+                                                  request: content,
+                                                  on: req.db)
+        return .init(from: service)
     }
-
+    
     // DELETE /services/:id
     func delete(req: Request) async throws -> ServiceResponse {
-        let uuid = try validator.validateID(req)
+        let content = try validator.validateID(req)
         
-        return try await repository.delete(id: uuid, on: req.db)
+        let service = try await repository.delete(byId: content,
+                                           on: req.db)
+        return .init(from: service)
     }
     
     // GET /services/search?name=xxx&page=1&per_page=10
     func search(req: Request) async throws -> PaginatedResponse<ServiceResponse> {
         let _ = try validator.validateSearchQuery(req)
-        let reqContent = try req.query.decode(ServiceRepository.Search.self)
+        let content = try validator.validateSearchQuery(req)
         
-        return try await repository.search(req: reqContent, on: req.db)        
+        let pageResponse = try await repository.search(request: content, on: req.db)
+        
+        let responseItems: [ServiceResponse] = pageResponse.items.map({ .init(from: $0) })
+        return .init(page: pageResponse.page,
+                     perPage: pageResponse.perPage,
+                     total: pageResponse.total,
+                     items: responseItems)
     }
 }
 

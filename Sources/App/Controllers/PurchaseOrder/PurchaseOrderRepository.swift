@@ -140,7 +140,8 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
             // validate exist serviceId
             do {
                 for uuid in content.serviceUUIDs() {
-                    let _ = try await serviceRepository.find(id: uuid, on: db)
+                    let _ = try await serviceRepository.fetchById(request: .init(id: uuid),
+                                                                  on: db)
                 }
             } catch {
                 throw DefaultError.error(message: "service not found")
@@ -252,7 +253,8 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
             // validate exist serviceId
             do {
                 for uuid in serviceUUIDs {
-                    let _ = try await serviceRepository.find(id: uuid, on: db)
+                    let _ = try await serviceRepository.fetchById(request: .init(id: uuid),
+                                                                  on: db)
                 }
             } catch {
                 throw DefaultError.error(message: "service not found")

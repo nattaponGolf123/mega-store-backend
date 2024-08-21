@@ -94,8 +94,8 @@ class ContactController: RouteCollection {
     }
     
     // DELETE /contacts/:id
-   func delete(req: Request) async throws -> Contact {
-       let id = try validator.validateID(req)
+   func delete(req: Request) async throws -> Contact {       
+       let (id, _) = try validator.validateUpdate(req)
        
        return try await repository.delete(byId: id,
                                           on: req.db)
