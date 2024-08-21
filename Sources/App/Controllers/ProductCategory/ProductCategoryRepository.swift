@@ -1,217 +1,232 @@
-import Foundation
-import Vapor
-import Fluent
-import FluentMongoDriver
+//
+//  File.swift
+//
+//
+//  Created by IntrodexMac on 22/7/2567 BE.
+//
 
+import Foundation
+import Fluent
+import Vapor
+import Mockable
+
+@Mockable
 protocol ProductCategoryRepositoryProtocol {
-    func fetchAll(req: ProductCategoryRepository.Fetch,
-                  on db: Database) async throws -> PaginatedResponse<ProductCategory>
-    func create(content: ProductCategoryRepository.Create, on db: Database) async throws -> ProductCategory
-    func find(id: UUID, on db: Database) async throws -> ProductCategory
-    func find(name: String, on db: Database) async throws -> ProductCategory
-    func update(id: UUID, with content: ProductCategoryRepository.Update, on db: Database) async throws -> ProductCategory
-    func delete(id: UUID, on db: Database) async throws -> ProductCategory
-    func search(req: ProductCategoryRepository.Search, on db: Database) async throws -> PaginatedResponse<ProductCategory>
+    
+    typealias FetchAll = GeneralRequest.FetchAll
+    typealias Search = GeneralRequest.Search
+    
+    func fetchAll(
+        request: FetchAll,
+        on db: Database
+    ) async throws -> PaginatedResponse<ProductCategory>
+    
+    func fetchById(
+        request: GeneralRequest.FetchById,
+        on db: Database
+    ) async throws -> ProductCategory
+    
+    func fetchByName(
+        request: GeneralRequest.FetchByName,
+        on db: Database
+    ) async throws -> ProductCategory
+    
+    func searchByName(
+        request: Search,
+        on db: Database
+    ) async throws -> PaginatedResponse<ProductCategory>
+    
+    func create(
+        request: ProductCategoryRequest.Create,
+        on db: Database
+    ) async throws -> ProductCategory
+    
+    func update(
+        byId: GeneralRequest.FetchById,
+        request: ProductCategoryRequest.Update,
+        on db: Database
+    ) async throws -> ProductCategory
+    
+    func delete(
+        byId: GeneralRequest.FetchById,
+        on db: Database
+    ) async throws -> ProductCategory
 }
 
 class ProductCategoryRepository: ProductCategoryRepositoryProtocol {
     
-    func fetchAll(req: ProductCategoryRepository.Fetch,
-                  on db: Database) async throws -> PaginatedResponse<ProductCategory> {
-        do {
-            let page = req.page
-            let perPage = req.perPage
-            
-            guard
-                page > 0,
-                perPage > 0
-            else { throw DefaultError.invalidInput }
-            
-            let query = ProductCategory.query(on: db)
-            
-            if req.showDeleted {
-                query.withDeleted()
-            } else {
-                query.filter(\.$deletedAt == nil)
+    typealias FetchAll = GeneralRequest.FetchAll
+    typealias Search = GeneralRequest.Search
+        
+    func fetchAll(
+        request: FetchAll,
+        on db: Database
+    ) async throws -> PaginatedResponse<ProductCategory> {
+        let query = ProductCategory.query(on: db)
+        
+        if request.showDeleted {
+            query.withDeleted()
+        } else {
+            query.filter(\.$deletedAt == nil)
+        }
+        
+        let total = try await query.count()
+        let items = try await sortQuery(
+            query: query,
+            sortBy: request.sortBy,
+            sortOrder: request.sortOrder,
+            page: request.page,
+            perPage: request.perPage
+        )
+        
+        let response = PaginatedResponse(
+            page: request.page,
+            perPage: request.perPage,
+            total: total,
+            items: items
+        )
+        
+        return response
+    }
+    
+    func fetchById(
+        request: GeneralRequest.FetchById,
+        on db: Database
+    ) async throws -> ProductCategory {
+        guard
+            let found = try await ProductCategory.query(on: db).filter(\.$id == request.id).first()
+        else {
+            throw DefaultError.notFound
+        }
+        
+        return found
+    }
+    
+    func fetchByName(
+        request: GeneralRequest.FetchByName,
+        on db: Database
+    ) async throws -> ProductCategory {
+        guard
+            let found = try await ProductCategory.query(on: db).filter(\.$name == request.name).first()
+        else {
+            throw DefaultError.notFound
+        }
+        
+        return found
+    }
+    
+    func searchByName(
+        request: Search,
+        on db: Database
+    ) async throws -> PaginatedResponse<ProductCategory> {
+        let regexPattern = "(?i)\(request.query)"
+        let query = ProductCategory.query(on: db).filter(\.$name =~ regexPattern)
+        
+        let total = try await query.count()
+        let items = try await sortQuery(
+            query: query,
+            sortBy: request.sortBy,
+            sortOrder: request.sortOrder,
+            page: request.page,
+            perPage: request.perPage
+        )
+        
+        let response = PaginatedResponse(
+            page: request.page,
+            perPage: request.perPage,
+            total: total,
+            items: items
+        )
+        
+        return response
+    }
+    
+    func create(
+        request: ProductCategoryRequest.Create,
+        on db: Database
+    ) async throws -> ProductCategory {
+        // prevent duplicate name
+        if let _ = try? await fetchByName(request: .init(name: request.name),
+                                          on: db) {
+            throw CommonError.duplicateName
+        }
+        else {
+            let group = ProductCategory(name: request.name,
+                                     description: request.description)
+            try await group.save(on: db)
+            return group
+        }
+    }
+    
+    func update(
+        byId: GeneralRequest.FetchById,
+        request: ProductCategoryRequest.Update,
+        on db: Database
+    ) async throws -> ProductCategory {
+        let group = try await fetchById(request: .init(id: byId.id), on: db)
+      
+        if let name = request.name {
+            // prevent duplicate name
+            let found = try? await fetchByName(request: .init(name: name),
+                                              on: db)
+            if let _ = found {
+                throw CommonError.duplicateName
             }
             
-            let total = try await query.count()
-            //query sorted by name
-            let items = try await query.sort(\.$name).range((page - 1) * perPage..<(page * perPage)).all()
-            
-            let response = PaginatedResponse(page: page,
-                                             perPage: perPage,
-                                             total: total,
-                                             items: items)
-            
-            return response
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
+            group.name = name
         }
+        
+        if let description = request.description {
+            group.description = description
+        }
+        
+        try await group.save(on: db)
+        return group
     }
     
-    func create(content: ProductCategoryRepository.Create, on db: Database) async throws -> ProductCategory {
-        do {
-            // Initialize the ProductCategory from the validated content
-            let newGroup = ProductCategory(name: content.name, description: content.description)
-            
-            // Attempt to save the new group to the database
-            try await newGroup.save(on: db)
-            
-            // Return the newly created group
-            return newGroup
-        } catch let error as FluentMongoDriver.FluentMongoError where error == .insertFailed {
-            throw CommonError.duplicateName
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
-        }
+    func delete(
+        byId: GeneralRequest.FetchById,
+        on db: Database
+    ) async throws -> ProductCategory {
+        let group = try await fetchById(request: .init(id: byId.id),
+                                        on: db)
+        try await group.delete(on: db)
+        return group
     }
     
-    func find(id: UUID, on db: Database) async throws -> ProductCategory {
-        do {
-            guard let group = try await ProductCategory.query(on: db).filter(\.$id == id).first() else { throw DefaultError.notFound }
-            
-            return group
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
-        }
-    }
-    
-    func find(name: String, on db: Database) async throws -> ProductCategory {
-        do {
-            guard let group = try await ProductCategory.query(on: db).filter(\.$name == name).first() else { throw DefaultError.notFound }
-            
-            return group
-        } catch let error as DefaultError {
-            throw error
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
-        }
-    }
-    
-    func update(id: UUID, with content: ProductCategoryRepository.Update, on db: Database) async throws -> ProductCategory {
-        do {
-            
-            // Update the supplier group in the database
-            let updateBuilder = Self.updateFieldsBuilder(uuid: id, content: content, db: db)
-            try await updateBuilder.update()
-            
-            // Retrieve the updated supplier group
-            guard let group = try await Self.getByIDBuilder(uuid: id, db: db).first() else { throw DefaultError.notFound }
-            
-            return group
-        } catch let error as FluentMongoDriver.FluentMongoError where error == .insertFailed {
-            throw CommonError.duplicateName
-        } catch let error as DefaultError {
-            throw error
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
-        }
-    }
-    
-    func delete(id: UUID, on db: Database) async throws -> ProductCategory {
-        do {
-            guard let group = try await ProductCategory.query(on: db).filter(\.$id == id).first() else { throw DefaultError.notFound }
-            
-            try await group.delete(on: db).get()
-            
-            return group
-        } catch let error as DefaultError {
-            throw error
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
-        }
-    }
-    
-    func search(req: ProductCategoryRepository.Search, on db: Database) async throws -> PaginatedResponse<ProductCategory> {
-        do {
-            let perPage = req.perPage
-            let page = req.page
-            let q = req.q
-            let sortBy = req.sortBy
-            let sortOrder = req.sortOrder
-            
-            guard
-                q.count > 0,
-                perPage > 0,
-                page > 0
-            else { throw DefaultError.invalidInput }
-            
-            let regexPattern = "(?i)\(q)"  // (?i) makes the regex case-insensitive
-            let query = ProductCategory.query(on: db).filter(\.$name =~ regexPattern)
-            
-            
-            let total = try await query.count()
-            let items = try await sortQuery(query: query,
-                                            sortBy: sortBy,
-                                            sortOrder: sortOrder,
-                                            page: page,
-                                            perPage: perPage)
-            
-            
-            let response = PaginatedResponse(page: page,
-                                             perPage: perPage,
-                                             total: total,
-                                             items: items)
-            
-            return response
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
-        }
-    }
 }
 
-
 private extension ProductCategoryRepository {
-    func sortQuery(query: QueryBuilder<ProductCategory>,
-                   sortBy: ProductCategoryRepository.SortBy,
-                   sortOrder: ProductCategoryRepository.SortOrder,
-                   page: Int,
-                   perPage: Int) async throws -> [ProductCategory] {
+    func sortQuery(
+        query: QueryBuilder<ProductCategory>,
+        sortBy: SortBy,
+        sortOrder: SortOrder,
+        page: Int,
+        perPage: Int
+    ) async throws -> [ProductCategory] {
+        let pageIndex = (page - 1)
+        let pageStart = pageIndex * perPage
+        let pageEnd = pageStart + perPage
+        
+        let range = pageStart..<pageEnd
+        
         switch sortBy {
         case .name:
             switch sortOrder {
             case .asc:
-                return try await query.sort(\.$name).range((page - 1) * perPage..<(page * perPage)).all()
+                return try await query.sort(\.$name).range(range).all()
             case .desc:
-                return try await query.sort(\.$name, .descending).range((page - 1) * perPage..<(page * perPage)).all()
+                return try await query.sort(\.$name, .descending).range(range).all()
             }
         case .createdAt:
             switch sortOrder {
             case .asc:
-                return try await query.sort(\.$createdAt).range((page - 1) * perPage..<(page * perPage)).all()
+                return try await query.sort(\.$createdAt).range(range).all()
             case .desc:
-                return try await query.sort(\.$createdAt, .descending).range((page - 1) * perPage..<(page * perPage)).all()
+                return try await query.sort(\.$createdAt, .descending).range(range).all()
             }
+        default:
+            return try await query.range(range).all()
         }
-    }
-}
-
-extension ProductCategoryRepository {
-    
-    // Helper function to update supplier group fields in the database
-    static func updateFieldsBuilder(uuid: UUID, content: ProductCategoryRepository.Update, db: Database) -> QueryBuilder<ProductCategory> {
-        let updateBuilder = ProductCategory.query(on: db).filter(\.$id == uuid)
-        
-        if let name = content.name {
-            updateBuilder.set(\.$name, to: name)
-        }
-        
-        if let description = content.description {
-            updateBuilder.set(\.$description, to: description)
-        }
-        
-        return updateBuilder
-    }
-    
-    static func getByIDBuilder(uuid: UUID, db: Database) -> QueryBuilder<ProductCategory> {
-        return ProductCategory.query(on: db).filter(\.$id == uuid)
     }
 }
