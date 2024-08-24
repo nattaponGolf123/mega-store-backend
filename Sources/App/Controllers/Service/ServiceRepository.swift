@@ -134,11 +134,14 @@ class ServiceRepository: ServiceRepositoryProtocol {
             throw CommonError.duplicateName
         }
         
+        //var serviceCategory: ServiceCategory? = nil
         if let groupId = request.categoryId {
             guard
                 let _ = try? await serviceCategoryRepository.fetchById(request: .init(id: groupId),
                                                                                  on: db)
             else { throw DefaultError.notFound }
+            
+            //serviceCategory = cate
         }
         
         let lastedNumber = try await fetchLastedNumber(on: db)
@@ -163,7 +166,7 @@ class ServiceRepository: ServiceRepositoryProtocol {
         request: ServiceRequest.Update,
         on db: Database
     ) async throws -> Service {
-        var service = try await fetchById(request: .init(id: byId.id), on: db)
+        let service = try await fetchById(request: .init(id: byId.id), on: db)
         
         if let name = request.name {
             // prevent duplicate name
@@ -182,7 +185,7 @@ class ServiceRepository: ServiceRepositoryProtocol {
                                                                    on: db)
             else { throw DefaultError.notFound }
             
-            service.categoryId = categoryId
+            service.$category.id = categoryId
         }
         
         if let description = request.description {
@@ -236,9 +239,6 @@ class ServiceRepository: ServiceRepositoryProtocol {
                 or.filter(\.$number == number)
             }
             or.filter(\.$description =~ regexPattern)
-            
-            //contain on tags string
-            //or.filter(\.$tags, .custom("ILIKE"), regexPattern)
         }
         
         let total = try await query.count()
@@ -247,12 +247,11 @@ class ServiceRepository: ServiceRepositoryProtocol {
                                         sortOrder: request.sortOrder,
                                         page: request.page,
                                         perPage: request.perPage)
-        let responseItems = items.map { $0 }
         
         let response = PaginatedResponse(page: request.page,
                                          perPage: request.perPage,
                                          total: total,
-                                         items: responseItems)
+                                         items: items)
         return response
     }
     
@@ -289,7 +288,14 @@ private extension ServiceRepository {
         let pageEnd = pageStart + perPage
         
         let range = pageStart..<pageEnd
+                
+        //query.join(ServiceCategory.self, on: \Service.$category.$id == \ServiceCategory.$id)
+        query.with(\.$category)
         
+        /*
+         .join(parent: \Service.$category)  // Join with the ServiceCategory model
+                .sort(ServiceCategory.self, \.$name)  // Sort by the name field in the ServiceCategory mod
+         */
         switch sortBy {
         case .name:
             switch sortOrder {
@@ -305,12 +311,12 @@ private extension ServiceRepository {
             case .desc:
                 return try await query.sort(\.$createdAt, .descending).range(range).all()
             }
-        case .groupId:
+        case .groupName:
             switch sortOrder {
             case .asc:
-                return try await query.sort(\.$categoryId).range(range).all()
+                return try await query.sort(ServiceCategory.self, \.$name).range(range).all()
             case .desc:
-                return try await query.sort(\.$categoryId, .descending).range(range).all()
+                return try await query.sort(ServiceCategory.self, \.$name, .descending).range(range).all()
             }
         case .number:
             switch sortOrder {

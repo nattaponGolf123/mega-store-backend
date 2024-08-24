@@ -30,8 +30,10 @@ final class Service: Model, Content {
     @Field(key: "unit")
     var unit: String
     
-    @Field(key: "category_id")
-    var categoryId: UUID?
+//    @Field(key: "category_id")
+//    var categoryId: UUID?
+    @OptionalParent(key: "category_id")
+    var category: ServiceCategory?
     
     @Field(key: "images")
     var images: [String]
@@ -65,7 +67,8 @@ final class Service: Model, Content {
          description: String?,
          price: Double = 0,
          unit: String = "",
-         categoryId: UUID? = nil,
+         categoryId: ServiceCategory.IDValue? = nil,
+         //category: ServiceCategory? = nil,
          images: [String] = [],
          coverImage: String? = nil,
          tags: [String] = [],
@@ -78,7 +81,8 @@ final class Service: Model, Content {
         self.description = description
         self.price = price
         self.unit = unit
-        self.categoryId = categoryId
+        //self.categoryId = categoryId
+        self.$category.id = categoryId
         self.images = images
         self.coverImage = coverImage
         self.tags = tags
@@ -86,8 +90,82 @@ final class Service: Model, Content {
         self.updatedAt = updatedAt
         self.deletedAt = deletedAt
     }
-    
+//    
+//    init(id: UUID? = nil,
+//         number: Int,
+//         name: String,
+//         description: String? = nil,
+//         price: Double = 0,
+//         unit: String = "",
+//         category: ServiceCategory? = nil,
+//         images: [String] = [],
+//         coverImage: String? = nil,
+//         tags: [String] = [],
+//         createdAt: Date? = nil,
+//         updatedAt: Date? = nil,
+//         deletedAt: Date? = nil) {
+//        self.id = id ?? .init()
+//        self.number = number
+//        self.name = name
+//        self.description = description
+//        self.price = price
+//        self.unit = unit
+//        self.category = category
+//        self.images = images
+//        self.coverImage = coverImage
+//        self.tags = tags
+//        self.createdAt = createdAt ?? Date()
+//        self.updatedAt = updatedAt
+//        self.deletedAt = deletedAt
+//    }
+//    
 }
+
+/*
+ final class ServiceCategory: Model, Content {
+     static let schema = "ServiceCategories"
+     
+      @ID(key: .id)
+     var id: UUID?
+
+     @Field(key: "name")
+     var name: String
+
+     @Field(key: "description")
+     var description: String?
+
+     @Timestamp(key: "created_at",
+                on: .create,
+                format: .iso8601)
+     var createdAt: Date?
+
+     @Timestamp(key: "updated_at",
+                on: .update,
+                format: .iso8601)
+     var updatedAt: Date?
+
+     @Timestamp(key: "deleted_at",
+                on: .delete,
+                format: .iso8601)
+     var deletedAt: Date?
+
+     init() { }
+
+     init(id: UUID? = nil,
+          name: String,
+          description: String? = nil,
+          createdAt: Date? = nil,
+          updatedAt: Date? = nil,
+          deletedAt: Date? = nil) {
+         self.id = id ?? UUID()
+         self.name = name
+         self.description = description
+         self.createdAt = createdAt
+         self.updatedAt = updatedAt
+         self.deletedAt = deletedAt
+     }
+ }
+ */
 
 extension Service {
     struct Stub {
@@ -106,7 +184,7 @@ extension Service {
                   description: "A one-hour yoga class focusing on relaxation and flexibility.",
                   price: 20.00,
                   unit: "hour",
-                  categoryId: nil,
+                  //categoryId: nil,
                   images: [
                     "https://example.com/yoga-class-image1.jpg",
                     "https://example.com/yoga-class-image2.jpg"
@@ -121,7 +199,7 @@ extension Service {
                   description: "A one-hour pilates class focusing on core strength and flexibility.",
                   price: 25.00,
                   unit: "hour",
-                  categoryId: nil,
+                  //categoryId: nil,
                   images: [
                     "https://example.com/pilates-class-image1.jpg",
                     "https://example.com/pilates-class-image2.jpg"
@@ -134,7 +212,7 @@ extension Service {
                   description: "A one-hour spinning class focusing on cardio and endurance.",
                   price: 15.00,
                   unit: "hour",
-                  categoryId: .init(),
+                  //categoryId: .init(),
                   images: [
                     "https://example.com/spinning-class-image1.jpg",
                     "https://example.com/spinning-class-image2.jpg"

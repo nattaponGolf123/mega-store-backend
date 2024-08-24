@@ -15,7 +15,8 @@ struct ServiceResponse: Content {
     let description: String?
     let price: Double
     let unit: String
-    let categoryId: UUID?
+    //let categoryId: UUID?
+    let category: ServiceCategory?
     let images: [String]
     let coverImage: String?
     let tags: [String]
@@ -30,7 +31,8 @@ struct ServiceResponse: Content {
         self.description = service.description
         self.price = service.price
         self.unit = service.unit
-        self.categoryId = service.categoryId
+        //self.categoryId = service.categoryId
+        self.category = service.category
         self.images = service.images
         self.coverImage = service.coverImage
         self.tags = service.tags
@@ -46,7 +48,8 @@ struct ServiceResponse: Content {
         case description
         case price
         case unit
-        case categoryId = "category_id"
+        //case categoryId = "category_id"
+        case category = "category"
         case images
         case coverImage = "cover_image"
         case tags
