@@ -145,14 +145,14 @@ class ServiceRepository: ServiceRepositoryProtocol {
         let nextNumber = lastedNumber + 1
         
         let service = Service(number: nextNumber,
-                               name: request.name,
-                               description: request.description,
-                               price: request.price,
-                               unit: request.unit,
-                               categoryId: request.categoryId,
-                               images: request.images,
-                               coverImage: request.coverImage,
-                               tags: request.tags)
+                              name: request.name,
+                              description: request.description,
+                              price: request.price,
+                              unit: request.unit,
+                              categoryId: request.categoryId,
+                              images: request.images,
+                              coverImage: request.coverImage,
+                              tags: request.tags)
         
         try await service.save(on: db)
         return service
