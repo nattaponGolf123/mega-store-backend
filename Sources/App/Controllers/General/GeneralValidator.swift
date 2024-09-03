@@ -31,10 +31,6 @@ class GeneralValidator: GeneralValidatorProtocol {
     func validateSearchQuery(_ req: Request) throws -> GeneralRequest.Search {
         try Search.validate(content: req)
         
-        let content = try req.query.decode(Search.self)
-        
-        guard content.query.isEmpty == false else { throw DefaultError.invalidInput }
-        
-        return content
+        return try req.query.decode(Search.self)
     }
 }

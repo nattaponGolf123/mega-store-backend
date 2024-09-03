@@ -40,14 +40,17 @@ struct GeneralRequest {
         let sortBy: SortBy
         let sortOrder: SortOrder
         
+        static let minPageRange: (min: Int, max: Int) = (1, .max)
+        static let perPageRange: (min: Int, max: Int) = (20, 1000)
+        
         init(showDeleted: Bool = false,
-             page: Int = 1,
-             perPage: Int = 20,
+             page: Int = Self.minPageRange.min,
+             perPage: Int = Self.perPageRange.min,
              sortBy: SortBy = .createdAt,
              sortOrder: SortOrder = .asc) {
             self.showDeleted = showDeleted
-            self.page = max(page, 1)
-            self.perPage = max(perPage, 20)
+            self.page = min(max(page, Self.minPageRange.min), Self.minPageRange.max)
+            self.perPage = min(max(perPage, Self.perPageRange.min), Self.perPageRange.max)
             self.sortBy = sortBy
             self.sortOrder = sortOrder
         }
@@ -55,8 +58,8 @@ struct GeneralRequest {
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             self.showDeleted = (try? container.decodeIfPresent(Bool.self, forKey: .showDeleted)) ?? false
-            self.page = (try? container.decodeIfPresent(Int.self, forKey: .page)) ?? 1
-            self.perPage = (try? container.decodeIfPresent(Int.self, forKey: .perPage)) ?? 20
+            self.page = (try? container.decodeIfPresent(Int.self, forKey: .page)) ?? Self.minPageRange.min
+            self.perPage = (try? container.decodeIfPresent(Int.self, forKey: .perPage)) ?? Self.perPageRange.min
             self.sortBy = (try? container.decodeIfPresent(SortBy.self, forKey: .sortBy)) ?? .createdAt
             self.sortOrder = (try? container.decodeIfPresent(SortOrder.self, forKey: .sortOrder)) ?? .asc
         }
@@ -86,14 +89,17 @@ struct GeneralRequest {
         let sortBy: SortBy
         let sortOrder: SortOrder
         
+        static let minPageRange: (min: Int, max: Int) = (1, .max)
+        static let perPageRange: (min: Int, max: Int) = (20, 1000)
+        
         init(query: String,
-             page: Int = 1,
-             perPage: Int = 20,
+             page: Int = Self.minPageRange.min,
+             perPage: Int = Self.perPageRange.min,
              sortBy: SortBy = .createdAt,
              sortOrder: SortOrder = .asc) {
             self.query = query
-            self.page = max(page, 1)
-            self.perPage = max(perPage, 20)
+            self.page = min(max(page, Self.minPageRange.min), Self.minPageRange.max)
+            self.perPage = min(max(perPage, Self.perPageRange.min), Self.perPageRange.max)
             self.sortBy = sortBy
             self.sortOrder = sortOrder
         }
@@ -101,8 +107,8 @@ struct GeneralRequest {
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             self.query = try container.decode(String.self, forKey: .query)
-            self.page = (try? container.decode(Int.self, forKey: .page)) ?? 1
-            self.perPage = (try? container.decode(Int.self, forKey: .perPage)) ?? 20
+            self.page = (try? container.decode(Int.self, forKey: .page)) ?? Self.minPageRange.min
+            self.perPage = (try? container.decode(Int.self, forKey: .perPage)) ?? Self.perPageRange.min
             self.sortBy = (try? container.decode(SortBy.self, forKey: .sortBy)) ?? .createdAt
             self.sortOrder = (try? container.decode(SortOrder.self, forKey: .sortOrder)) ?? .asc
         }
