@@ -8,8 +8,6 @@
 import Foundation
 import Mockable
 
-//typealias SortByProtocol = Codable & Equatable
-
 protocol Sortable: Codable, Equatable {
     var rawValue: String { get }
 }
