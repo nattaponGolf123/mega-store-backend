@@ -16,7 +16,7 @@ struct ServiceResponse: Content {
     let price: Double
     let unit: String
     //let categoryId: UUID?
-    let category: ServiceCategory?
+    let category: ServiceCategoryResponse?
     let images: [String]
     let coverImage: String?
     let tags: [String]
@@ -32,14 +32,19 @@ struct ServiceResponse: Content {
         self.price = service.price
         self.unit = service.unit
         //self.categoryId = service.categoryId
-        self.category = service.category
+        if let category = service.$category.value,
+            let value = category {
+            self.category = .init(from: value)
+        } else {
+            self.category = nil
+        }
         self.images = service.images
         self.coverImage = service.coverImage
         self.tags = service.tags
         self.createdAt = service.createdAt
         self.updatedAt = service.updatedAt
         self.deletedAt = service.deletedAt
-    }
+    }   
     
     enum CodingKeys: String, CodingKey {
         case id

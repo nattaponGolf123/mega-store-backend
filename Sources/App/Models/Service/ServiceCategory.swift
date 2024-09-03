@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by IntrodexMac on 4/2/2567 BE.
 //
@@ -12,32 +12,32 @@ import Fluent
 final class ServiceCategory: Model, Content {
     static let schema = "ServiceCategories"
     
-     @ID(key: .id)
+    @ID(key: .id)
     var id: UUID?
-
+    
     @Field(key: "name")
     var name: String
-
+    
     @Field(key: "description")
     var description: String?
-
+    
     @Timestamp(key: "created_at",
                on: .create,
                format: .iso8601)
     var createdAt: Date?
-
+    
     @Timestamp(key: "updated_at",
                on: .update,
                format: .iso8601)
     var updatedAt: Date?
-
+    
     @Timestamp(key: "deleted_at",
                on: .delete,
                format: .iso8601)
     var deletedAt: Date?
-
+    
     init() { }
-
+    
     init(id: UUID? = nil,
          name: String,
          description: String? = nil,
@@ -56,13 +56,13 @@ final class ServiceCategory: Model, Content {
 extension ServiceCategory {
     struct Stub {
         
-       static var group: [ServiceCategory] {
-           [
-               .init(name: "Transport"),
-               .init(name: "Food"),
-               .init(name: "Entertainment"),
-           ]
-       }
+        static var group: [ServiceCategory] {
+            [
+                .init(name: "Transport"),
+                .init(name: "Food"),
+                .init(name: "Entertainment"),
+            ]
+        }
         
         static var transport: ServiceCategory {
             .init(name: "Transport",

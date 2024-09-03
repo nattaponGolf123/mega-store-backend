@@ -64,7 +64,7 @@ final class Service: Model, Content {
     init(id: UUID? = nil,
          number: Int,
          name: String,
-         description: String?,
+         description: String? = nil,
          price: Double = 0,
          unit: String = "",
          categoryId: ServiceCategory.IDValue? = nil,
@@ -90,7 +90,35 @@ final class Service: Model, Content {
         self.updatedAt = updatedAt
         self.deletedAt = deletedAt
     }
-//    
+    
+    init(id: UUID? = nil,
+         number: Int,
+         name: String,
+         description: String?,
+         price: Double = 0,
+         unit: String = "",
+         category: ServiceCategory,
+         images: [String] = [],
+         coverImage: String? = nil,
+         tags: [String] = [],
+         createdAt: Date? = nil,
+         updatedAt: Date? = nil,
+         deletedAt: Date? = nil) {
+        self.id = id ?? .init()
+        self.number = number
+        self.name = name
+        self.description = description
+        self.price = price
+        self.unit = unit
+        self.category = category
+        self.images = images
+        self.coverImage = coverImage
+        self.tags = tags
+        self.createdAt = createdAt ?? Date()
+        self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
+    }
+//
 //    init(id: UUID? = nil,
 //         number: Int,
 //         name: String,

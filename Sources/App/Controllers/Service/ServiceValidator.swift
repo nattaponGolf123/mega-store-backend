@@ -1,6 +1,8 @@
 import Foundation
 import Vapor
+import Mockable
 
+@Mockable
 protocol ServiceValidatorProtocol {
     typealias Search = GeneralRequest.Search
     
