@@ -12,6 +12,7 @@ enum CommonError {
     case duplicateName
     case duplicateUsername
     case duplicateTaxNumber
+    case duplicateColor
 }
 
 extension CommonError: AbortError {
@@ -24,6 +25,8 @@ extension CommonError: AbortError {
             return "Duplicate username"
         case .duplicateTaxNumber:
             return "Duplicate tax number"
+        case .duplicateColor:
+            return "Duplicate color"
         }
     }
     
@@ -34,6 +37,8 @@ extension CommonError: AbortError {
         case .duplicateUsername:
             return .badRequest
         case .duplicateTaxNumber:
+            return .badRequest
+        case .duplicateColor:
             return .badRequest
         }
     }
@@ -51,6 +56,8 @@ extension CommonError: ErrorMessageProtocol {
             return "DUPLICATE_USERNAME"
         case .duplicateTaxNumber:
             return "DUPLICATE_TAX_NUMBER"
+        case .duplicateColor:
+            return "DUPLICATE_COLOR"
         }
     }
     
@@ -72,6 +79,8 @@ extension CommonError: Content {
             self = .duplicateUsername
         case "DUPLICATE_TAX_NUMBER":
             self = .duplicateTaxNumber
+        case "DUPLICATE_COLOR":
+            self = .duplicateColor
         default:
             self = .duplicateName
         }
@@ -90,6 +99,9 @@ extension CommonError: Content {
         case .duplicateTaxNumber:
             try container.encode("DUPLICATE_TAX_NUMBER", forKey: .code)
             try container.encode("Duplicate tax number", forKey: .message)
+        case .duplicateColor:
+            try container.encode("DUPLICATE_COLOR", forKey: .code)
+            try container.encode("Duplicate color", forKey: .message)
         }
     }
     

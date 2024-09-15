@@ -62,13 +62,12 @@ final class Service: Model, Content {
     init() { }
     
     init(id: UUID? = nil,
-         number: Int,
+         number: Int = 1,
          name: String,
          description: String? = nil,
          price: Double = 0,
          unit: String = "",
          categoryId: ServiceCategory.IDValue? = nil,
-         //category: ServiceCategory? = nil,
          images: [String] = [],
          coverImage: String? = nil,
          tags: [String] = [],
@@ -81,7 +80,6 @@ final class Service: Model, Content {
         self.description = description
         self.price = price
         self.unit = unit
-        //self.categoryId = categoryId
         self.$category.id = categoryId
         self.images = images
         self.coverImage = coverImage

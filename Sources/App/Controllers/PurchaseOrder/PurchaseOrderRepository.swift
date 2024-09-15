@@ -129,13 +129,13 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
             
             
             // validate exist productId
-            do {
-                for uuid in content.productUUIDs() {
-                    let _ = try await productRepository.find(id: uuid, on: db)
-                }
-            } catch {
-                throw DefaultError.error(message: "product not found")
-            }
+//            do {
+//                for uuid in content.productUUIDs() {
+//                    let _ = try await productRepository.find(id: uuid, on: db)
+//                }
+//            } catch {
+//                throw DefaultError.error(message: "product not found")
+//            }
             
             // validate exist serviceId
             do {
@@ -240,13 +240,13 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
         
         if let productUUIDS = content.productUUIDs() {
             // validate exist productId
-            do {
-                for uuid in productUUIDS {
-                    let _ = try await productRepository.find(id: uuid, on: db)
-                }
-            } catch {
-                throw DefaultError.error(message: "product not found")
-            }
+//            do {
+//                for uuid in productUUIDS {
+//                    let _ = try await productRepository.find(id: uuid, on: db)
+//                }
+//            } catch {
+//                throw DefaultError.error(message: "product not found")
+//            }
         }
         
         if let serviceUUIDs = content.serviceUUIDs() {

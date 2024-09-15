@@ -4,423 +4,389 @@ import Fluent
 import FluentMongoDriver
 
 protocol ProductRepositoryProtocol {
-    func fetchAll(req: ProductRepository.Fetch,
-                  on db: Database) async throws -> PaginatedResponse<ProductResponse>
-    func create(content: ProductRepository.Create, on db: Database) async throws -> ProductResponse
-    func find(id: UUID, on db: Database) async throws -> ProductResponse
-    func find(name: String, on db: Database) async throws -> ProductResponse
-    func update(id: UUID, with content: ProductRepository.Update, on db: Database) async throws -> ProductResponse
-    func delete(id: UUID, on db: Database) async throws -> ProductResponse
-    func search(req: ProductRepository.Search, on db: Database) async throws -> PaginatedResponse<ProductResponse>
-    func linkContact(id: UUID, contactId: UUID, on db: Database) async throws -> ProductResponse
-    func deleteContact(id: UUID, contactId: UUID, on db: Database) async throws -> ProductResponse
+    typealias FetchAll = GeneralRequest.FetchAll
+    typealias Search = GeneralRequest.Search
+    
+    typealias CreateVariant = (id: GeneralRequest.FetchById, content: ProductRequest.CreateVariant)
+    typealias UpdateVariant = (id: GeneralRequest.FetchById, variantId: GeneralRequest.FetchById, content: ProductRequest.UpdateVariant)
+    typealias DeleteVariant = (id: GeneralRequest.FetchById, variantId: GeneralRequest.FetchById)
+    
+    func fetchAll(request: FetchAll,
+                  on db: Database) async throws -> PaginatedResponse<Product>
+    func fetchById(request: GeneralRequest.FetchById,
+                  on db: Database) async throws -> Product
+    func fetchByName(request: GeneralRequest.FetchByName,
+                     on db: Database) async throws -> Product
+    
+    func create(request: ProductRequest.Create,
+                on db: Database) async throws -> Product
+    func update(byId: GeneralRequest.FetchById,
+                request: ProductRequest.Update,
+                on db: Database) async throws -> Product
+    func delete(byId: GeneralRequest.FetchById,
+                on db: Database) async throws -> Product
+    
+    func search(request: Search,
+                on db: Database) async throws -> PaginatedResponse<Product>
+    
     func fetchLastedNumber(on db: Database) async throws -> Int
     
-    func fetchVariantLastedNumber(id: UUID, on db: Database) async throws -> Int
-    func createVariant(id: UUID, content: ProductRepository.CreateVariant, on db: Database) async throws -> ProductResponse
-    func updateVariant(id: UUID, variantId: UUID, with content: ProductRepository.UpdateVariant, on db: Database) async throws -> ProductResponse
-    func deleteVariant(id: UUID, variantId: UUID, on db: Database) async throws -> ProductResponse    
+    func fetchVariantLastedNumber(byId: GeneralRequest.FetchById,
+                                  on db: Database) async throws -> Int
+    func createVariant(byId: GeneralRequest.FetchById,
+                       request: ProductRequest.CreateVariant,
+                       on db: Database) async throws -> Product
+    func updateVariant(byId: GeneralRequest.FetchById,
+                       variantId: GeneralRequest.FetchById,
+                       request: ProductRequest.UpdateVariant,
+                       on db: Database) async throws -> Product
+    func deleteVariant(byId: GeneralRequest.FetchById,
+                       variantId: GeneralRequest.FetchById,
+                       on db: Database) async throws -> Product
 
 }
 
 class ProductRepository: ProductRepositoryProtocol {
     
-    func fetchAll(req: ProductRepository.Fetch,
-                  on db: Database) async throws -> PaginatedResponse<ProductResponse> {
-        do {
-            let page = req.page
-            let perPage = req.perPage
-            let sortBy = req.sortBy
-            let sortOrder = req.sortOrder
-            
-            guard page > 0, perPage > 0 else { throw DefaultError.invalidInput }
-            
-            let query = Product.query(on: db)
-            
-            if req.showDeleted {
-                query.withDeleted()
-            } else {
-                query.filter(\.$deletedAt == nil)
+    private var productCategoryRepository: ProductCategoryRepositoryProtocol
+    
+    init(productCategoryRepository: ProductCategoryRepositoryProtocol = ProductCategoryRepository()) {
+        self.productCategoryRepository = productCategoryRepository
+    }
+    
+    func fetchAll(request: FetchAll, 
+                  on db: any FluentKit.Database) async throws -> PaginatedResponse<Product> {
+        let query = Product.query(on: db)
+        
+        if request.showDeleted {
+            query.withDeleted()
+        } else {
+            query.filter(\.$deletedAt == nil)
+        }
+        
+        let total = try await query.count()
+        let items = try await sortQuery(query: query,
+                                        sortBy: request.sortBy,
+                                        sortOrder: request.sortOrder,
+                                        page: request.page,
+                                        perPage: request.perPage)
+        
+        let response = PaginatedResponse(page: request.page,
+                                         perPage: request.perPage,
+                                         total: total,
+                                         items: items)
+        return response
+    }
+    
+    func fetchById(request: GeneralRequest.FetchById,
+                  on db: any FluentKit.Database) async throws -> Product {
+        guard
+            let found = try await Product.query(on: db).filter(\.$id == request.id).first()
+        else {
+            throw DefaultError.notFound
+        }
+        
+        return found
+    }
+    
+    func fetchByName(request: GeneralRequest.FetchByName, on db: any FluentKit.Database) async throws -> Product {
+        guard
+            let found = try await Product.query(on: db).filter(\.$name == request.name).first()
+        else {
+            throw DefaultError.notFound
+        }
+        
+        return found
+    }
+    
+    func create(request: ProductRequest.Create,
+                on db: any FluentKit.Database) async throws -> Product {
+        // prevent duplicate name
+        if let _ = try? await fetchByName(request: .init(name: request.name),
+                                          on: db) {
+            throw CommonError.duplicateName
+        }
+        
+        if let groupId = request.categoryId {
+            guard
+                let _ = try? await productCategoryRepository.fetchById(request: .init(id: groupId),
+                                                                       on: db)
+            else { throw DefaultError.notFound }
+        }
+        
+        let lastedNumber = try await fetchLastedNumber(on: db)
+        let nextNumber = lastedNumber + 1
+        
+        let product = Product(number: nextNumber, 
+                              name: request.name,
+                              description: request.description,
+                              unit: request.unit,
+                              price: request.price,
+                              categoryId: request.categoryId,
+                              manufacturer: request.manufacturer,
+                              barcode: request.barcode,
+                              images: request.images,
+                              coverImage: request.coverImage,
+                              tags: request.tags)
+        try await product.save(on: db)
+        return product
+    }
+    
+    func update(byId: GeneralRequest.FetchById,
+                request: ProductRequest.Update,
+                on db: any FluentKit.Database) async throws -> Product {
+        let product = try await fetchById(request: .init(id: byId.id), 
+                                          on: db)
+        
+        if let name = request.name {
+            // prevent duplicate name
+            if let _ = try? await fetchByName(request: .init(name: name),
+                                              on: db) {
+                throw CommonError.duplicateName
             }
             
-            let total = try await query.count()
-            let items = try await sortQuery(query: query,
-                                            sortBy: sortBy,
-                                            sortOrder: sortOrder,
-                                            page: page,
-                                            perPage: perPage)
-            
-            let responseItems = items.map { ProductResponse(from: $0) }
-            let response = PaginatedResponse(page: page, perPage: perPage, total: total, items: responseItems)
-            
-            return response
-        } catch {
-            throw DefaultError.error(message: error.localizedDescription)
+            product.name = name
         }
-    }
-    
-    func create(content: ProductRepository.Create, on db: Database) async throws -> ProductResponse {
-        do {
-            let lastedNumber = try await fetchLastedNumber(on: db)
-            let nextNumber = lastedNumber + 1
-            let newModel = Product(number: nextNumber,
-                                   name: content.name,
-                                   description: content.description, 
-                                   price: content.price,
-                                   images: content.images)
-            
-            try await newModel.save(on: db)
-            
-            return ProductResponse(from: newModel)
-        } catch let error as FluentMongoDriver.FluentMongoError where error == .insertFailed {
-            throw CommonError.duplicateName
-        } catch {
-            throw DefaultError.error(message: error.localizedDescription)
-        }
-    }
-    
-    func find(id: UUID, on db: Database) async throws -> ProductResponse {
-        do {
-            guard let model = try await Product.query(on: db).filter(\.$id == id).first() else { throw DefaultError.notFound }
-            
-            return ProductResponse(from: model)
-        } catch {
-            throw DefaultError.error(message: error.localizedDescription)
-        }
-    }
-    
-    func find(name: String, on db: Database) async throws -> ProductResponse {
-        do {
-            guard let model = try await Product.query(on: db).filter(\.$name == name).first() else { throw DefaultError.notFound }
-            
-            return ProductResponse(from: model)
-        } catch let error as DefaultError {
-            throw error
-        } catch {
-            throw DefaultError.error(message: error.localizedDescription)
-        }
-    }
-    
-    func update(id: UUID, with content: ProductRepository.Update, on db: Database) async throws -> ProductResponse {
-        do {
-            let updateBuilder = Self.updateFieldsBuilder(uuid: id, content: content, db: db)
-            try await updateBuilder.update()
-            
-            guard let model = try await Self.getByIDBuilder(uuid: id, db: db).first() else { throw DefaultError.notFound }
-            
-            return ProductResponse(from: model)
-        } catch let error as FluentMongoDriver.FluentMongoError where error == .insertFailed {
-            throw CommonError.duplicateName
-        } catch let error as DefaultError {
-            throw error
-        } catch {
-            throw DefaultError.error(message: error.localizedDescription)
-        }
-    }
-    
-    func delete(id: UUID, on db: Database) async throws -> ProductResponse {
-        do {
-            guard let model = try await Product.query(on: db).filter(\.$id == id).first() else { throw DefaultError.notFound }
-            
-            try await model.delete(on: db).get()
-            
-            return ProductResponse(from: model)
-        } catch let error as DefaultError {
-            throw error
-        } catch {
-            throw DefaultError.error(message: error.localizedDescription)
-        }
-    }
-    
-    func search(req: ProductRepository.Search, on db: Database) async throws -> PaginatedResponse<ProductResponse> {
-        do {
-            let perPage = req.perPage
-            let page = req.page
-            let keyword = req.q
-            let sort = req.sortBy
-            let order = req.sortOrder
-            
+        
+        if let categoryId = request.categoryId {
+            // try to fetch category id to check is exist
             guard
-                keyword.count > 0,
-                perPage > 0,
-                page > 0
-            else { throw DefaultError.invalidInput }
-
-            let regexPattern = "(?i)\(keyword)"  // (?i) makes the regex case-insensitive
-            let query = Product.query(on: db).group(.or) { or in
-                or.filter(\.$name =~ regexPattern)
-                or.filter(\.$description =~ regexPattern)
-                if let number = Int(keyword) {
-                    or.filter(\.$number == number)
-                }
-             }
-                    
-            let total = try await query.count()
-            let items = try await sortQuery(query: query,
-                                            sortBy: sort,
-                                            sortOrder: order,
-                                            page: page,
-                                            perPage: perPage)
-            let responseItems = items.map { ProductResponse(from: $0) }
-            let response = PaginatedResponse(page: page,
-                                             perPage: perPage,
-                                             total: total,
-                                             items: responseItems)
-            
-            return response
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
-        }
-    }
-    
-    func linkContact(id: UUID, contactId: UUID, on db: Database) async throws -> ProductResponse {
-        do {                        
-            guard 
-                let model = try await Self.getByIDBuilder(uuid: id, db: db).first(),
-                // verify is exist contact and not deleted
-                let _ = try await Contact.query(on: db).filter(\.$id == contactId).first()                
+                let _ = try? await productCategoryRepository.fetchById(request: .init(id: categoryId),
+                                                                   on: db)
             else { throw DefaultError.notFound }
-
-            guard 
-                model.contacts.contains(contactId) == false 
-            else { throw DefaultError.error(message: "Contact already linked") }
-
-            let updateSppliers: [UUID] = model.contacts + [contactId]
-            model.contacts = updateSppliers
-
-            try await model.save(on: db)
             
-            return ProductResponse(from: model)
-        } catch let error as FluentMongoDriver.FluentMongoError {
-            throw error
-        } catch let error as DefaultError {
-            throw error
-        } catch {
-            throw DefaultError.error(message: error.localizedDescription)
+            product.$category.id = categoryId
         }
+        
+        if let description = request.description {
+            product.description = description
+        }
+        
+        if let price = request.price {
+            product.price = price
+        }
+        
+        if let unit = request.unit {
+            product.unit = unit
+        }
+        
+        if let images = request.images {
+            product.images = images
+        }
+        
+        if let coverImage = request.coverImage {
+            product.coverImage = coverImage
+        }
+        
+        if let tags = request.tags {
+            product.tags = tags
+        }
+        
+        if let manufacturer = request.manufacturer {
+            product.manufacturer = manufacturer
+        }
+        
+        if let barcode = request.barcode {
+            product.barcode = barcode
+        }
+        
+        try await product.save(on: db)
+        return product
     }
     
-    func deleteContact(id: UUID, contactId: UUID, on db: any FluentKit.Database) async throws -> ProductResponse {
-        do {                        
-            guard let model = try await Self.getByIDBuilder(uuid: id, db: db).first() else { throw DefaultError.notFound }
-
-            guard 
-                model.contacts.contains(contactId) 
-            else { throw DefaultError.error(message: "Contact not found") }
-
-            model.contacts.removeAll() { $0 == contactId }            
-
-            try await model.save(on: db)
-            
-            return ProductResponse(from: model)
-        } catch let error as FluentMongoDriver.FluentMongoError {
-            throw error
-        } catch let error as DefaultError {
-            throw error
-        } catch {
-            throw DefaultError.error(message: error.localizedDescription)
-        }
+    func delete(byId: GeneralRequest.FetchById,
+                on db: any FluentKit.Database) async throws -> Product {
+        let product = try await fetchById(request: .init(id: byId.id),
+                                        on: db)
+        try await product.delete(on: db)
+        return product
     }
-
-    func fetchLastedNumber(on db: Database) async throws -> Int {
+    
+    func search(request: Search,
+                on db: any FluentKit.Database) async throws -> PaginatedResponse<Product> {
+        let q = request.query
+        let regexPattern = "(?i)\(q)"  // (?i) makes the regex case-insensitive
+        let query = Product.query(on: db).group(.or) { or in
+            or.filter(\.$name =~ regexPattern)
+            if let number = Int(q) {
+                or.filter(\.$number == number)
+            }
+            or.filter(\.$description =~ regexPattern)
+            or.filter(\.$barcode == q)
+            or.filter(\.$manufacturer =~ regexPattern)            
+        }
+        
+        let total = try await query.count()
+        let items = try await sortQuery(query: query,
+                                        sortBy: request.sortBy,
+                                        sortOrder: request.sortOrder,
+                                        page: request.page,
+                                        perPage: request.perPage)
+        
+        let response = PaginatedResponse(page: request.page,
+                                         perPage: request.perPage,
+                                         total: total,
+                                         items: items)
+        return response
+    }
+    
+    func fetchLastedNumber(on db: any FluentKit.Database) async throws -> Int {
         let query = Product.query(on: db).withDeleted()
         query.sort(\.$number, .descending)
         query.limit(1)
-
+        
         let model = try await query.first()
         
         return model?.number ?? 0
     }
     
     // MARK: Variant
-    func fetchVariantLastedNumber(id: UUID, on db: Database) async throws -> Int {
-        do {
-            guard 
-                let model = try await Self.getByIDBuilder(uuid: id, db: db).first()             
-            else { throw DefaultError.notFound }
-
-            let variants: [ProductVariant] = model.variants
-            let lastedNumber = variants.map { $0.number }.max() ?? 0
-
-            return lastedNumber
-        } catch let error as FluentMongoDriver.FluentMongoError {
-            throw error
-        } catch let error as DefaultError {
-            throw error
-        } catch {
-            throw DefaultError.error(message: error.localizedDescription)
-        }
-    }
-
-    func createVariant(id: UUID, content: ProductRepository.CreateVariant, on db: Database) async throws -> ProductResponse {
-        do {                        
-            guard 
-                let model = try await Self.getByIDBuilder(uuid: id, db: db).first()             
-            else { throw DefaultError.notFound }
-
-            //check name not duplicate
-            let isDuplicate = model.variants.contains(where: { $0.name == content.name })
-            if isDuplicate {
-                throw DefaultError.error(message: "Name is duplicate")
-            }
-
-            // check color not duplicate
-            if let color = content.color {
-                let isDuplicate = model.variants.contains(where: { $0.color == color })
-                if isDuplicate {
-                    throw DefaultError.error(message: "Color is duplicate")
-                }
-            }
-
-            // check sku not duplicate
-            if let sku = content.sku {
-                let isDuplicate = model.variants.contains(where: { $0.sku == sku })
-                if isDuplicate {
-                    throw DefaultError.error(message: "SKU is duplicate")
-                }
-            }
-
-            // check barcode not duplicate
-            if let barcode = content.barcode {
-                let isDuplicate = model.variants.contains(where: { $0.barcode == barcode })
-                if isDuplicate {
-                    throw DefaultError.error(message: "Barcode is duplicate")
-                }
-            }
-
-            let curentNumber = try await fetchVariantLastedNumber(id: id, on: db)
-            let nextNumber = curentNumber + 1
-
-            let newVariant = ProductVariant(number: nextNumber,
-                                            name: content.name,
-                                            sku: content.sku,
-                                            price: content.price,
-                                            description: content.description,
-                                            image: content.image,
-                                            color: content.color,
-                                            barcode: content.barcode,
-                                            dimensions: content.dimensions)
-            model.variants.append(newVariant)
-
-            try await model.save(on: db)
-            
-            return ProductResponse(from: model)
-        } catch let error as FluentMongoDriver.FluentMongoError {
-            throw error
-        } catch let error as DefaultError {
-            throw error
-        } catch {
-            throw DefaultError.error(message: error.localizedDescription)
-        }
+    
+    func fetchVariantLastedNumber(byId: GeneralRequest.FetchById,
+                                  on db: any FluentKit.Database) async throws -> Int {
+        let model = try await fetchById(request: .init(id: byId.id),
+                                          on: db)
+        
+        let variants: [ProductVariant] = model.variants
+        let lastedNumber = variants.map { $0.number }.max() ?? 0
+        
+        return lastedNumber
     }
     
-    func updateVariant(id: UUID, variantId: UUID, with content: ProductRepository.UpdateVariant, on db: Database) async throws -> ProductResponse {
-        do {
-            guard 
-                let product = try await Product.query(on: db).filter(\.$id == id).first(),
-                let variant = product.variants.first(where: { $0.id == variantId })
-            else {
-                throw DefaultError.notFound
-            }            
-            
-            if let name = content.name {                
-                // check name not duplicate
-                let isDuplicate = product.variants.contains(where: { $0.name == name && $0.id != variantId })
-                if isDuplicate {
-                    throw DefaultError.error(message: "Name is duplicate")
-                }
-                variant.name = name
-            }
-
-            if let sku = content.sku {
-                // check sku not duplicate
-                let isDuplicate = product.variants.contains(where: { $0.sku == sku && $0.id != variantId })
-                if isDuplicate {
-                    throw DefaultError.error(message: "SKU is duplicate")
-                }
-
-                variant.sku = sku
-            }
-
-            if let price = content.price {
-                variant.price = price
-            }
-
-            if let description = content.description {
-                variant.description = description
-            }
-
-            if let image = content.image {
-                variant.image = image
-            }
-
-            if let color = content.color {
-                // check color not duplicate
-                let isDuplicate = product.variants.contains(where: { $0.color == color && $0.id != variantId })
-                if isDuplicate {
-                    throw DefaultError.error(message: "Color is duplicate")
-                }
-
-                variant.color = color
-            }
-
-            if let barcode = content.barcode {
-                // check barcode not duplicate
-                let isDuplicate = product.variants.contains(where: { $0.barcode == barcode && $0.id != variantId })
-                if isDuplicate {
-                    throw DefaultError.error(message: "Barcode is duplicate")
-                }
-                variant.barcode = barcode
-            }
-
-            if let dimensions = content.dimensions {
-                variant.dimensions = dimensions
-            }
-
-            //replace variant in product.variants with match uuid
-            product.variants = product.variants.map({ $0.id == variant.id ? variant : $0 })
-            
-            try await product.save(on: db)
-            
-            return ProductResponse(from: product)
-        } catch let error as DefaultError {
-            throw error
-        } catch {
-            throw DefaultError.error(message: error.localizedDescription)
+    func createVariant(byId: GeneralRequest.FetchById,
+                       request: ProductRequest.CreateVariant,
+                       on db: any FluentKit.Database) async throws -> Product {
+        let model = try await fetchById(request: .init(id: byId.id),
+                                        on: db)
+        
+        let variantLastedNumber = try await fetchVariantLastedNumber(byId: byId, 
+                                                                     on: db)
+        let nextNumber = variantLastedNumber + 1
+        
+        let existModels = model.variants.filter({$0.deletedAt != nil })
+        
+        // prevent duplicate name
+        if existModels.contains(where: { $0.name == request.name }) {
+            throw CommonError.duplicateName
         }
-
+        
+        //prevent duplicate color
+        if existModels.contains(where: { $0.color == request.color }) {
+            throw CommonError.duplicateColor
+        }
+        
+        let variant = ProductVariant(number: nextNumber,
+                                     name: request.name,
+                                     sku: request.sku,
+                                     price: request.price,
+                                     description: request.description,
+                                     image: request.image,
+                                     color: request.color,
+                                     barcode: request.barcode,
+                                     dimensions: request.dimensions)
+        model.variants.append(variant)
+        
+        try await model.save(on: db)
+        return model
     }
     
-    func deleteVariant(id: UUID, variantId: UUID, on db: Database) async throws -> ProductResponse {        
-        do {
-            guard 
-                let product = try await Product.query(on: db).filter(\.$id == id).first(),
-                let _ = product.variants.first(where: { $0.id == variantId })
-            else {
-                throw DefaultError.notFound
-            }            
-
-            product.variants.removeAll() { $0.id == variantId }
-
-            try await product.save(on: db)
-            
-            return ProductResponse(from: product)
-        } catch let error as DefaultError {
-            throw error
-        } catch {
-            throw DefaultError.error(message: error.localizedDescription)
+    func updateVariant(byId: GeneralRequest.FetchById, 
+                       variantId: GeneralRequest.FetchById,
+                       request: ProductRequest.UpdateVariant,
+                       on db: any FluentKit.Database) async throws -> Product {
+        let model = try await fetchById(request: .init(id: byId.id),
+                                        on: db)
+        
+        let existModels = model.variants.filter({$0.deletedAt != nil })
+        
+        guard let variant = existModels.first(where: { $0.id == variantId.id }) else {
+            throw DefaultError.notFound
         }
+        
+        // check is deleted
+        if variant.deletedAt != nil {
+            throw DefaultError.notFound
+        }
+        
+        if let name = request.name {
+            // prevent duplicate name
+            if existModels.contains(where: { $0.name == name }) {
+                throw CommonError.duplicateName
+            }
+            
+            variant.name = name
+        }
+        
+        if let sku = request.sku {
+            variant.sku = sku
+        }
+        
+        if let price = request.price {
+            variant.price = price
+        }
+        
+        if let description = request.description {
+            variant.description = description
+        }
+        
+        if let image = request.image {
+            variant.image = image
+        }
+        
+        if let color = request.color {
+            variant.color = color
+        }
+        
+        if let barcode = request.barcode {
+            variant.barcode = barcode
+        }
+        
+        if let dimensions = request.dimensions {
+            variant.dimensions = dimensions
+        }
+        
+        try await model.save(on: db)
+        return model
     }
+    
+    func deleteVariant(byId: GeneralRequest.FetchById,
+                       variantId: GeneralRequest.FetchById,
+                       on db: any FluentKit.Database) async throws -> Product {
+        let model = try await fetchById(request: byId,
+                                        on: db)
+        
+        let existModels = model.variants.filter({$0.deletedAt != nil })
+        
+        guard let variant = existModels.first(where: { $0.id == variantId.id }) else {
+            throw DefaultError.notFound
+        }
+        
+        // soft delete
+        variant.updatedAt = Date()
+        variant.deletedAt = Date()
+        
+        try await model.save(on: db)
+        return model
+    }
+    
 }
 
 
 private extension ProductRepository {
     func sortQuery(query: QueryBuilder<Product>,
-                   sortBy: ProductRepository.SortBy,
-                   sortOrder: ProductRepository.SortOrder,
+                   sortBy: SortBy,
+                   sortOrder: SortOrder,
                    page: Int,
                    perPage: Int) async throws -> [Product] {
+        
+        let pageIndex = (page - 1)
+        let pageStart = pageIndex * perPage
+        let pageEnd = pageStart + perPage
+        
+        let range = pageStart..<pageEnd
+                        
+        query.with(\.$category)
+        
         switch sortBy {
         case .name:
             switch sortOrder {
@@ -443,251 +409,16 @@ private extension ProductRepository {
             case .desc:
                 return try await query.sort(\.$number, .descending).range((page - 1) * perPage..<(page * perPage)).all()
             }
-        case .price:
+        case .groupName:
             switch sortOrder {
             case .asc:
-                return try await query.sort(\.$price).range((page - 1) * perPage..<(page * perPage)).all()
+                return try await query.sort(ServiceCategory.self, \.$name).range(range).all()
             case .desc:
-                return try await query.sort(\.$price, .descending).range((page - 1) * perPage..<(page * perPage)).all()
+                return try await query.sort(ServiceCategory.self, \.$name, .descending).range(range).all()
             }
-        case .categoryId:
-            switch sortOrder {
-            case .asc:
-                return try await query.sort(\.$categoryId).range((page - 1) * perPage..<(page * perPage)).all()
-            case .desc:
-                return try await query.sort(\.$categoryId, .descending).range((page - 1) * perPage..<(page * perPage)).all()
-            }
+        default:
+            return try await query.range(range).all()
         }
     }
 }
-
-extension ProductRepository {
-    
-    static func updateFieldsBuilder(uuid: UUID, content: ProductRepository.Update, db: Database) -> QueryBuilder<Product> {
-        let updateBuilder = Product.query(on: db).filter(\.$id == uuid)
-        
-        if let name = content.name {
-            updateBuilder.set(\.$name, to: name)
-        }
-        
-        if let description = content.description {
-            updateBuilder.set(\.$description, to: description)
-        }
-        
-        if let price = content.price {
-            updateBuilder.set(\.$price, to: price)
-        }
-        
-        if let unit = content.unit {
-            updateBuilder.set(\.$unit, to: unit)
-        }
-        
-        if let categoryId = content.categoryId {
-            updateBuilder.set(\.$categoryId, to: categoryId)
-        }
-        
-        if let images = content.images {
-            updateBuilder.set(\.$images, to: images)
-        }
-        
-        if let coverImage = content.coverImage {
-            updateBuilder.set(\.$coverImage, to: coverImage)
-        }
-        
-        if let tags = content.tags {
-            updateBuilder.set(\.$tags, to: tags)
-        }
-        
-        return updateBuilder
-    }
-    
-    static func getByIDBuilder(uuid: UUID, db: Database) -> QueryBuilder<Product> {
-        return Product.query(on: db).filter(\.$id == uuid)
-    }
-}
-
-/*
- final class ProductVariant:Model, Content {
-     static let schema = "ProductVariant"
-     
-     @ID(key: .id)
-     var id: UUID?
-     
-     @Field(key: "number")
-     var number: Int
-
-     @Field(key: "name")
-     var name: String
-     
-     @Field(key: "sku")
-     var sku: String?
-     
-     @Field(key: "price")
-     var price: Double
-     
-     @Field(key: "description")
-     var description: String?
-     
-     @Field(key: "image")
-     var image: String?
-     
-     @Field(key: "color")
-     var color: String?
-     
-     @Field(key: "barcode")
-     var barcode: String?
-     
-     @Field(key: "dimensions")
-     var dimensions: ProductDimension?
-     
-     @Timestamp(key: "created_at",
-                on: .create,
-                format: .iso8601)
-     var createdAt: Date?
-     
-     @Timestamp(key: "updated_at",
-                on: .update,
-                format: .iso8601)
-     var updatedAt: Date?
-     
-     @Timestamp(key: "deleted_at",
-                on: .delete,
-                format: .iso8601)
-     var deletedAt: Date?
-     
-     init() { }
-     
-     init(id: UUID? = nil,
-          number: Int = 1,
-          name: String,
-          sku: String? = nil,
-          price: Double = 0,
-          description: String? = nil,
-          image: String? = nil,
-          color: String? = nil,
-          barcode: String? = nil,
-          dimensions: ProductDimension? = nil,
-          createdAt: Date? = nil,
-          updatedAt: Date? = nil,
-          deletedAt: Date? = nil) {
-         
-         self.id = id ?? .init()
-         self.number = number
-         self.name = name
-         self.description = description
-         self.sku = sku
-         self.price = price
-         self.image = image
-         self.color = color
-         self.barcode = barcode
-         self.dimensions = dimensions
-         self.createdAt = createdAt ?? .init()
-         self.updatedAt = updatedAt
-         self.deletedAt = deletedAt
-     }
-
- }
- */
-
-/*
-final class Product: Model, Content {
-    static let schema = "Products"
-   
-    @ID(key: .id)
-    var id: UUID?
-
-    @Field(key: "number")
-    var number: Int
-
-    @Field(key: "name")
-    var name: String
-
-    @Field(key: "description")
-    var description: String?
-
-    @Field(key: "unit")
-    var unit: String?
-
-    @Field(key: "price")
-    var price: Double
-
-    @Field(key: "category_id")
-    var categoryId: UUID?
-
-    @Field(key: "manufacturer")
-    var manufacturer: String?
-
-    @Field(key: "barcode")
-    var barcode: String?
-
-    @Timestamp(key: "created_at",
-           on: .create,
-           format: .iso8601)
-    var createdAt: Date?
-
-    @Timestamp(key: "updated_at",
-           on: .update,
-           format: .iso8601)
-    var updatedAt: Date?
-
-    @Timestamp(key: "deleted_at", 
-           on: .delete, 
-           format: .iso8601)
-    var deletedAt: Date?
-
-    @Field(key: "images")
-    var images: [String]
-
-    @Field(key: "cover_image")
-    var coverImage: String?
-
-    @Field(key: "tags")
-    var tags: [String]
-
-    @Field(key: "contacts")
-    var contacts: [UUID]
-
-    @Field(key: "variants")
-    var variants: [ProductVariant]
-
-    init() { }
-
-    init(id: UUID? = nil,
-         number: Int = 1,
-         name: String,
-         description: String? = nil,
-         unit: String? = nil,
-         price: Double,
-         categoryId: UUID? = nil,
-         manufacturer: String? = nil,
-         barcode: String? = nil,
-         createdAt: Date? = nil,
-         updatedAt: Date? = nil,
-         deletedAt: Date? = nil,
-         images: [String] = [],
-         coverImage: String? = nil,
-         tags: [String] = [],
-         contacts: [UUID] = [],
-         variants: [ProductVariant] = []) {
-        self.id = id ?? .init()
-        self.number = number
-        self.name = name
-        self.description = description
-        self.unit = unit
-        self.price = price
-        self.categoryId = categoryId
-        self.manufacturer = manufacturer
-        self.barcode = barcode
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
-        self.deletedAt = deletedAt
-        self.images = images
-        self.coverImage = coverImage
-        self.tags = tags
-        self.contacts = contacts
-        self.variants = variants
-    }
-
-}
-*/
 

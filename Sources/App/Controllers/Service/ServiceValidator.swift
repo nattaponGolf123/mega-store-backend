@@ -4,10 +4,12 @@ import Mockable
 
 @Mockable
 protocol ServiceValidatorProtocol {
+    typealias Create = ServiceRequest.Create
+    typealias Update = (id: GeneralRequest.FetchById, content: ServiceRequest.Update)
     typealias Search = GeneralRequest.Search
     
-    func validateCreate(_ req: Request) throws -> ServiceRequest.Create
-    func validateUpdate(_ req: Request) throws -> (id: GeneralRequest.FetchById, content: ServiceRequest.Update)
+    func validateCreate(_ req: Request) throws -> Create
+    func validateUpdate(_ req: Request) throws -> Update
     func validateID(_ req: Request) throws -> GeneralRequest.FetchById
     func validateSearchQuery(_ req: Request) throws -> Search
 }

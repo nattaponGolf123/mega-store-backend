@@ -1,7 +1,6 @@
 import Foundation
 import Vapor
 import Fluent
-import FluentMongoDriver
 import Mockable
 
 @Mockable
@@ -12,38 +11,38 @@ protocol ServiceRepositoryProtocol {
     func fetchAll(
         request: FetchAll,
         on db: Database
-    ) async throws -> PaginatedResponse<Service>
+    ) async throws -> PaginatedResponse<App.Service>
     
     func fetchById(
         request: GeneralRequest.FetchById,
         on db: Database
-    ) async throws -> Service
+    ) async throws -> App.Service
     
     func fetchByName(
         request: GeneralRequest.FetchByName,
         on db: Database
-    ) async throws -> Service
+    ) async throws -> App.Service
     
     func create(
         request: ServiceRequest.Create,
         on db: Database
-    ) async throws -> Service
+    ) async throws -> App.Service
     
     func update(
         byId: GeneralRequest.FetchById,
         request: ServiceRequest.Update,
         on db: Database
-    ) async throws -> Service
+    ) async throws -> App.Service
     
     func delete(
         byId: GeneralRequest.FetchById,
         on db: Database
-    ) async throws -> Service
+    ) async throws -> App.Service
     
-//    func search(
-//        request: Search,
-//        on db: Database
-//    ) async throws -> PaginatedResponse<Service>
+    func search(
+        request: Search,
+        on db: Database
+    ) async throws -> PaginatedResponse<App.Service>
     
     func fetchLastedNumber(
         on db: Database
@@ -55,6 +54,7 @@ class ServiceRepository: ServiceRepositoryProtocol {
     
     typealias FetchAll = GeneralRequest.FetchAll
     typealias Search = GeneralRequest.Search
+    typealias Service = App.Service
     
     private var serviceCategoryRepository: ServiceCategoryRepositoryProtocol
     
@@ -65,7 +65,7 @@ class ServiceRepository: ServiceRepositoryProtocol {
     func fetchAll(
         request: FetchAll,
         on db: any Database
-    ) async throws -> PaginatedResponse<Service> {
+    ) async throws -> PaginatedResponse<App.Service> {
         
         let query = Service.query(on: db)
         
@@ -92,7 +92,7 @@ class ServiceRepository: ServiceRepositoryProtocol {
     func fetchById(
         request: GeneralRequest.FetchById,
         on db: Database
-    ) async throws -> Service {
+    ) async throws -> App.Service {
         guard
             let found = try await Service.query(on: db).filter(\.$id == request.id).first()
         else {
@@ -105,7 +105,7 @@ class ServiceRepository: ServiceRepositoryProtocol {
     func fetchByName(
         request: GeneralRequest.FetchByName,
         on db: Database
-    ) async throws -> Service {
+    ) async throws -> App.Service {
         guard
             let found = try await Service.query(on: db).filter(\.$name == request.name).first()
         else {
@@ -118,21 +118,18 @@ class ServiceRepository: ServiceRepositoryProtocol {
     func create(
         request: ServiceRequest.Create,
         on db: Database
-    ) async throws -> Service {
+    ) async throws -> App.Service {
         // prevent duplicate name
         if let _ = try? await fetchByName(request: .init(name: request.name),
                                           on: db) {
             throw CommonError.duplicateName
         }
         
-        //var serviceCategory: ServiceCategory? = nil
         if let groupId = request.categoryId {
             guard
                 let _ = try? await serviceCategoryRepository.fetchById(request: .init(id: groupId),
                                                                                  on: db)
             else { throw DefaultError.notFound }
-            
-            //serviceCategory = cate
         }
         
         let lastedNumber = try await fetchLastedNumber(on: db)
@@ -156,7 +153,7 @@ class ServiceRepository: ServiceRepositoryProtocol {
         byId: GeneralRequest.FetchById,
         request: ServiceRequest.Update,
         on db: Database
-    ) async throws -> Service {
+    ) async throws -> App.Service {
         let service = try await fetchById(request: .init(id: byId.id), on: db)
         
         if let name = request.name {
@@ -210,17 +207,15 @@ class ServiceRepository: ServiceRepositoryProtocol {
     func delete(
         byId: GeneralRequest.FetchById,
         on db: Database
-    ) async throws -> Service {
-        let group = try await fetchById(request: .init(id: byId.id),
+    ) async throws -> App.Service {
+        let service = try await fetchById(request: .init(id: byId.id),
                                         on: db)
-        try await group.delete(on: db)
-        return group
+        try await service.delete(on: db)
+        return service
     }
     
-    func search(
-        request: GeneralRequest.Search,
-                on db: Database
-    ) async throws -> PaginatedResponse<Service> {
+    func search(request: Search,
+                on db: Database) async throws -> PaginatedResponse<App.Service> {
         
         let q = request.query
         let regexPattern = "(?i)\(q)"  // (?i) makes the regex case-insensitive
@@ -269,11 +264,11 @@ class ServiceRepository: ServiceRepositoryProtocol {
 //    }
 //
 private extension ServiceRepository {
-    func sortQuery(query: QueryBuilder<Service>,
+    func sortQuery(query: QueryBuilder<App.Service>,
                    sortBy: SortBy,
                    sortOrder: SortOrder,
                    page: Int,
-                   perPage: Int) async throws -> [Service] {
+                   perPage: Int) async throws -> [App.Service] {
         let pageIndex = (page - 1)
         let pageStart = pageIndex * perPage
         let pageEnd = pageStart + perPage

@@ -15,12 +15,13 @@ struct ProductResponse: Content {
     let description: String?
     let price: Double
     let unit: String?
-    let categoryId: UUID?
+    let category: ProductCategoryResponse?
     let images: [String]
     let coverImage: String?
     let tags: [String]
+    let barcode: String?
+    let manufacturer: String?
     let variants: [ProductVariantResponse]
-    let contacts: [UUID]
     let createdAt: Date?
     let updatedAt: Date?
     let deletedAt: Date?
@@ -33,12 +34,18 @@ struct ProductResponse: Content {
         self.description = product.description
         self.price = product.price
         self.unit = product.unit
-        self.categoryId = product.categoryId
+        if let category = product.$category.value,
+            let value = category {
+            self.category = .init(from: value)
+        } else {
+            self.category = nil
+        }
         self.images = product.images
         self.coverImage = product.coverImage
+        self.manufacturer = product.manufacturer
+        self.barcode = product.barcode
         self.tags = product.tags
         self.variants = product.variants.map { ProductVariantResponse(productCode: _code, from: $0) }
-        self.contacts = product.contacts
         self.createdAt = product.createdAt
         self.updatedAt = product.updatedAt
         self.deletedAt = product.deletedAt
@@ -51,12 +58,13 @@ struct ProductResponse: Content {
         case description
         case price
         case unit
-        case categoryId = "category_id"
+        case category
         case images
         case coverImage = "cover_image"
         case tags
         case variants
-        case contacts
+        case barcode
+        case manufacturer
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case deletedAt = "deleted_at"

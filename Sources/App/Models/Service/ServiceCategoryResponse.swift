@@ -6,7 +6,6 @@
 //
 
 import Foundation
-
 import Vapor
 
 struct ServiceCategoryResponse: Content {

@@ -25,13 +25,15 @@ final class Product: Model, Content {
     var description: String?
 
     @Field(key: "unit")
-    var unit: String?
+    var unit: String
 
     @Field(key: "price")
     var price: Double
 
-    @Field(key: "category_id")
-    var categoryId: UUID?
+//    @Field(key: "category_id")
+//    var categoryId: UUID?
+    @OptionalParent(key: "category_id")
+    var category: ProductCategory?
 
     @Field(key: "manufacturer")
     var manufacturer: String?
@@ -63,9 +65,6 @@ final class Product: Model, Content {
     @Field(key: "tags")
     var tags: [String]
 
-    @Field(key: "contacts")
-    var contacts: [UUID]
-
     @Field(key: "variants")
     var variants: [ProductVariant]
 
@@ -75,9 +74,9 @@ final class Product: Model, Content {
          number: Int = 1,
          name: String,
          description: String? = nil,
-         unit: String? = nil,
-         price: Double,
-         categoryId: UUID? = nil,
+         unit: String = "",
+         price: Double = 0,
+         categoryId: ProductCategory.IDValue? = nil,
          manufacturer: String? = nil,
          barcode: String? = nil,
          createdAt: Date? = nil,
@@ -86,7 +85,6 @@ final class Product: Model, Content {
          images: [String] = [],
          coverImage: String? = nil,
          tags: [String] = [],
-         contacts: [UUID] = [],
          variants: [ProductVariant] = []) {
         self.id = id ?? .init()
         self.number = number
@@ -94,17 +92,16 @@ final class Product: Model, Content {
         self.description = description
         self.unit = unit
         self.price = price
-        self.categoryId = categoryId
+        self.$category.id = categoryId
         self.manufacturer = manufacturer
         self.barcode = barcode
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
-        self.deletedAt = deletedAt
         self.images = images
         self.coverImage = coverImage
         self.tags = tags
-        self.contacts = contacts
         self.variants = variants
+        self.createdAt = createdAt ?? .init()
+        self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
     }
 
 }
@@ -122,7 +119,6 @@ extension Product {
                   images: ["https://example.com/steel.jpg"],
                   coverImage: "https://example.com/steel.jpg",
                   tags: ["steel", "iron", "carbon"],
-                  contacts: [],
                   variants: [
                       .init(number: 1,
                             name: "Steel",

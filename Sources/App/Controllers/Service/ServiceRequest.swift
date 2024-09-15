@@ -115,14 +115,14 @@ struct ServiceRequest {
         }
         
         enum CodingKeys: String, CodingKey {
-            case name = "name"
-            case description = "description"
-            case price = "price"
-            case unit = "unit"
+            case name
+            case description
+            case price
+            case unit
             case categoryId = "category_id"
-            case images = "images"
+            case images
             case coverImage = "cover_image"
-            case tags = "tags"
+            case tags
         }
         
         static func validations(_ validations: inout Validations) {
@@ -131,12 +131,4 @@ struct ServiceRequest {
         }
     }
     
-    //    enum SortBy: String, Codable {
-    //        case name
-    //        case number
-    //        case price
-    //        case categoryId = "category_id"
-    //        case createdAt = "created_at"
-    //    }
-    //
 }

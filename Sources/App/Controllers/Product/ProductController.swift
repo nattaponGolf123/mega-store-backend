@@ -4,13 +4,18 @@ import Vapor
 
 class ProductController: RouteCollection {
     
+    typealias FetchAll = GeneralRequest.FetchAll
+    
     private(set) var repository: ProductRepositoryProtocol
     private(set) var validator: ProductValidatorProtocol
+    private(set) var generalValidator: GeneralValidatorProtocol
     
     init(repository: ProductRepositoryProtocol = ProductRepository(),
-         validator: ProductValidatorProtocol = ProductValidator()) {
+         validator: ProductValidatorProtocol = ProductValidator(),
+         generalValidator: GeneralValidatorProtocol = GeneralValidator()) {
         self.repository = repository
         self.validator = validator
+        self.generalValidator = generalValidator
     }
     
     func boot(routes: RoutesBuilder) throws {
@@ -30,15 +35,6 @@ class ProductController: RouteCollection {
                 withVariant.group(":variant_id") { withVariantID in
                     withVariantID.put(use: updateVariant)
                     withVariantID.delete(use: deleteVariant)
-                }             
-            }
-
-            withID.group("contacts") { withContact in
-                withContact.post(use: addContact)
-                withContact.delete(use: reomveContact)
-
-                withContact.group(":contact_id") { withContactID in
-                    withContactID.delete(use: reomveContact)
                 }
             }
         }
@@ -50,125 +46,99 @@ class ProductController: RouteCollection {
     
     // GET /products?show_deleted=true&page=1&per_page=10
     func all(req: Request) async throws -> PaginatedResponse<ProductResponse> {
-        let reqContent = try req.query.decode(ProductRepository.Fetch.self)
-
-        return try await repository.fetchAll(req: reqContent, on: req.db)
+        let reqContent = try req.query.decode(FetchAll.self)
+        
+        let pageResponse = try await repository.fetchAll(request: reqContent,
+                                                         on: req.db)
+        
+        let responseItems: [ProductResponse] = pageResponse.items.map({ .init(from: $0) })
+        return .init(page: pageResponse.page,
+                     perPage: pageResponse.perPage,
+                     total: pageResponse.total,
+                     items: responseItems)
     }
     
     // POST /products
     func create(req: Request) async throws -> ProductResponse {
         let content = try validator.validateCreate(req)
         
-        return try await repository.create(content: content, on: req.db)
+        let product = try await repository.create(request: content,
+                                                  on: req.db)
+        
+        return .init(from: product)
     }
     
     // GET /products/:id
     func getByID(req: Request) async throws -> ProductResponse {
-        let uuid = try validator.validateID(req)
+        let content = try generalValidator.validateID(req)
         
-        return try await repository.find(id: uuid, on: req.db)
+        let product = try await repository.fetchById(request: content,
+                                                     on: req.db)
+        return .init(from: product)
     }
     
     // PUT /products/:id
     func update(req: Request) async throws -> ProductResponse {
-        let (uuid, content) = try validator.validateUpdate(req)
+        let (id, content) = try validator.validateUpdate(req)
         
-        do {
-            // check if name is duplicate
-            guard let name = content.name else { throw DefaultError.invalidInput }
-            
-            let _ = try await repository.find(name: name, on: req.db)
-            
-            throw CommonError.duplicateName
-            
-        } catch let error as DefaultError {
-            switch error {
-            case .notFound: // no duplicate
-                return try await repository.update(id: uuid, with: content, on: req.db)
-            default:
-                throw error
-            }
-            
-        } catch let error as CommonError {
-            throw error
-            
-        } catch {
-            // Handle all other errors
-            throw DefaultError.error(message: error.localizedDescription)
-        }
+        let product = try await repository.update(byId: id,
+                                                  request: content,
+                                                  on: req.db)
+        return .init(from: product)
     }
-
+    
     // DELETE /products/:id
     func delete(req: Request) async throws -> ProductResponse {
-        let uuid = try validator.validateID(req)
+        let id = try generalValidator.validateID(req)
         
-        return try await repository.delete(id: uuid, on: req.db)
+        let product = try await repository.delete(byId: id,
+                                                  on: req.db)
+        return .init(from: product)
     }
     
     // GET /products/search?name=xxx&page=1&per_page=10
     func search(req: Request) async throws -> PaginatedResponse<ProductResponse> {
-        let _ = try validator.validateSearchQuery(req)
-        let reqContent = try req.query.decode(ProductRepository.Search.self)
+        let content = try generalValidator.validateSearchQuery(req)
         
-        return try await repository.search(req: reqContent, on: req.db)        
+        let pageResponse = try await repository.search(request: content, on: req.db)
+        
+        let responseItems: [ProductResponse] = pageResponse.items.map({ .init(from: $0) })
+        return .init(page: pageResponse.page,
+                     perPage: pageResponse.perPage,
+                     total: pageResponse.total,
+                     items: responseItems)
     }
-
+    
     // POST /products/:id/variants
     func createVariant(req: Request) async throws -> ProductResponse {
-        let (uuid, content) = try validator.validateCreateVariant(req)
+        let (id, content) = try validator.validateCreateVariant(req)
         
-        return try await repository.createVariant(id: uuid, content: content, on: req.db)
+        let product = try await repository.createVariant(byId: id,
+                                                         request: content,
+                                                         on: req.db)
+        return .init(from: product)
     }
-
+    
     // PUT /products/:id/variants/:variant_id
     func updateVariant(req: Request) async throws -> ProductResponse {
-        let (uuid, variantId, content) = try validator.validateUpdateVariant(req)
+        let (id, variantId, content) = try validator.validateUpdateVariant(req)
         
-        return try await repository.updateVariant(id: uuid, variantId: variantId, with: content, on: req.db)
+        let product = try await repository.updateVariant(byId: id,
+                                                         variantId: variantId,
+                                                         request: content,
+                                                         on: req.db)
+        return .init(from: product)
     }
-
+    
     // DELETE /products/:id/variants/:variant_id
     func deleteVariant(req: Request) async throws -> ProductResponse {
-        let (uuid, variantId) = try validator.validateDeleteVariant(req)
+        let (id, variantId) = try validator.validateDeleteVariant(req)
         
-        return try await repository.deleteVariant(id: uuid, variantId: variantId, on: req.db)
-    }
-
-    // POST /products/:id/contacts
-    func addContact(req: Request) async throws -> ProductResponse {
-        let (uuid, contactId) = try validator.validateAddContact(req)
-        
-        return try await repository.linkContact(id: uuid, contactId: contactId, on: req.db)
-    }
-
-    // DELETE /products/:id/contacts/:contact_id
-    func reomveContact(req: Request) async throws -> ProductResponse {
-        let (uuid, contactId) = try validator.validateRemoveContact(req)
-        
-        return try await repository.deleteContact(id: uuid, contactId: contactId, on: req.db)
+        let product = try await repository.deleteVariant(byId: id,
+                                                         variantId: variantId,
+                                                         on: req.db)
+        return .init(from: product)
     }
     
 }
 
-/*
-protocol ProductRepositoryProtocol {
-    func fetchAll(req: ProductRepository.Fetch,
-                  on db: Database) async throws -> PaginatedResponse<ProductResponse>
-    func create(content: ProductRepository.Create, on db: Database) async throws -> ProductResponse
-    func find(id: UUID, on db: Database) async throws -> ProductResponse
-    func find(name: String, on db: Database) async throws -> ProductResponse
-    func update(id: UUID, with content: ProductRepository.Update, on db: Database) async throws -> ProductResponse
-    func delete(id: UUID, on db: Database) async throws -> ProductResponse
-    func search(req: ProductRepository.Search, on db: Database) async throws -> PaginatedResponse<ProductResponse>
-    func linkContact(id: UUID, contactId: UUID, on db: Database) async throws -> ProductResponse
-    func deleteContact(id: UUID, contactId: UUID, on db: Database) async throws -> ProductResponse
-    func fetchLastedNumber(on db: Database) async throws -> Int
-    
-    func fetchVariantLastedNumber(id: UUID, on db: Database) async throws -> Int
-    func createVariant(id: UUID, content: ProductRepository.CreateVariant, on db: Database) async throws -> ProductResponse
-    func updateVariant(id: UUID, variantId: UUID, with content: ProductRepository.UpdateVariant, on db: Database) async throws -> ProductResponse
-    func deleteVariant(id: UUID, variantId: UUID, on db: Database) async throws -> ProductResponse    
-
-}
-
-*/

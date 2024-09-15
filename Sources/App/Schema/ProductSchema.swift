@@ -22,17 +22,17 @@ class ProductSchema {
             .field("description", .string)
             .field("price", .double)
             .field("unit", .string)
-            .field("category_id", .uuid)
+            .field("category_id", .uuid, .references(ProductCategory.schema, "id"))
             .field("manufacturer", .string)
             .field("barcode", .string)
-            .field("created_at", .datetime)
-            .field("updated_at", .datetime)
-            .field("deleted_at", .datetime)
             .field("images", .array(of: .string))
             .field("cover_image", .string)
             .field("tags", .array(of: .string))
             .field("contacts", .array(of: .uuid))
             .field("variants", .array(of: .json))
+            .field("created_at", .datetime)
+            .field("updated_at", .datetime)
+            .field("deleted_at", .datetime)
     }
     
 }
