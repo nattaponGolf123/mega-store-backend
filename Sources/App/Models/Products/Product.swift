@@ -79,13 +79,13 @@ final class Product: Model, Content {
          categoryId: ProductCategory.IDValue? = nil,
          manufacturer: String? = nil,
          barcode: String? = nil,
-         createdAt: Date? = nil,
-         updatedAt: Date? = nil,
-         deletedAt: Date? = nil,
          images: [String] = [],
          coverImage: String? = nil,
          tags: [String] = [],
-         variants: [ProductVariant] = []) {
+         variants: [ProductVariant] = [],
+         createdAt: Date? = nil,
+         updatedAt: Date? = nil,
+         deletedAt: Date? = nil) {
         self.id = id ?? .init()
         self.number = number
         self.name = name

@@ -264,7 +264,7 @@ class ProductRepository: ProductRepositoryProtocol {
                                                                      on: db)
         let nextNumber = variantLastedNumber + 1
         
-        let existModels = model.variants.filter({$0.deletedAt != nil })
+        let existModels = model.variants.filter({$0.deletedAt == nil })
         
         // prevent duplicate name
         if existModels.contains(where: { $0.name == request.name }) {
@@ -298,14 +298,9 @@ class ProductRepository: ProductRepositoryProtocol {
         let model = try await fetchById(request: .init(id: byId.id),
                                         on: db)
         
-        let existModels = model.variants.filter({$0.deletedAt != nil })
+        let existModels = model.variants.filter({$0.deletedAt == nil })
         
         guard let variant = existModels.first(where: { $0.id == variantId.id }) else {
-            throw DefaultError.notFound
-        }
-        
-        // check is deleted
-        if variant.deletedAt != nil {
             throw DefaultError.notFound
         }
         
@@ -356,7 +351,7 @@ class ProductRepository: ProductRepositoryProtocol {
         let model = try await fetchById(request: byId,
                                         on: db)
         
-        let existModels = model.variants.filter({$0.deletedAt != nil })
+        let existModels = model.variants.filter({$0.deletedAt == nil })
         
         guard let variant = existModels.first(where: { $0.id == variantId.id }) else {
             throw DefaultError.notFound
