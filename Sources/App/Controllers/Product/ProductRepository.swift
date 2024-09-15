@@ -1,8 +1,9 @@
 import Foundation
 import Vapor
 import Fluent
-import FluentMongoDriver
+import Mockable
 
+@Mockable
 protocol ProductRepositoryProtocol {
     typealias FetchAll = GeneralRequest.FetchAll
     typealias Search = GeneralRequest.Search

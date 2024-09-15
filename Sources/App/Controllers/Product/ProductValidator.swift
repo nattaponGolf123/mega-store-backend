@@ -1,6 +1,8 @@
 import Foundation
 import Vapor
+import Mockable
 
+@Mockable
 protocol ProductValidatorProtocol {
     typealias Create = ProductRequest.Create
     typealias Update = (id: GeneralRequest.FetchById, content: ProductRequest.Update)

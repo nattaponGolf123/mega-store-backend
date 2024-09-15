@@ -163,15 +163,6 @@ struct ProductRequest {
             validations.add("price", as: Double.self, is: .range(0...), required: false)
         }
     }
-    
-   struct AddContact: Content {
-       let contactId: UUID
-       
-       enum CodingKeys: String, CodingKey {
-           case contactId = "contact_id"
-       }
-       
-   }
 
     struct CreateVariant: Content, Validatable {
         
