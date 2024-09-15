@@ -191,104 +191,153 @@ final class ServiceControllerTests: XCTestCase {
     }
     
     // MARK: - Test PUT /services/:id
-//    func testUpdate_WithInvalidService_ShouldReturnBadRequest() async throws {
-//        
-//        // Given
-//        let id = UUID()
-//        let requestId = GeneralRequest.FetchById(id: id)
-//        let requestUpdate = ServiceRequest.Update(name: "")
-//        given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
-//        
-//        given(repo).update(byId: .matching({ $0.id == id }), request: .matching({ $0.name == requestUpdate.name }), on: .any).willThrow(DefaultError.invalidInput)
-//        
-//        try app.test(.PUT, "services/\(id.uuidString)",
-//                     beforeRequest: { req in
-//                        try req.content.encode(requestUpdate)
-//                     }) { res in
-//            XCTAssertEqual(res.status, .badRequest)
-//        }
-//    }
+    func testUpdate_WithInvalidService_ShouldReturnBadRequest() async throws {
+        
+        // Given
+        let id = UUID()
+        let requestId = GeneralRequest.FetchById(id: id)
+        let requestUpdate = ServiceRequest.Update(name: "")
+        given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
+        
+        let repo = MockServiceRepositoryProtocol()
+        controller = .init(repository: repo,
+                           validator: validator)
+        
+        try app.register(collection: controller)
+
+        given(repo).update(byId: .matching({ $0.id == id }), request: .matching({ $0.name == requestUpdate.name }), on: .any).willThrow(DefaultError.invalidInput)
+        
+        try app.test(.PUT, "services/\(id.uuidString)",
+                     beforeRequest: { req in
+                        try req.content.encode(requestUpdate)
+                     }) { res in
+            XCTAssertEqual(res.status, .badRequest)
+        }
+    }
     
-//    func testUpdate_WithValidService_ShouldReturnService() async throws {
-//        
-//        // Given
-//        let id = UUID()
-//        let requestId = GeneralRequest.FetchById(id: id)
-//        let requestUpdate = ServiceRequest.Update(name: "Updated Yoga Class")
-//        given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
-//        
-//        given(repo).update(byId: .matching({ $0.id == id }), request: .matching({ $0.name == requestUpdate.name }), on: .any).willReturn(Stub.service)
-//        
-//        try app.test(.PUT, "services/\(id.uuidString)",
-//                     beforeRequest: { req in
-//                        try req.content.encode(requestUpdate)
-//                     }) { res in
-//            XCTAssertEqual(res.status, .ok)
-//            let service = try res.content.decode(ServiceResponse.self)
-//            XCTAssertEqual(service.name, "Yoga Class")
-//        }
-//    }
+    func testUpdate_WithValidService_ShouldReturnService() async throws {
+        
+        let service = Service(number: 1,
+                              name: "Yoga Class",
+                              description: "Relaxing Yoga",
+                              price: 20.0, 
+                              unit: "hour",
+                              images: [],
+                              coverImage: nil,
+                              tags: [])
+        try await service.save(on: db)
+        
+        // Given
+        let requestUpdate = ServiceRequest.Update(name: "Updated Yoga Class")
+        let request = GeneralRequest.FetchById(id: service.id!)
+        given(validator).validateUpdate(.any).willReturn((request, requestUpdate))
+        
+        try app.test(.PUT, "services/\(service.id!.uuidString)",
+                     beforeRequest: { req in
+                        try req.content.encode(requestUpdate)
+                     }) { res in
+            XCTAssertEqual(res.status, .ok)
+            let service = try res.content.decode(ServiceResponse.self)
+            XCTAssertEqual(service.name, "Updated Yoga Class")
+        }
+    }
     
     // MARK: - Test DELETE /services/:id
-//    func testDelete_WithInvalidService_ShouldReturnBadRequest() async throws {
-//        
-//        // Given
-//        let id = UUID()
-//        given(validator).validateID(.any).willThrow(DefaultError.invalidInput)
-//        
-//        given(repo).delete(byId: .matching({ $0.id == id }), on: .any).willThrow(DefaultError.invalidInput)
-//        
-//        try app.test(.DELETE, "services/\(id.uuidString)") { res in
-//            XCTAssertEqual(res.status, .badRequest)
-//        }
-//    }
+    func testDelete_WithInvalidService_ShouldReturnBadRequest() async throws {
+        
+        // Given
+        let id = UUID()
+        let repo = MockServiceRepositoryProtocol()
+        controller = .init(repository: repo,
+                           validator: validator)
+        
+        try app.register(collection: controller)
+
+        let request = GeneralRequest.FetchById(id: id)
+        given(validator).validateID(.any).willReturn(request)
+        given(repo).delete(byId: .any,
+                           on: .any).willThrow(DefaultError.invalidInput)
+        
+        try app.test(.DELETE, "services/\(id.uuidString)") { res in
+            XCTAssertEqual(res.status, .badRequest)
+        }
+    }
     
-//    func testDelete_WithValidService_ShouldReturnService() async throws {
-//        
-//        // Given
-//        let id = UUID()
-//        let reqId = GeneralRequest.FetchById(id: id)
-//        given(validator).validateID(.any).willReturn(reqId)
-//        
-//        given(repo).delete(byId: .matching({ $0.id == id }), on: .any).willReturn(Stub.service)
-//        
-//        try app.test(.DELETE, "services/\(id.uuidString)") { res in
-//            XCTAssertEqual(res.status, .ok)
-//            let service = try res.content.decode(ServiceResponse.self)
-//            XCTAssertEqual(service.name, "Yoga Class")
-//        }
-//    }
+    func testDelete_WithValidService_ShouldReturnService() async throws {
+        
+        let service = Service(number: 1,
+                              name: "Yoga Class",
+                              description: "Relaxing Yoga",
+                              price: 20.0,
+                              unit: "hour",
+                              images: [],
+                              coverImage: nil,
+                              tags: [])
+        try await service.save(on: db)
+        
+        // Given
+        let request = GeneralRequest.FetchById(id: service.id!)
+        given(validator).validateID(.any).willReturn(request)
+        
+        try app.test(.DELETE, "services/\(service.id!.uuidString)") { res in
+            XCTAssertEqual(res.status, .ok)
+        }
+                                                   
+    }
     
     // MARK: - Test GET /services/search
-//    func testSearch_WithEmptyQuery_ShouldReturnBadRequest() async throws {
-//        
-//        // Given
-//        let query = Search(query: "")
-//        given(validator).validateSearchQuery(.any).willThrow(DefaultError.invalidInput)
-//        
-//        given(repo).search(request: .matching({ $0.query == query.query }), on: .any).willThrow(DefaultError.invalidInput)
-//        
-//        try app.test(.GET, "services/search") { res in
-//            XCTAssertEqual(res.status, .badRequest)
-//        }
-//    }
-//    
-//    func testSearch_WithValidQuery_ShouldReturnServices() async throws {
-//        
-//        // Given
-//        let query = Search(query: "Yoga")
-//        given(validator).validateSearchQuery(.any).willReturn(query)
-//        
-//        let stub = PaginatedResponse<Service>(page: 1, perPage: 20, total: 2,
-//                                              items: [Service(number: 1, name: "Yoga Class", description: "Relaxing Yoga", price: 20.0, unit: "hour", images: [], coverImage: nil, tags: [])])
-//        given(repo).search(request: .matching({ $0.query == query.query }), on: .any).willReturn(stub)
-//        
-//        try app.test(.GET, "services/search?query=Yoga") { res in
-//            XCTAssertEqual(res.status, .ok)
-//            let services = try res.content.decode(PaginatedResponse<ServiceResponse>.self)
-//            XCTAssertEqual(services.total, 2)
-//        }
-//    }
+    func testSearch_WithEmptyQuery_ShouldReturnBadRequest() async throws {
+        // Given        
+        let repo = MockServiceRepositoryProtocol()
+        controller = .init(repository: repo,
+                           validator: validator)
+        
+        try app.register(collection: controller)
+
+        let request = GeneralRequest.Search(query: "123")
+        given(validator).validateSearchQuery(.any).willReturn(request)
+        given(repo).search(request: .any,
+                           on: .any).willThrow(DefaultError.invalidInput)
+        
+        try app.test(.GET, "services/search") { res in
+            XCTAssertEqual(res.status, .badRequest)
+        }
+    }
+    
+    func testSearch_WithValidQuery_ShouldReturnServices() async throws {
+        
+        // Given
+        let service1 = Service(number: 1,
+                               name: "Yoga Class 1",
+                               description: "Relaxing Yoga",
+                               price: 20.0,
+                               unit: "hour",
+                               images: [],
+                               coverImage: nil,
+                               tags: [])
+        
+        let service2 = Service(number: 2,
+                                 name: "Yoga Class 2",
+                                 description: "Relaxing Yoga",
+                                 price: 20.0,
+                                 unit: "hour",
+                                 images: [],
+                                 coverImage: nil,
+                                 tags: [])
+        
+        try await service1.save(on: db)
+        try await service2.save(on: db)
+        
+        let query = Search(query: "1")
+        given(validator).validateSearchQuery(.any).willReturn(query)
+        
+        try app.test(.GET, "services/search?query=1") { res in
+            XCTAssertEqual(res.status, .ok)
+            let services = try res.content.decode(PaginatedResponse<ServiceResponse>.self)
+            XCTAssertEqual(services.total, 1)
+        }
+    }
+
 }
 
 extension ServiceControllerTests {
