@@ -123,7 +123,8 @@ final class ContactGroupRepositoryTests: XCTestCase {
         try await group2.create(on: db)
         
         // When
-        let result = try await contactGroupRepository.fetchAll(request: .init(sortBy: .name, sortOrder: .asc),
+        let result = try await contactGroupRepository.fetchAll(request: .init(sortBy: .name, 
+                                                                              sortOrder: .asc),
                                                                on: db)
         
         // Then
@@ -136,16 +137,19 @@ final class ContactGroupRepositoryTests: XCTestCase {
         // Given
         let group1 = ContactGroup(name: "Group1")
         let group2 = ContactGroup(name: "Group2")
+        
         try await group1.create(on: db)
+        sleep(1)
         try await group2.create(on: db)
         
         // When
-        let result = try await contactGroupRepository.fetchAll(request: .init(sortBy: .createdAt, sortOrder: .desc),
+        let result = try await contactGroupRepository.fetchAll(request: .init(sortBy: .createdAt,
+                                                                              sortOrder: .desc),
                                                                on: db)
         
         // Then
         XCTAssertEqual(result.items.count, 2)
-        XCTAssertEqual(result.items.first?.name, "Group1")
+        XCTAssertEqual(result.items.first?.name, "Group2")
     }
     
     func testFetchAll_WithSortByCreateAtAsc_ShouldReturnGroup() async throws {
@@ -154,10 +158,12 @@ final class ContactGroupRepositoryTests: XCTestCase {
         let group1 = ContactGroup(name: "Group1")
         let group2 = ContactGroup(name: "Group2")
         try await group1.create(on: db)
+        sleep(1)
         try await group2.create(on: db)
         
         // When
-        let result = try await contactGroupRepository.fetchAll(request: .init(sortBy: .createdAt, sortOrder: .asc),
+        let result = try await contactGroupRepository.fetchAll(request: .init(sortBy: .createdAt,
+                                                                              sortOrder: .asc),
                                                                on: db)
         
         // Then

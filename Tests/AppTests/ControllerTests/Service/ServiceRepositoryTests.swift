@@ -194,6 +194,7 @@ final class ServiceRepositoryTests: XCTestCase {
         let service1 = Service(number: 1, name: "Service1", description: "Desc1", price: 100.0, unit: "unit")
         let service2 = Service(number: 2, name: "Service2", description: "Desc2", price: 200.0, unit: "unit")
         try await service1.create(on: db)
+        sleep(1)
         try await service2.create(on: db)
         
         // When

@@ -138,6 +138,7 @@ final class ContactRepositoryTests: XCTestCase {
         let contact1 = Contact(name: "Contact1")
         let contact2 = Contact(name: "Contact2")
         try await contact1.create(on: db)
+        sleep(1)
         try await contact2.create(on: db)
         
         // When
@@ -146,7 +147,7 @@ final class ContactRepositoryTests: XCTestCase {
         
         // Then
         XCTAssertEqual(result.items.count, 2)
-        XCTAssertEqual(result.items.first?.name, "Contact1")
+        XCTAssertEqual(result.items.first?.name, "Contact2")
     }
     
     func testFetchAll_WithSortByCreateAtAsc_ShouldReturnContact() async throws {
@@ -155,6 +156,7 @@ final class ContactRepositoryTests: XCTestCase {
         let contact1 = Contact(name: "Contact1")
         let contact2 = Contact(name: "Contact2")
         try await contact1.create(on: db)
+        sleep(1)
         try await contact2.create(on: db)
         
         // When
