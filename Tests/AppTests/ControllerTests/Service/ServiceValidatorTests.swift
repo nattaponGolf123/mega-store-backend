@@ -23,7 +23,6 @@ final class ServiceValidatorTests: XCTestCase {
         try await super.setUp()
 
         app = Application(.testing)
-
         validator = .init()
     }
 
