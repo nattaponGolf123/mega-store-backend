@@ -124,15 +124,18 @@ struct PurchaseOrderRequest {
         let sortOrder: SortOrder
         let periodDate: PeriodDate
         
+        static let minPageRange: (min: Int, max: Int) = (1, .max)
+        static let perPageRange: (min: Int, max: Int) = (20, 1000)
+        
         init(status: Status = .all,
-             page: Int = 1,
-             perPage: Int = 20,
+             page: Int = Self.minPageRange.min,
+             perPage: Int = Self.perPageRange.min,
              sortBy: SortBy = .number,
              sortOrder: SortOrder = .asc,
              periodDate: PeriodDate) {
             self.status = status
-            self.page = page
-            self.perPage = perPage
+            self.page = min(max(page, Self.minPageRange.min), Self.minPageRange.max)
+            self.perPage = min(max(perPage, Self.perPageRange.min), Self.perPageRange.max)
             self.sortBy = sortBy
             self.sortOrder = sortOrder
             self.periodDate = periodDate
@@ -231,9 +234,9 @@ struct PurchaseOrderRequest {
             self.query = try container.decode(String.self, forKey: .query)
             self.page = (try? container.decode(Int.self, forKey: .page)) ?? Self.minPageRange.min
             self.perPage = (try? container.decode(Int.self, forKey: .perPage)) ?? Self.perPageRange.min
-            self.status = try container.decode(Status.self, forKey: .status)
-            self.sortBy = try container.decode(SortBy.self, forKey: .sortBy)
-            self.sortOrder = try container.decode(SortOrder.self, forKey: .sortOrder)
+            self.status = (try? container.decode(Status.self, forKey: .status)) ?? .all
+            self.sortBy = (try? container.decodeIfPresent(SortBy.self, forKey: .sortBy)) ?? .createdAt
+            self.sortOrder = (try? container.decodeIfPresent(SortOrder.self, forKey: .sortOrder)) ?? .asc
             
             let dateFormat = "yyyy-MM-dd"
             let from = try container.decode(String.self, forKey: .from).tryToDate(dateFormat)

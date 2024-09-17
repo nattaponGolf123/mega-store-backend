@@ -18,8 +18,8 @@ struct PurchaseOrderResponse: Content {
     let orderDate: Date
     let deliveryDate: Date
     let paymentTermsDays: Int
-    let supplierId: UUID
-    let customerId: UUID
+    let supplier: ContactResponse?
+    let customer: ContactResponse?
     
     let status: PurchaseOrderStatus
     
@@ -57,8 +57,8 @@ struct PurchaseOrderResponse: Content {
         orderDate = po.orderDate
         deliveryDate = po.deliveryDate
         paymentTermsDays = po.paymentTermsDays
-        supplierId = po.supplierId
-        customerId = po.customerId
+        supplier = ContactResponse(from: po.supplier!)
+        customer = ContactResponse(from: po.customer!)
         status = po.status
         vatOption = po.vatOption
         includedVat = po.includedVat
@@ -79,70 +79,6 @@ struct PurchaseOrderResponse: Content {
         logs = po.logs
     }
     
-    //encode
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(id, forKey: .id)
-        try container.encode(code, forKey: .code)
-        try container.encode(reference, forKey: .reference)
-        try container.encode(items, forKey: .items)
-        try container.encode(orderDate, forKey: .orderDate)
-        try container.encode(deliveryDate, forKey: .deliveryDate)
-        try container.encode(paymentTermsDays, forKey: .paymentTermsDays)
-        try container.encode(supplierId, forKey: .supplierId)
-        try container.encode(customerId, forKey: .customerId)
-        try container.encode(status, forKey: .status)
-        try container.encode(vatOption, forKey: .vatOption)
-        try container.encode(includedVat, forKey: .includedVat)        
-        try container.encode(totalAmountBeforeDiscount, forKey: .totalAmountBeforeDiscount)
-        try container.encode(totalAmountBeforeVat, forKey: .totalAmountBeforeVat)
-        try container.encode(totalVatAmount, forKey: .totalVatAmount)
-        try container.encode(totalAmountAfterVat, forKey: .totalAmountAfterVat)
-        try container.encode(totalWithholdingTaxAmount, forKey: .totalWithholdingTaxAmount)
-        try container.encode(totalAmountDue, forKey: .totalAmountDue)
-        try container.encode(additionalDiscountAmount, forKey: .additionalDiscountAmount)
-        try container.encode(currency, forKey: .currency)
-        try container.encode(note, forKey: .note)
-        try container.encode(createdAt, forKey: .createdAt)
-        try container.encode(updatedAt, forKey: .updatedAt)
-        try container.encode(pendedAt, forKey: .pendedAt)
-        try container.encode(approvedAt, forKey: .approvedAt)
-        try container.encode(voidedAt, forKey: .voidedAt)
-        try container.encode(logs, forKey: .logs)
-    }
-    
-    //decode
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(UUID.self, forKey: .id)
-        code = try container.decode(String.self, forKey: .code)
-        reference = try container.decode(String?.self, forKey: .reference)
-        items = try container.decode([PurchaseOrderItemResponse].self, forKey: .items)
-        orderDate = try container.decode(Date.self, forKey: .orderDate)
-        deliveryDate = try container.decode(Date.self, forKey: .deliveryDate)
-        paymentTermsDays = try container.decode(Int.self, forKey: .paymentTermsDays)
-        supplierId = try container.decode(UUID.self, forKey: .supplierId)
-        customerId = try container.decode(UUID.self, forKey: .customerId)
-        status = try container.decode(PurchaseOrderStatus.self, forKey: .status)
-        vatOption = try container.decode(PurchaseOrder.VatOption.self, forKey: .vatOption)
-        includedVat = try container.decode(Bool.self, forKey: .includedVat)
-        totalAmountBeforeDiscount = try container.decode(Double.self, forKey: .totalAmountBeforeDiscount)
-        totalAmountBeforeVat = try container.decode(Double.self, forKey: .totalAmountBeforeVat)
-        totalVatAmount = try container.decode(Double?.self, forKey: .totalVatAmount)
-        totalAmountAfterVat = try container.decode(Double.self, forKey: .totalAmountAfterVat)
-        totalWithholdingTaxAmount = try container.decode(Double?.self, forKey: .totalWithholdingTaxAmount)
-        totalAmountDue = try container.decode(Double.self, forKey: .totalAmountDue)
-        additionalDiscountAmount = try container.decode(Double.self, forKey: .additionalDiscountAmount)
-        currency = try container.decode(CurrencySupported.self, forKey: .currency)
-        note = try container.decode(String.self, forKey: .note)
-        createdAt = try container.decode(Date?.self, forKey: .createdAt)
-        updatedAt = try container.decode(Date?.self, forKey: .updatedAt)
-        pendedAt = try container.decode(Date?.self, forKey: .pendedAt)
-        approvedAt = try container.decode(Date?.self, forKey: .approvedAt)
-        voidedAt = try container.decode(Date?.self, forKey: .voidedAt)
-        logs = try container.decode([ActionLog].self, forKey: .logs)
-    }
-    
     // enum CodingKeys with snake case string ex case itemId = "item_id"
     enum CodingKeys: String, CodingKey {
         case id
@@ -152,8 +88,8 @@ struct PurchaseOrderResponse: Content {
         case orderDate = "order_date"
         case deliveryDate = "delivery_date"
         case paymentTermsDays = "payment_terms_days"
-        case supplierId = "supplier_id"
-        case customerId = "customer_id"
+        case supplier
+        case customer
         case status
         case vatOption = "vat_option"
         case includedVat = "included_vat"

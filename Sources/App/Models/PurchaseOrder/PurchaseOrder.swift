@@ -63,6 +63,7 @@ final class PurchaseOrder: Model, Content {
     @Field(key: "included_vat")
     var includedVat: Bool
     
+    // ===== Computed value
     @Field(key: "total_amount_before_discount")
     var totalAmountBeforeDiscount: Double
     
@@ -87,6 +88,8 @@ final class PurchaseOrder: Model, Content {
     @Field(key: "vat_adjustment_amount")
     var vatAdjustmentAmount: Double?
 
+    // =====
+    
     @Enum(key: "currency")
     var currency: CurrencySupported
     
@@ -294,8 +297,6 @@ final class PurchaseOrder: Model, Content {
         self.totalVatAmount = summary.totalVatAmount
         self.totalWithholdingTaxAmount = summary.totalWithholdingTaxAmount
     }
-    
-    
     
     func ableUpdateStatus() -> [PurchaseOrderStatus] {
         switch status {

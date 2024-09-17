@@ -33,8 +33,6 @@ final class PurchaseOrderTests: XCTestCase {
         let expectedOrderDate = Date()
         let expectedDeliveryDate = Date()
         let expectedPaymentTermsDays = 30
-        let expectedSupplierId = UUID()
-        let expectedCustomerId = UUID()
 
         let po = PurchaseOrder(month: expectedMonth,
                                year: expectedYear,
@@ -48,9 +46,7 @@ final class PurchaseOrderTests: XCTestCase {
                                vatAdjustmentAmount: expectedVatAdjustmentAmount,
                                orderDate: expectedOrderDate,
                                deliveryDate: expectedDeliveryDate,
-                               paymentTermsDays: expectedPaymentTermsDays,
-                               supplierId: expectedSupplierId,
-                               customerId: expectedCustomerId)
+                               paymentTermsDays: expectedPaymentTermsDays)
 
         XCTAssertEqual(po.month, expectedMonth)
         XCTAssertEqual(po.year, expectedYear)
@@ -65,24 +61,110 @@ final class PurchaseOrderTests: XCTestCase {
         XCTAssertEqual(po.orderDate, expectedOrderDate)
         XCTAssertEqual(po.deliveryDate, expectedDeliveryDate)
         XCTAssertEqual(po.paymentTermsDays, expectedPaymentTermsDays)
-        XCTAssertEqual(po.supplierId, expectedSupplierId)
-        XCTAssertEqual(po.customerId, expectedCustomerId)
     }
 
     // Test Computed Properties
-//    func testTotalAmountBeforeDiscount_WithValidItems_ShouldCalculateCorrectly() {
-//        let purchaseOrder = Stub.po1
+    /*
+     @Field(key: "total_amount_before_discount")
+     var totalAmountBeforeDiscount: Double
+     
+     @Field(key: "total_amount_before_vat")
+     var totalAmountBeforeVat: Double
+     
+     @Field(key: "total_vat_amount")
+     var totalVatAmount: Double?
+     
+     @Field(key: "total_amount_after_vat")
+     var totalAmountAfterVat: Double
+     
+     @Field(key: "total_withholding_tax_amount")
+     var totalWithholdingTaxAmount: Double?
+     
+     @Field(key: "total_amount_due")
+     var totalAmountDue: Double
+     
+     @Field(key: "additional_discount_amount")
+     var additionalDiscountAmount: Double
+     
+     @Field(key: "vat_adjustment_amount")
+     var vatAdjustmentAmount: Double?
+
+     */
+    func testAllComputedValueProperties_WithNoItem_ShouldReturnZero() {
+        let po = Stub.emptyItemPo
+        XCTAssertEqual(po.totalAmountBeforeDiscount, 0)
+        XCTAssertEqual(po.totalAmountBeforeVat, 0)
+        XCTAssertEqual(po.totalVatAmount, 0)
+        XCTAssertEqual(po.totalAmountAfterVat, 0)
+        XCTAssertEqual(po.totalWithholdingTaxAmount, 0)
+        XCTAssertEqual(po.totalAmountDue, 0)
+        XCTAssertEqual(po.additionalDiscountAmount, 0)
+        XCTAssertEqual(po.vatAdjustmentAmount, 0)        
+    }
+    
+    func testTotalAmountBeforeDiscount_WithValidItems_ShouldCalculateCorrectly() {
+        let po =  PurchaseOrder(month: 1,
+                                           year: 2021,
+                                           number: 1,
+                                           status: .pending,
+                                           reference: "PO-2021-01-01",
+                                           vatOption: .vatIncluded,
+                                           includedVat: true,
+                                           items: [.init(id: .init(),
+                                                         itemId: .init(),
+                                                         kind: .product,
+                                                         name: "Product 1",
+                                                         description: "Product 1",
+                                                         qty: 10,
+                                                         pricePerUnit: 10,
+                                                         discountPricePerUnit: 1,
+                                                         additionalDiscount: 0,
+                                                         vatRate: ._7,
+                                                         vatIncluded: true,
+                                                         taxWithholdingRate: ._3)],
+                                           additionalDiscountAmount: 0,
+                                           vatAdjustmentAmount: 0,
+                                           orderDate: .init(),
+                                           deliveryDate: .init(),
+                                           paymentTermsDays: 30)
+        
+        let expectedAmount = po.items.reduce(0) { $0 + $1.qty * ($1.pricePerUnit / (1 + $1.vatRate!)) }
+        XCTAssertEqual(po.totalAmountBeforeDiscount, expectedAmount)
+    }
+
+    func testTotalAmountBeforeVat_WithValidItems_ShouldCalculateCorrectly() {
+        let po = PurchaseOrder(month: 1,
+                               year: 2021,
+                               number: 1,
+                               status: .pending,
+                               reference: "PO-2021-01-01",
+                               vatOption: .vatIncluded,
+                               includedVat: true,
+                               items: [.init(id: .init(),
+                                             itemId: .init(),
+                                             kind: .product,
+                                             name: "Product 1",
+                                             description: "Product 1",
+                                             qty: 10,
+                                             pricePerUnit: 10,
+                                             discountPricePerUnit: 1,
+                                             additionalDiscount: 0,
+                                             vatRate: ._7,
+                                             vatIncluded: true,
+                                             taxWithholdingRate: ._3)],
+                               additionalDiscountAmount: 0,
+                               vatAdjustmentAmount: 0,
+                               orderDate: .init(),
+                               deliveryDate: .init(),
+                               paymentTermsDays: 30)
+        
+//        let expectedAmount = po.items.reduce(0.0) { total, item in
+//                let additionalDiscount: Double = po.additionalDiscountAmount / Double(po.items.count)
+//                return total + item.amountBeforeVat(withAdditionalDiscount: additionalDiscount)
+//            } - (po.vatAdjustmentAmount ?? 0.0)
 //        
-//        let expectedAmount = purchaseOrder.items.reduce(0) { $0 + $1.qty * ($1.pricePerUnit / (1 + $1.vatRate!)) }
-//        XCTAssertEqual(purchaseOrder.totalAmountBeforeDiscount, expectedAmount)
-//    }
-//
-//    func testTotalAmountBeforeVat_WithValidItems_ShouldCalculateCorrectly() {
-//        let purchaseOrder = Stub.po1
-//        
-//        let expectedAmount = purchaseOrder.items.reduce(0) { $0 + $1.amountBeforeVat(withAdditionalDiscount: purchaseOrder.additionalDiscountAmount / Double(purchaseOrder.items.count)) } - (purchaseOrder.vatAdjustmentAmount ?? 0.0)
-//        XCTAssertEqual(purchaseOrder.totalAmountBeforeVat, expectedAmount)
-//    }
+        //XCTAssertEqual(po.totalAmountBeforeVat, expectedAmount)
+    }
 //
 //    func testTotalAmountAfterVat_WithValidItems_ShouldCalculateCorrectly() {
 //        let purchaseOrder = Stub.po1
@@ -97,7 +179,7 @@ final class PurchaseOrderTests: XCTestCase {
 //        let expectedAmount = purchaseOrder.items.reduce(0) { $0 + $1.vatAmount(withAdditionalDiscount: purchaseOrder.additionalDiscountAmount / Double(purchaseOrder.items.count)) } + (purchaseOrder.vatAdjustmentAmount ?? 0.0)
 //        XCTAssertEqual(purchaseOrder.totalVatAmount, expectedAmount)
 //    }
-//
+
 //    func testTotalWithholdingTaxAmount_WithValidItems_ShouldCalculateCorrectly() {
 //        let purchaseOrder = Stub.po1
 //        
@@ -237,6 +319,21 @@ final class PurchaseOrderTests: XCTestCase {
 
 extension PurchaseOrderTests {
     struct Stub {
+        static var emptyItemPo: PurchaseOrder {
+            .init(month: 1,
+                  year: 2021,
+                  number: 1,
+                  status: .pending,
+                  reference: "PO-2021-01-01",
+                  vatOption: .vatIncluded,
+                  includedVat: true,
+                  items: [],
+                  additionalDiscountAmount: 0,
+                  vatAdjustmentAmount: 0,
+                  orderDate: .init(),
+                  deliveryDate: .init(),
+                  paymentTermsDays: 30)
+        }
         static var po1: PurchaseOrder {
             .init(month: 1,
                   year: 2021,
@@ -261,9 +358,7 @@ extension PurchaseOrderTests {
                   vatAdjustmentAmount: 0,
                   orderDate: .init(),
                   deliveryDate: .init(),
-                  paymentTermsDays: 30,
-                  supplierId: .init(),
-                  customerId: .init())
+                  paymentTermsDays: 30)
         }
     }
 }
