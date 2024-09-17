@@ -25,6 +25,9 @@ extension Sortable {
 enum SortBy: String, Sortable {
     case name
     case number
+    case status
+    case totalAmount = "total_amount"
+    case orderDate = "order_date"
     case groupId = "group_id"
     case groupName = "group_name"
     case createdAt = "created_at"

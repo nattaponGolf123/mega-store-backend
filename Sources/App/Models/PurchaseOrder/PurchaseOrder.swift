@@ -44,11 +44,15 @@ final class PurchaseOrder: Model, Content {
     @Field(key: "payment_terms_days")
     var paymentTermsDays: Int
     
-    @Field(key: "supplier_id")
-    var supplierId: UUID
+//    @Field(key: "supplier_id")
+//    var supplierId: UUID
+    @OptionalParent(key: "supplier_id")
+    var supplier: Contact?
     
-    @Field(key: "customer_id")
-    var customerId: UUID
+//    @Field(key: "customer_id")
+//    var customerId: UUID
+    @OptionalParent(key: "customer_id")
+    var customer: Contact?
     
     @Field(key: "status")
     var status: PurchaseOrderStatus
@@ -117,6 +121,9 @@ final class PurchaseOrder: Model, Content {
     @Field(key: "logs")
     var logs: [ActionLog]
     
+    let monthRange: (min: Int,max: Int) = (1, 12)
+    let yearRange: (min: Int,max: Int) = (1900, 3000)
+    
     init() { }
     
     init(id: UUID? = nil,
@@ -133,8 +140,8 @@ final class PurchaseOrder: Model, Content {
          orderDate: Date = .init(),
          deliveryDate: Date = .init(),
          paymentTermsDays: Int = 30,
-         supplierId: UUID,
-         customerId: UUID,
+         supplierId: Contact.IDValue? = nil,
+         customerId: Contact.IDValue? = nil,
          currency: CurrencySupported = .thb,
          note: String = "",
          createdAt: Date? = nil,
@@ -144,24 +151,26 @@ final class PurchaseOrder: Model, Content {
          voidedAt: Date? = nil,
          logs: [ActionLog] = []) {
         self.id = id ?? .init()
-        self.month = month
-        self.year = year
-        self.number = number
+        self.month = min(max(month, monthRange.min), monthRange.max)
+        self.year = min(max(year, yearRange.min), yearRange.max)
+        self.number = max(number, 1)
         self.reference = reference
         self.items = items
         self.orderDate = orderDate
         self.deliveryDate = deliveryDate
         self.paymentTermsDays = paymentTermsDays
-        self.supplierId = supplierId
-        self.customerId = customerId
+        self.$supplier.id = supplierId
+        self.$customer.id = customerId
         self.status = status
         self.currency = currency
         self.note = note
+        
         self.createdAt = createdAt ?? .now
         self.updatedAt = updatedAt
         self.pendedAt = pendedAt
         self.approvedAt = approvedAt
         self.voidedAt = voidedAt
+        
         self.logs = logs
         self.vatOption = vatOption
         self.includedVat = includedVat

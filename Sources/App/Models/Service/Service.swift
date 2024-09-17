@@ -75,7 +75,7 @@ final class Service: Model, Content {
          updatedAt: Date? = nil,
          deletedAt: Date? = nil) {
         self.id = id ?? .init()
-        self.number = number
+        self.number = max(number, 1)
         self.name = name
         self.description = description
         self.price = price

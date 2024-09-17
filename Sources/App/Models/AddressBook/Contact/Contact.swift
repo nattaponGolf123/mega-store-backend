@@ -96,7 +96,7 @@ final class Contact: Model, Content {
          deletedAt: Date? = nil) {
         
         self.id = id ?? UUID()
-        self.number = number
+        self.number = max(number, 1)
         self.groupId = groupId
         self.kind = kind
         self.name = name
