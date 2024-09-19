@@ -46,37 +46,37 @@ struct PurchaseOrderResponse: Content {
     
     let logs: [ActionLog]
     
-    init(po: PurchaseOrder) {
-        id = po.id!
-        code = PurchaseOrderCode(gregorianYear: po.year,
-                                 month: po.month,
-                                 number: po.number).code
+    init(from: PurchaseOrder) {
+        id = from.id!
+        code = PurchaseOrderCode(gregorianYear: from.year,
+                                 month: from.month,
+                                 number: from.number).code
         
-        reference = po.reference
-        items = po.items.map { PurchaseOrderItemResponse(item: $0) }
-        orderDate = po.orderDate
-        deliveryDate = po.deliveryDate
-        paymentTermsDays = po.paymentTermsDays
-        supplier = ContactResponse(from: po.supplier!)
-        customer = MyBusineseResponse(from: po.customer!)
-        status = po.status
-        vatOption = po.vatOption
-        includedVat = po.includedVat
-        totalAmountBeforeDiscount = po.totalAmountBeforeDiscount
-        totalAmountBeforeVat = po.totalAmountBeforeVat
-        totalVatAmount = po.totalVatAmount
-        totalAmountAfterVat = po.totalAmountAfterVat
-        totalWithholdingTaxAmount = po.totalWithholdingTaxAmount
-        totalAmountDue = po.totalAmountDue
-        additionalDiscountAmount = po.additionalDiscountAmount
-        currency = po.currency
-        note = po.note
-        createdAt = po.createdAt
-        updatedAt = po.updatedAt
-        pendedAt = po.pendedAt
-        approvedAt = po.approvedAt
-        voidedAt = po.voidedAt
-        logs = po.logs
+        reference = from.reference
+        items = from.items.map { PurchaseOrderItemResponse(item: $0) }
+        orderDate = from.orderDate
+        deliveryDate = from.deliveryDate
+        paymentTermsDays = from.paymentTermsDays
+        supplier = ContactResponse(from: from.supplier!)
+        customer = MyBusineseResponse(from: from.customer!)
+        status = from.status
+        vatOption = from.vatOption
+        includedVat = from.includedVat
+        totalAmountBeforeDiscount = from.totalAmountBeforeDiscount
+        totalAmountBeforeVat = from.totalAmountBeforeVat
+        totalVatAmount = from.totalVatAmount
+        totalAmountAfterVat = from.totalAmountAfterVat
+        totalWithholdingTaxAmount = from.totalWithholdingTaxAmount
+        totalAmountDue = from.totalAmountDue
+        additionalDiscountAmount = from.additionalDiscountAmount
+        currency = from.currency
+        note = from.note
+        createdAt = from.createdAt
+        updatedAt = from.updatedAt
+        pendedAt = from.pendedAt
+        approvedAt = from.approvedAt
+        voidedAt = from.voidedAt
+        logs = from.logs
     }
     
     // enum CodingKeys with snake case string ex case itemId = "item_id"
