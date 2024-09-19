@@ -6,11 +6,9 @@ import Mockable
 
 @Mockable
 protocol ContactRepositoryProtocol {
-    typealias FetchAll = GeneralRequest.FetchAll
-    typealias Search = GeneralRequest.Search
     
     func fetchAll(
-        request: FetchAll,
+        request: GeneralRequest.FetchAll,
         on db: Database
     ) async throws -> PaginatedResponse<Contact>
     
@@ -60,7 +58,7 @@ protocol ContactRepositoryProtocol {
     ) async throws -> Contact
     
     func search(
-        request: Search,
+        request: GeneralRequest.Search,
         on db: Database
     ) async throws -> PaginatedResponse<Contact>
     
@@ -70,17 +68,15 @@ protocol ContactRepositoryProtocol {
 }
 
 class ContactRepository: ContactRepositoryProtocol {
-    
-    typealias FetchAll = GeneralRequest.FetchAll
-    typealias Search = GeneralRequest.Search
-    
+        
     private var contactGroupRepository: ContactGroupRepositoryProtocol
     
     init(contactGroupRepository: ContactGroupRepositoryProtocol = ContactGroupRepository()) {
         self.contactGroupRepository = contactGroupRepository
     }
     
-    func fetchAll(request: FetchAll, on db: any Database) async throws -> PaginatedResponse<Contact> {
+    func fetchAll(request: GeneralRequest.FetchAll,
+                  on db: any Database) async throws -> PaginatedResponse<Contact> {
         
         let query = Contact.query(on: db)
         

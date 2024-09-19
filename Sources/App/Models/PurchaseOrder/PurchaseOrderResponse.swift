@@ -19,7 +19,7 @@ struct PurchaseOrderResponse: Content {
     let deliveryDate: Date
     let paymentTermsDays: Int
     let supplier: ContactResponse?
-    let customer: ContactResponse?
+    let customer: MyBusineseResponse?
     
     let status: PurchaseOrderStatus
     
@@ -58,7 +58,7 @@ struct PurchaseOrderResponse: Content {
         deliveryDate = po.deliveryDate
         paymentTermsDays = po.paymentTermsDays
         supplier = ContactResponse(from: po.supplier!)
-        customer = ContactResponse(from: po.customer!)
+        customer = MyBusineseResponse(from: po.customer!)
         status = po.status
         vatOption = po.vatOption
         includedVat = po.includedVat

@@ -6,7 +6,7 @@ protocol PurchaseOrderValidatorProtocol {
     typealias CreateItem = PurchaseOrderRequest.CreateItem
     typealias Update = (id: GeneralRequest.FetchById, content: PurchaseOrderRequest.Update)
     typealias Search = PurchaseOrderRequest.Search
-    typealias Fetch = PurchaseOrderRequest.Fetch
+    typealias Fetch = PurchaseOrderRequest.FetchAll
     
     func validateCreate(_ req: Request) throws -> Create
     func validateUpdate(_ req: Request) throws -> Update
@@ -20,7 +20,7 @@ class PurchaseOrderValidator: PurchaseOrderValidatorProtocol {
     typealias CreateItem = PurchaseOrderRequest.CreateItem
     typealias Update = (id: GeneralRequest.FetchById, content: PurchaseOrderRequest.Update)
     typealias Search = PurchaseOrderRequest.Search
-    typealias Fetch = PurchaseOrderRequest.Fetch
+    typealias Fetch = PurchaseOrderRequest.FetchAll
     
     func validateCreate(_ req: Request) throws -> Create {
         try Create.validate(content: req)

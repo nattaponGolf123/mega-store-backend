@@ -10,7 +10,7 @@ enum PurchaseOrderStatus: String, Codable {
     case draft = "DRAFT"
     case pending = "PENDING"
     case approved = "APPROVED"
-    case rejected = "REJECTED"
+    //case rejected = "REJECTED"
     case voided = "VOIDED"
 }
 
@@ -52,7 +52,7 @@ final class PurchaseOrder: Model, Content {
 //    @Field(key: "customer_id")
 //    var customerId: UUID
     @OptionalParent(key: "customer_id")
-    var customer: Contact?
+    var customer: MyBusinese?
     
     @Field(key: "status")
     var status: PurchaseOrderStatus
@@ -144,7 +144,7 @@ final class PurchaseOrder: Model, Content {
          deliveryDate: Date = .init(),
          paymentTermsDays: Int = 30,
          supplierId: Contact.IDValue? = nil,
-         customerId: Contact.IDValue? = nil,
+         customerId: MyBusinese.IDValue? = nil,
          currency: CurrencySupported = .thb,
          note: String = "",
          createdAt: Date? = nil,
@@ -220,8 +220,8 @@ final class PurchaseOrder: Model, Content {
                      orderDate: Date = .init(),
                      deliveryDate: Date = .init(),
                      paymentTermsDays: Int = 30,
-                     supplierId: UUID,
-                     customerId: UUID,
+                     supplierId: Contact.IDValue? = nil,
+                     customerId: MyBusinese.IDValue? = nil,
                      currency: CurrencySupported = .thb,
                      note: String = "",
                      userId: UUID) {
@@ -353,6 +353,13 @@ final class PurchaseOrder: Model, Content {
         default:
             break
         }
+    }
+    
+    func addLog(userID: UUID,
+                action: ActionLog.Action) {
+        self.logs = self.logs + [ActionLog(userId: userID,
+                                          action: action,
+                                          date: .now)]
     }
     
 }

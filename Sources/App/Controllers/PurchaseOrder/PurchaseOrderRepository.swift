@@ -4,33 +4,34 @@ import Fluent
 import Mockable
 
 protocol PurchaseOrderRepositoryProtocol {
-    func fetchAll(content: PurchaseOrderRequest.Fetch,
+    func fetchAll(request: PurchaseOrderRequest.FetchAll,
                   on db: Database) async throws -> PaginatedResponse<PurchaseOrder>
     func fetchById(request: GeneralRequest.FetchById,
                    on db: Database) async throws -> PurchaseOrder
-    func create(content: PurchaseOrderRequest.Create,
+    func create(request: PurchaseOrderRequest.Create,
                 userId: GeneralRequest.FetchById,
                 on db: Database) async throws -> PurchaseOrder
     func update(byId: GeneralRequest.FetchById,
                 request: PurchaseOrderRequest.Update,
+                userId: GeneralRequest.FetchById,
                 on db: Database) async throws -> PurchaseOrder
     
     func replaceItems(id: GeneralRequest.FetchById,
-                      with content: PurchaseOrderRequest.ReplaceItems,
+                      request: PurchaseOrderRequest.ReplaceItems,
                       userId: GeneralRequest.FetchById,
                       on db: Database) async throws -> PurchaseOrder
  
     func itemsReorder(id: GeneralRequest.FetchById,
-                      userId: GeneralRequest.FetchById,
                       itemsOrder: [GeneralRequest.FetchById],
+                      userId: GeneralRequest.FetchById,
                       on db: Database) async throws -> PurchaseOrder
     
     func approve(id: GeneralRequest.FetchById,
                  userId: GeneralRequest.FetchById,
                  on db: Database) async throws -> PurchaseOrder
-    func reject(id: GeneralRequest.FetchById,
-                userId: GeneralRequest.FetchById,
-                on db: Database) async throws -> PurchaseOrder
+//    func reject(id: GeneralRequest.FetchById,
+//                userId: GeneralRequest.FetchById,
+//                on db: Database) async throws -> PurchaseOrder
     func cancel(id: GeneralRequest.FetchById,
                 userId: GeneralRequest.FetchById,
                 on db: Database) async throws -> PurchaseOrder
@@ -38,7 +39,7 @@ protocol PurchaseOrderRepositoryProtocol {
               userId: GeneralRequest.FetchById,
               on db: Database) async throws -> PurchaseOrder
     
-    func search(content: PurchaseOrderRequest.Search,
+    func search(request: PurchaseOrderRequest.Search,
                 on db: Database) async throws -> PaginatedResponse<PurchaseOrder>
     func fetchLastedNumber(year: Int,
                            month: Int,
@@ -51,86 +52,550 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
     private var serviceRepository: ServiceRepositoryProtocol
     private var myBusineseRepository: MyBusineseRepositoryProtocol
     private var contactRepository: ContactRepositoryProtocol
+    private var userRepository: UserRepositoryProtocol
         
     init(productRepository: ProductRepositoryProtocol = ProductRepository(),
          serviceRepository: ServiceRepositoryProtocol = ServiceRepository(),
          myBusineseRepository: MyBusineseRepositoryProtocol = MyBusineseRepository(),
-         contactRepository: ContactRepositoryProtocol = ContactRepository()) {
+         contactRepository: ContactRepositoryProtocol = ContactRepository(),
+         userRepository: UserRepositoryProtocol = UserRepository()) {
         self.productRepository = productRepository
         self.serviceRepository = serviceRepository
         self.myBusineseRepository = myBusineseRepository
         self.contactRepository = contactRepository
+        self.userRepository = userRepository
     }
     
-    func fetchAll(content: PurchaseOrderRequest.Fetch,
+    func fetchAll(request: PurchaseOrderRequest.FetchAll,
                   on db: Database) async throws -> PaginatedResponse<PurchaseOrder> {
-        .init(page: 0, perPage: 0, total: 0, items: [])
+        let query = PurchaseOrder.query(on: db)
+        
+        let total = try await query.count()
+        let items = try await sortQuery(query: query,
+                                        sortBy: request.sortBy,
+                                        sortOrder: request.sortOrder,
+                                        status: request.status,
+                                        periodDate: request.periodDate,
+                                        page: request.page,
+                                        perPage: request.perPage)
+        
+        let response = PaginatedResponse(page: request.page,
+                                         perPage: request.perPage,
+                                         total: total,
+                                         items: items)
+        
+        return response
     }
     
     func fetchById(request: GeneralRequest.FetchById,
                    on db: Database) async throws -> PurchaseOrder {
-        .Stub.po1
+        guard
+            let found = try await PurchaseOrder.query(on: db).filter(\.$id == request.id).first()
+        else {
+            throw DefaultError.notFound
+        }
+        
+        return found
     }
     
-    func create(content: PurchaseOrderRequest.Create,
+    func create(request: PurchaseOrderRequest.Create,
                 userId: GeneralRequest.FetchById,
                 on db: Database) async throws -> PurchaseOrder {
-        .Stub.po1
+        
+        // fetch to check userId is exist
+        guard
+            let _ = try? await userRepository.fetchById(request: userId,
+                                                        on: db)
+        else { throw PurchaseOrderRequest.Error.notfoundUserId }
+        
+        // fetch to check is exist supplier
+        let supplierId = request.supplierId
+        guard
+            let _ = try? await contactRepository.fetchById(request: .init(id: supplierId),
+                                                           on: db)
+        else { throw PurchaseOrderRequest.Error.notFoundSupplierId }
+                
+        // fetch to check is exist customer
+        let customerId = request.customerId
+        guard
+            let _ = try? await myBusineseRepository.fetchById(request: .init(id: customerId),
+                                                              on: db)
+        else { throw PurchaseOrderRequest.Error.notFoundCustomerId }
+        
+        // check all po product item ans service is exist
+        for item in request.items {
+            switch item.kind {
+            case .product:
+                guard
+                    let _ = try? await productRepository.fetchById(request: .init(id: item.itemId),
+                                                                   on: db)
+                else { throw PurchaseOrderRequest.Error.notFoundProductId }
+                
+            case .service:
+                guard
+                    let _ = try? await serviceRepository.fetchById(request: .init(id: item.itemId),
+                                                                  on: db)
+                else { throw PurchaseOrderRequest.Error.notFoundServiceId }
+            }
+        }
+        
+        let year = request.yearNumber()
+        let month = request.monthNumber()
+        let lastedNumber = try await fetchLastedNumber(year: year,
+                                                       month: month,
+                                                       on: db)
+        let nextNumber = lastedNumber + 1
+        
+        let po = PurchaseOrder(month: month,
+                               year: year,
+                               number: nextNumber,
+                               reference: request.reference,
+                               vatOption: request.vatOption,
+                               includedVat: request.includedVat,
+                               items: request.poItems(),
+                               additionalDiscountAmount: request.additionalDiscountAmount,
+                               orderDate: request.orderDate,
+                               deliveryDate: request.deliveryDate,
+                               paymentTermsDays: request.paymentTermsDays,
+                               supplierId: supplierId,
+                               customerId: customerId,
+                               currency: request.currency,
+                               note: request.note,
+                               userId: userId.id)
+        try await po.save(on: db)
+        return po
     }
     
+    /*
+     struct Update: Content, Validatable {
+         let reference: String?
+         let note: String?
+         let paymentTermsDays: Int?
+         let supplierId: UUID?
+         let deliveryDate: Date?
+         let items: [UpdateItem]?
+         let vatOption: PurchaseOrder.VatOption?
+         let orderDate: Date?
+         let additionalDiscountAmount: Double?
+         let currency: CurrencySupported?
+         let includedVat: Bool?
+         
+         init(reference: String?,
+              note: String?,
+              paymentTermsDays: Int?,
+              supplierId: UUID?,
+              deliveryDate: Date?,
+              items: [UpdateItem]?,
+              vatOption: PurchaseOrder.VatOption?,
+              orderDate: Date?,
+              additionalDiscountAmount: Double?,
+              currency: CurrencySupported?,
+              includedVat: Bool?) {
+             self.reference = reference
+             self.note = note
+             self.paymentTermsDays = paymentTermsDays
+             self.supplierId = supplierId
+             self.deliveryDate = deliveryDate
+             self.items = items
+             self.vatOption = vatOption
+             self.orderDate = orderDate
+             self.additionalDiscountAmount = additionalDiscountAmount
+             self.currency = currency
+             self.includedVat = includedVat
+         }
+     }
+     */
     func update(byId: GeneralRequest.FetchById,
                 request: PurchaseOrderRequest.Update,
+                userId: GeneralRequest.FetchById,
                 on db: Database) async throws -> PurchaseOrder {
-        .Stub.po1
+        let po = try await fetchById(request: .init(id: byId.id),
+                                          on: db)
+        
+        var isChanged: Bool = false
+        
+        if let reference = request.reference {
+            po.reference = reference
+            isChanged = true
+        }
+        
+        if let note = request.note {
+            po.note = note
+            isChanged = true
+        }
+        
+        if let paymentTermsDays = request.paymentTermsDays {
+            po.paymentTermsDays = paymentTermsDays
+            isChanged = true
+        }
+        
+        if let supplierId = request.supplierId {
+            // check is exist supplier
+            guard
+                let _ = try? await contactRepository.fetchById(request: .init(id: supplierId),
+                                                               on: db)
+            else { throw PurchaseOrderRequest.Error.notFoundSupplierId }
+            
+            po.$supplier.id = supplierId
+            isChanged = true
+        }
+        
+        if let deliveryDate = request.deliveryDate {
+            po.deliveryDate = deliveryDate
+            isChanged = true
+        }
+        
+        if let vatOption = request.vatOption {
+            po.vatOption = vatOption
+            isChanged = true
+        }
+        
+        if let orderDate = request.orderDate {
+            po.orderDate = orderDate
+            isChanged = true
+        }
+        
+        if let additionalDiscountAmount = request.additionalDiscountAmount {
+            po.additionalDiscountAmount = additionalDiscountAmount
+            isChanged = true
+            
+            po.recalculateItems()
+        }
+        
+        if let currency = request.currency {
+            po.currency = currency
+            isChanged = true
+            
+            po.recalculateItems()
+        }
+        
+        if let includedVat = request.includedVat {
+            po.includedVat = includedVat
+            isChanged = true
+            
+            po.recalculateItems()
+        }
+        
+        if let items = request.items {
+            // check all po product item ans service is exist
+            for item in items {
+                switch item.kind {
+                case .product:
+                    guard
+                        let _ = try? await productRepository.fetchById(request: .init(id: item.itemId),
+                                                                       on: db)
+                    else { throw PurchaseOrderRequest.Error.notFoundProductId }
+                    
+                case .service:
+                    guard
+                        let _ = try? await serviceRepository.fetchById(request: .init(id: item.itemId),
+                                                                      on: db)
+                    else { throw PurchaseOrderRequest.Error.notFoundServiceId }
+                }
+            }
+            
+            guard
+                let poItems = request.poItems()
+            else { throw PurchaseOrderRequest.Error.emptyItems }
+            
+            po.items = poItems
+            isChanged = true
+            
+            po.recalculateItems()
+        }
+        
+        // append new logs
+        if isChanged {
+            po.addLog(userID: userId.id,
+                      action: .updated)
+        }
+                        
+        try await po.save(on: db)
+        
+        return po
     }
     
     func replaceItems(id: GeneralRequest.FetchById,
-                      with content: PurchaseOrderRequest.ReplaceItems,
+                      request: PurchaseOrderRequest.ReplaceItems,
                       userId: GeneralRequest.FetchById,
                       on db: Database) async throws -> PurchaseOrder {
-        .Stub.po1
+        let po = try await fetchById(request: id,
+                                          on: db)
+        
+        // check all po product item ans service is exist
+        let items = request.items
+        // check all po product item ans service is exist
+        for item in items {
+            switch item.kind {
+            case .product:
+                guard
+                    let _ = try? await productRepository.fetchById(request: .init(id: item.itemId),
+                                                                   on: db)
+                else { throw PurchaseOrderRequest.Error.notFoundProductId }
+                
+            case .service:
+                guard
+                    let _ = try? await serviceRepository.fetchById(request: .init(id: item.itemId),
+                                                                   on: db)
+                else { throw PurchaseOrderRequest.Error.notFoundServiceId }
+            }
+        }
+        
+        po.includedVat = request.includedVat
+        po.vatOption = request.vatOption
+        po.additionalDiscountAmount = request.additionalDiscountAmount
+        po.items = request.poItems()
+        
+        po.recalculateItems()
+
+        // append new logs
+        po.addLog(userID: userId.id,
+                  action: .updated)
+                        
+        try await po.save(on: db)
+        
+        return po
+        
     }
  
     func itemsReorder(id: GeneralRequest.FetchById,
-                      userId: GeneralRequest.FetchById,
                       itemsOrder: [GeneralRequest.FetchById],
+                      userId: GeneralRequest.FetchById,
                       on db: Database) async throws -> PurchaseOrder {
-        .Stub.po1
+        
+        let po = try await fetchById(request: id,
+                                     on: db)
+        //check is all match item id
+        let itemOrderIds: [UUID] = itemsOrder.map({ $0.id })
+        let poItemIds: [UUID] = po.items.compactMap({ $0.id })
+        
+        guard
+            Set(itemOrderIds) == Set(poItemIds)
+        else { throw PurchaseOrderRequest.Error.notMatchItems }
+        
+        //reorder item by match of itemOrderIds order uuid
+        po.items = itemOrderIds.compactMap({ poItemId in
+            po.items.first(where: { $0.id == poItemId })
+        })
+        
+        try await po.save(on: db)
+        return po
     }
     
     func approve(id: GeneralRequest.FetchById,
                  userId: GeneralRequest.FetchById,
                  on db: Database) async throws -> PurchaseOrder {
-        .Stub.po1
+        let po = try await fetchById(request: id,
+                                          on: db)
+        
+        let availableStatuses = po.ableUpdateStatus()
+        guard availableStatuses.contains(.approved) else {
+            throw PurchaseOrderRequest.Error.notAbleToApprove
+        }
+        
+        po.status = .approved
+        po.addLog(userID: userId.id,
+                  action: .approved)
+        
+        try await po.save(on: db)
+        return po
     }
     
-    func reject(id: GeneralRequest.FetchById,
-                userId: GeneralRequest.FetchById,
-                on db: Database) async throws -> PurchaseOrder {
-        .Stub.po1
-    }
-    
+//    func reject(id: GeneralRequest.FetchById,
+//                userId: GeneralRequest.FetchById,
+//                on db: Database) async throws -> PurchaseOrder {
+//        .Stub.po1
+//    }
+//    
     func cancel(id: GeneralRequest.FetchById,
                 userId: GeneralRequest.FetchById,
                 on db: Database) async throws -> PurchaseOrder {
-        .Stub.po1
+        let po = try await fetchById(request: id,
+                                          on: db)
+        
+        let availableStatuses = po.ableUpdateStatus()
+        guard availableStatuses.contains(.voided) else {
+            throw PurchaseOrderRequest.Error.notAbleToCancel
+        }
+        
+        po.status = .approved
+        po.addLog(userID: userId.id,
+                  action: .approved)
+        
+        try await po.save(on: db)
+        return po
     }
     
     func void(id: GeneralRequest.FetchById,
               userId: GeneralRequest.FetchById,
               on db: Database) async throws -> PurchaseOrder {
-        .Stub.po1
+        let po = try await fetchById(request: id,
+                                          on: db)
+        
+        let availableStatuses = po.ableUpdateStatus()
+        guard availableStatuses.contains(.approved) else {
+            throw PurchaseOrderRequest.Error.notAbleToVoid
+        }
+        
+        po.status = .approved
+        po.addLog(userID: userId.id,
+                  action: .approved)
+        
+        try await po.save(on: db)
+        return po
     }
     
-    func search(content: PurchaseOrderRequest.Search,
+    /*
+     struct Search: Content, Validatable{
+         let query: String
+         let page: Int
+         let perPage: Int
+         let status: Status
+         let sortBy: SortBy
+         let sortOrder: SortOrder
+         let periodDate: PeriodDate
+
+         static let minPageRange: (min: Int, max: Int) = (1, .max)
+         static let perPageRange: (min: Int, max: Int) = (20, 1000)
+         
+         init(query: String,
+              page: Int = Self.minPageRange.min,
+              perPage: Int = Self.perPageRange.min,
+              status: Status = .all,
+              sortBy: SortBy = .createdAt,
+              sortOrder: SortOrder = .asc,
+              periodDate: PeriodDate) {
+             self.query = query
+             self.page = min(max(page, Self.minPageRange.min), Self.minPageRange.max)
+             self.perPage = min(max(perPage, Self.perPageRange.min), Self.perPageRange.max)
+             self.status = status
+             self.sortBy = sortBy
+             self.sortOrder = sortOrder
+             self.periodDate = periodDate
+         }
+         
+         init(from decoder: Decoder) throws {
+             let container = try decoder.container(keyedBy: CodingKeys.self)
+             self.query = try container.decode(String.self, forKey: .query)
+             self.page = (try? container.decode(Int.self, forKey: .page)) ?? Self.minPageRange.min
+             self.perPage = (try? container.decode(Int.self, forKey: .perPage)) ?? Self.perPageRange.min
+             self.status = (try? container.decode(Status.self, forKey: .status)) ?? .all
+             self.sortBy = (try? container.decodeIfPresent(SortBy.self, forKey: .sortBy)) ?? .createdAt
+             self.sortOrder = (try? container.decodeIfPresent(SortOrder.self, forKey: .sortOrder)) ?? .asc
+             
+             let dateFormat = "yyyy-MM-dd"
+             let from = try container.decode(String.self, forKey: .from).tryToDate(dateFormat)
+             let to = try container.decode(String.self, forKey: .to).tryToDate(dateFormat)
+             self.periodDate = .init(from: from,
+                                     to: to)
+         }
+
+         func encode(to encoder: Encoder) throws {
+             var container = encoder.container(keyedBy: CodingKeys.self)
+             try container.encode(query, forKey: .query)
+             try container.encode(page, forKey: .page)
+             try container.encode(perPage, forKey: .perPage)
+             try container.encode(status, forKey: .status)
+             try container.encode(sortBy, forKey: .sortBy)
+             try container.encode(sortOrder, forKey: .sortOrder)
+             try container.encode(periodDate.fromDateFormat, forKey: .from)
+             try container.encode(periodDate.toDateFormat, forKey: .to)
+         }
+         
+         static func validations(_ validations: inout Validations) {
+             let dateFormat = "yyyy-MM-dd"
+             validations.add("from", as: String.self, is: .date(format: dateFormat), required: false)
+             validations.add("to", as: String.self, is: .date(format: dateFormat), required: false)
+             validations.add("page", as: Int.self, is: .range(1...), required: false)
+             validations.add("per_page", as: Int.self, is: .range(1...100), required: false)
+         }
+         
+         enum CodingKeys: String, CodingKey {
+             case query = "q"
+             case page
+             case perPage = "per_page"
+             case sortBy = "sort_by"
+             case sortOrder = "sort_order"
+             case status
+             case from
+             case to
+         }
+     }
+     */
+    func search(request: PurchaseOrderRequest.Search,
                 on db: Database) async throws -> PaginatedResponse<PurchaseOrder> {
-        .init(page: 0, perPage: 0, total: 0, items: [])
+        let q = request.query
+        let regexPattern = "(?i)\(q)"  // (?i) makes the regex case-insensitive
+        let query = PurchaseOrder.query(on: db)
+            .join(Contact.self, on: \PurchaseOrder.$supplier.$id == \Contact.$id)
+            .join(MyBusinese.self, on: \PurchaseOrder.$customer.$id == \MyBusinese.$id)
+            .group(.or) { or in
+                or.filter(\.$reference =~ regexPattern)
+                or.filter(\.$note =~ regexPattern)
+                
+                //or.filter(\.$supplier, Contact.self, \.$name =~ regexPattern)
+                //or.filter(\.$supplier.$name =~ regexPattern)
+                
+                // Perform a join to the Supplier model (related through the `supplier` relationship)
+                //query.join(Contact.self, on: \PurchaseOrder.$supplier.$id == \Contact.$id)
+                
+                // Add filter for supplier name (case-insensitive 'like' filter)
+                or.filter(Contact.self, \.$name =~ regexPattern)
+                
+                if let number = Int(q) {
+                    or.filter(\.$number == number)
+                }
+                
+                // filter by status
+                switch request.status {
+                case .approved:
+                    or.filter(\.$status == PurchaseOrderStatus.approved)
+                case .draft:
+                    or.filter(\.$status == PurchaseOrderStatus.draft)
+                case .pending:
+                    or.filter(\.$status == PurchaseOrderStatus.pending)
+                case .voided:
+                    or.filter(\.$status == PurchaseOrderStatus.voided)
+                default:
+                    break
+                }
+                
+                // filter by orderDate period
+                let from = request.periodDate.from
+                let to = request.periodDate.to
+                
+                or.filter(\.$orderDate >= from)
+                or.filter(\.$orderDate <= to)
+            }
+        
+        let total = try await query.count()
+        
+        let items = try await sortQuery(query: query,
+                                        sortBy: request.sortBy,
+                                        sortOrder: request.sortOrder,
+                                        status: request.status,
+                                        periodDate: request.periodDate,
+                                        page: request.page,
+                                        perPage: request.perPage)
+        
+        let response = PaginatedResponse(page: request.page,
+                                         perPage: request.perPage,
+                                         total: total,
+                                         items: items)
+        
+        return response
     }
     
     func fetchLastedNumber(year: Int,
                            month: Int,
                            on db: Database) async throws -> Int {
-        0
+        let query = PurchaseOrder.query(on: db)
+        query.sort(\.$number, .descending)
+        query.limit(1)
+        
+        let model = try await query.first()
+        
+        return model?.number ?? 0
     }
    
 //    typealias CreateContent = PurchaseOrderRequest.Create
@@ -584,7 +1049,7 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
 //    }
 //}
 
-private extension ServiceRepository {
+private extension PurchaseOrderRepository {
     
     //query with 'from' date "yyyy-MM-dd" to date 'yyyy-MM-dd' and filter with status?
     func queryBuilder(from: Date,
@@ -614,6 +1079,9 @@ private extension ServiceRepository {
         let pageEnd = pageStart + perPage
         
         let range = pageStart..<pageEnd
+        
+        query.with(\.$supplier)
+        query.with(\.$customer)
         
         switch sortBy {
         case .status:

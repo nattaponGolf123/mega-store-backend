@@ -11,6 +11,52 @@ import Fluent
 
 struct PurchaseOrderRequest {
     
+    enum Error: AbortError {
+        case notfoundUserId
+        case notFoundSupplierId
+        case notFoundCustomerId
+        case notFoundProductId
+        case notFoundServiceId
+        case emptyItems
+        case notMatchItems
+        case notAbleToApprove
+        case notAbleToCancel
+        case notAbleToVoid
+        
+        var reason: String {
+            switch self {
+            case .notfoundUserId:
+                return "Not found user id"
+            case .notFoundSupplierId:
+                return "Not found supplier id"
+            case .notFoundCustomerId:
+                return "Not found customer id"
+            case .notFoundProductId:
+                return "Not found product id"
+            case .notFoundServiceId:
+                return "Not found service id"
+            case .emptyItems:
+                return "Items is empty"
+            case .notMatchItems:
+                return "Items not match"
+            case .notAbleToApprove:
+                return "Not able to approve"
+            case .notAbleToCancel:
+                return "Not able to cancel"
+            case .notAbleToVoid:
+                return "Not able to void"
+            
+            }
+        }
+
+        var status: HTTPStatus {
+            switch self {
+            default:
+                return .badRequest
+            }
+        }
+    }
+    
 //    enum SortBy: String, Codable {
 //        case number
 //        case status
@@ -116,7 +162,7 @@ struct PurchaseOrderRequest {
         
     }
 
-    struct Fetch: Content, Validatable {
+    struct FetchAll: Content, Validatable {
         let status: Status
         let page: Int
         let perPage: Int
@@ -440,6 +486,7 @@ struct PurchaseOrderRequest {
         let note: String
         let paymentTermsDays: Int
         let supplierId: UUID
+        let customerId: UUID
         let deliveryDate: Date
         let items: [CreateItem]
         let vatOption: PurchaseOrder.VatOption
@@ -451,6 +498,7 @@ struct PurchaseOrderRequest {
         init(reference: String,
              note: String,
              supplierId: UUID,
+             customerId: UUID,
              orderDate: Date,
              deliveryDate: Date,
              paymentTermsDays: Int,
@@ -467,6 +515,7 @@ struct PurchaseOrderRequest {
             self.orderDate = orderDate
 
             self.supplierId = supplierId
+            self.customerId = customerId
             
             self.items = items
             self.additionalDiscountAmount = additionalDiscountAmount
@@ -483,6 +532,7 @@ struct PurchaseOrderRequest {
             self.paymentTermsDays = try container.decode(Int.self, forKey: .paymentTermsDays)
             
             self.supplierId = try container.decode(UUID.self, forKey: .supplierId)
+            self.customerId = try container.decode(UUID.self, forKey: .customerId)
             
             self.items = try container.decode([CreateItem].self, forKey: .items)
             self.additionalDiscountAmount = (try? container.decode(Double.self, forKey: .additionalDiscountAmount)) ?? 0
@@ -506,6 +556,7 @@ struct PurchaseOrderRequest {
             try container.encode(note, forKey: .note)
             try container.encode(paymentTermsDays, forKey: .paymentTermsDays)
             try container.encode(supplierId, forKey: .supplierId)
+            try container.encode(customerId, forKey: .customerId)
             try container.encode(items, forKey: .items)
             try container.encode(additionalDiscountAmount, forKey: .additionalDiscountAmount)
             try container.encode(currency, forKey: .currency)
@@ -600,6 +651,7 @@ struct PurchaseOrderRequest {
             case note
             case paymentTermsDays = "payment_terms_days"
             case supplierId = "supplier_id"
+            case customerId = "customer_id"
             case totalAmountBeforeVat = "total_amount_before_vat"
             case deliveryDate = "delivery_date"
             case items
@@ -610,7 +662,6 @@ struct PurchaseOrderRequest {
             case includedVat = "included_vat"
             case vatRateOption = "vat_rate_option"
         }
-
         
     }
     
@@ -730,24 +781,67 @@ struct PurchaseOrderRequest {
     }
     
     struct ReplaceItems: Content, Validatable {
-        let items: [PurchaseOrderItem]
+        let items: [UpdateItem]
+        let vatOption: PurchaseOrder.VatOption
+        let additionalDiscountAmount: Double
+        let includedVat: Bool
         
-        init(items: [PurchaseOrderItem]) {
+        init(items: [UpdateItem],
+             vatOption: PurchaseOrder.VatOption,
+             additionalDiscountAmount: Double,
+             includedVat: Bool) {
             self.items = items
+            self.vatOption = vatOption
+            self.additionalDiscountAmount = additionalDiscountAmount
+            self.includedVat = includedVat
         }
         
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.items = try container.decode([PurchaseOrderItem].self,
-                                              forKey: .items)
+            self.items = try container.decode([UpdateItem].self, forKey: .items)
+            self.vatOption = try container.decode(PurchaseOrder.VatOption.self, forKey: .vatOption)
+            self.additionalDiscountAmount = try container.decode(Double.self, forKey: .additionalDiscountAmount)
+            self.includedVat = try container.decode(Bool.self, forKey: .includedVat)
+        }
+        
+        func poItems() -> [PurchaseOrderItem] {
+            //additionalDiscountPerItem is zero if nil
+            //var additionalDiscountPerItem: Double = 0
+            //if let additionalDiscountAmount {
+            let additionalDiscountPerItem = additionalDiscountAmount / Double(items.count)
+            //}
+            
+            let poItems: [PurchaseOrderItem] = items.map({
+                .init(id: $0.id,
+                      itemId: $0.itemId,
+                      kind: $0.kind,
+                      name: $0.name,
+                      description: $0.description,
+                      variantId: $0.variantId,
+                      qty: $0.qty,
+                      pricePerUnit: $0.pricePerUnit,
+                      discountPricePerUnit: $0.discountPricePerUnit,
+                      additionalDiscount: 0,//additionalDiscountPerItem,
+                      vatRate: $0.vatRateOption.vatRate,
+                      vatIncluded: $0.vatIncluded,
+                      taxWithholdingRate: $0.withholdingTaxRateOption.taxRate)
+            })
+            
+            return poItems
         }
         
         enum CodingKeys: String, CodingKey {
             case items
+            case vatOption = "vat_option"
+            case additionalDiscountAmount = "additional_discount_amount"
+            case includedVat = "included_vat"
         }
         
         static func validations(_ validations: inout Validations) {
-            validations.add("items", as: [PurchaseOrderItem].self, is: !.empty)
+            validations.add("vat_option", as: PurchaseOrder.VatOption.self, required: true)
+            validations.add("additional_discount_amount", as: Double.self, is: .range(0...), required: true)
+            validations.add("included_vat", as: Bool.self, required: true)
+            validations.add("items", as: [CreateItem].self, is: !.empty, required: true)
         }
                 
     }

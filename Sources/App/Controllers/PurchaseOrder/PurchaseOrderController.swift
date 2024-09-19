@@ -3,9 +3,9 @@ import Fluent
 import Vapor
 
 class PurchaseOrderController: RouteCollection {
-    typealias CreateContent = PurchaseOrderRepository.Create
-    typealias UpdateContent = PurchaseOrderRepository.Update
-    
+//    typealias CreateContent = PurchaseOrderRepository.Create
+//    typealias UpdateContent = PurchaseOrderRepository.Update
+//    
     private(set) var repository: PurchaseOrderRepositoryProtocol
     private(set) var validator: PurchaseOrderValidatorProtocol
     
