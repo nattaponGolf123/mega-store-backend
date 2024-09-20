@@ -9,8 +9,8 @@ import Foundation
 
 
 enum SortOrder: String, Codable {
-    case asc
-    case desc
+    case asc = "ASC"
+    case desc = "DESC"
 }
 
 extension SortOrder: Equatable {

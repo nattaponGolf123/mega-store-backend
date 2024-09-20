@@ -67,11 +67,11 @@ struct PurchaseOrderRequest {
 //    }
 //
     enum Status: String, Codable {
-        case all
-        case draft
-        case pending
-        case approved
-        case voided
+        case all = "ALL"
+        case draft = "DRAFT"
+        case pending = "PENDING"
+        case approved = "APPROVED"
+        case voided = "VOIDED"
     }
 
     enum VatRateOption: String, Codable {
@@ -230,6 +230,10 @@ struct PurchaseOrderRequest {
         
         static func validations(_ validations: inout Validations) {
             let dateFormat = "yyyy-MM-dd"
+            
+            //'to' need to equal or more then 'from'
+            //validations.add("to", "to", .compare(.greaterThanOrEqual, to: "from"), required: false)
+            
             validations.add("from", as: String.self, is: .date(format: dateFormat), required: false)
             validations.add("to", as: String.self, is: .date(format: dateFormat), required: false)
             validations.add("page", as: Int.self, is: .range(1...), required: false)

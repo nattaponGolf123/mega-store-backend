@@ -23,14 +23,14 @@ extension Sortable {
 }
 
 enum SortBy: String, Sortable {
-    case name
-    case number
-    case status
-    case totalAmount = "total_amount"
-    case orderDate = "order_date"
-    case groupId = "group_id"
-    case groupName = "group_name"
-    case createdAt = "created_at"
+    case name = "NAME"
+    case number = "NUMBER"
+    case status = "STATUS"
+    case totalAmount = "TOTAL_AMOUNT"
+    case orderDate = "ORDER_DATE"
+    case groupId = "GROUP_ID"
+    case groupName = "GROUP_NAME"
+    case createdAt = "CREATED_AT"
     
     static func == (lhs: SortBy, rhs: SortBy) -> Bool {
         return lhs.rawValue == rhs.rawValue

@@ -87,8 +87,8 @@ final class ServiceCategoryRequestTests: XCTestCase {
         XCTAssertEqual(jsonObject?["show_deleted"] as? Bool, true)
         XCTAssertEqual(jsonObject?["page"] as? Int, 2)
         XCTAssertEqual(jsonObject?["per_page"] as? Int, 50)
-        XCTAssertEqual(jsonObject?["sort_by"] as? String, "created_at")
-        XCTAssertEqual(jsonObject?["sort_order"] as? String, "desc")
+        XCTAssertEqual(jsonObject?["sort_by"] as? String, "CREATED_AT")
+        XCTAssertEqual(jsonObject?["sort_order"] as? String, "DESC")
     }
 
     func testFetchDecode_WithValidJSON_ShouldReturnInstance() throws {
@@ -97,8 +97,8 @@ final class ServiceCategoryRequestTests: XCTestCase {
             "show_deleted": true,
             "page": 2,
             "per_page": 50,
-            "sort_by": "created_at",
-            "sort_order": "desc"
+            "sort_by": "CREATED_AT",
+            "sort_order": "DESC"
         }
         """
         let data = json.data(using: .utf8)!
@@ -197,8 +197,8 @@ final class ServiceCategoryRequestTests: XCTestCase {
         XCTAssertEqual(jsonObject?["q"] as? String, "Test")
         XCTAssertEqual(jsonObject?["page"] as? Int, 2)
         XCTAssertEqual(jsonObject?["per_page"] as? Int, 50)
-        XCTAssertEqual(jsonObject?["sort_by"] as? String, "created_at")
-        XCTAssertEqual(jsonObject?["sort_order"] as? String, "desc")
+        XCTAssertEqual(jsonObject?["sort_by"] as? String, "CREATED_AT")
+        XCTAssertEqual(jsonObject?["sort_order"] as? String, "DESC")
     }
 
     func testSearchDecode_WithValidJSON_ShouldReturnInstance() throws {
@@ -207,8 +207,8 @@ final class ServiceCategoryRequestTests: XCTestCase {
             "q": "Test",
             "page": 2,
             "per_page": 50,
-            "sort_by": "created_at",
-            "sort_order": "desc"
+            "sort_by": "CREATED_AT",
+            "sort_order": "DESC"
         }
         """
         let data = json.data(using: .utf8)!

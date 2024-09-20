@@ -117,8 +117,8 @@ final class GeneralRequestTests: XCTestCase {
             "show_deleted": true,
             "page": 3,
             "per_page": 10,
-            "sort_by": "name",
-            "sort_order": "desc"
+            "sort_by": "NAME",
+            "sort_order": "DESC"
         }
         """.data(using: .utf8)!
         
@@ -273,8 +273,8 @@ final class GeneralRequestTests: XCTestCase {
             "q": "TestQuery",
             "page": 3,
             "per_page": 10,
-            "sort_by": "created_at",
-            "sort_order": "desc"
+            "sort_by": "CREATED_AT",
+            "sort_order": "DESC"
         }        
         """.data(using: .utf8)!
         
