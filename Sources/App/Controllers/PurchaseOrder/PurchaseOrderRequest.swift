@@ -642,8 +642,7 @@ struct PurchaseOrderRequest {
             validations.add("additional_discount_amount", as: Double.self, is: .range(0...))
             validations.add("currency", as: CurrencySupported.self, required: true)
             validations.add("included_vat", as: Bool.self, required: true)
-            validations.add("vat_rate_option", as: VatRateOption.self, required: true)
-            
+                        
 //            validations.add("items", required: true) { (itemsValidations: inout Validations) in
 //                CreateItem.validations(&itemsValidations)
 //            }
@@ -664,7 +663,6 @@ struct PurchaseOrderRequest {
             case additionalDiscountAmount = "additional_discount_amount"
             case currency
             case includedVat = "included_vat"
-            case vatRateOption = "vat_rate_option"
         }
         
     }
@@ -704,6 +702,22 @@ struct PurchaseOrderRequest {
             self.additionalDiscountAmount = additionalDiscountAmount
             self.currency = currency
             self.includedVat = includedVat
+        }
+        
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            
+            reference = try? container.decode(String.self, forKey: .reference)
+            note = try? container.decode(String.self, forKey: .note)
+            paymentTermsDays = try? container.decode(Int.self, forKey: .paymentTermsDays)
+            supplierId = try? container.decode(UUID.self, forKey: .supplierId)
+            deliveryDate = try? container.decode(String.self, forKey: .deliveryDate).toDate("yyyy-MM-dd")
+            items = try? container.decode([UpdateItem].self, forKey: .items)
+            vatOption = try? container.decode(PurchaseOrder.VatOption.self, forKey: .vatOption)
+            orderDate = try? container.decode(String.self, forKey: .orderDate).toDate("yyyy-MM-dd")
+            additionalDiscountAmount = try? container.decode(Double.self, forKey: .additionalDiscountAmount)
+            currency = try? container.decode(CurrencySupported.self, forKey: .currency)
+            includedVat = try? container.decode(Bool.self, forKey: .includedVat)
         }
         
         func poItems() -> [PurchaseOrderItem]? {
@@ -785,12 +799,12 @@ struct PurchaseOrderRequest {
     }
     
     struct ReplaceItems: Content, Validatable {
-        let items: [UpdateItem]
+        let items: [CreateItem]
         let vatOption: PurchaseOrder.VatOption
         let additionalDiscountAmount: Double
         let includedVat: Bool
         
-        init(items: [UpdateItem],
+        init(items: [CreateItem],
              vatOption: PurchaseOrder.VatOption,
              additionalDiscountAmount: Double,
              includedVat: Bool) {
@@ -802,10 +816,18 @@ struct PurchaseOrderRequest {
         
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.items = try container.decode([UpdateItem].self, forKey: .items)
+            self.items = try container.decode([CreateItem].self, forKey: .items)
             self.vatOption = try container.decode(PurchaseOrder.VatOption.self, forKey: .vatOption)
             self.additionalDiscountAmount = try container.decode(Double.self, forKey: .additionalDiscountAmount)
             self.includedVat = try container.decode(Bool.self, forKey: .includedVat)
+        }
+        
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(items, forKey: .items)
+            try container.encode(vatOption, forKey: .vatOption)
+            try container.encode(additionalDiscountAmount, forKey: .additionalDiscountAmount)
+            try container.encode(includedVat, forKey: .includedVat)
         }
         
         func poItems() -> [PurchaseOrderItem] {
@@ -816,8 +838,7 @@ struct PurchaseOrderRequest {
             //}
             
             let poItems: [PurchaseOrderItem] = items.map({
-                .init(id: $0.id,
-                      itemId: $0.itemId,
+                .init(itemId: $0.itemId,
                       kind: $0.kind,
                       name: $0.name,
                       description: $0.description,
@@ -834,18 +855,18 @@ struct PurchaseOrderRequest {
             return poItems
         }
         
+        static func validations(_ validations: inout Validations) {
+            validations.add("vat_option", as: PurchaseOrder.VatOption.self, required: true)
+            validations.add("additional_discount_amount", as: Double.self, is: .range(0...), required: true)
+            validations.add("included_vat", as: Bool.self, required: true)
+            validations.add("items", as: [CreateItem].self, required: true)
+        }
+        
         enum CodingKeys: String, CodingKey {
             case items
             case vatOption = "vat_option"
             case additionalDiscountAmount = "additional_discount_amount"
             case includedVat = "included_vat"
-        }
-        
-        static func validations(_ validations: inout Validations) {
-            validations.add("vat_option", as: PurchaseOrder.VatOption.self, required: true)
-            validations.add("additional_discount_amount", as: Double.self, is: .range(0...), required: true)
-            validations.add("included_vat", as: Bool.self, required: true)
-            validations.add("items", as: [CreateItem].self, is: !.empty, required: true)
         }
                 
     }
@@ -863,12 +884,17 @@ struct PurchaseOrderRequest {
                                               forKey: .itemIdOrder)
         }
         
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(itemIdOrder, forKey: .itemIdOrder)
+        }
+        
         enum CodingKeys: String, CodingKey {
             case itemIdOrder = "item_id_order"
         }
         
         static func validations(_ validations: inout Validations) {
-            validations.add("item_id_order", as: [UUID].self, is: !.empty)
+            validations.add("item_id_order", as: [UUID].self, is: !.empty,required: true)
         }
         
     }

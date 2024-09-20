@@ -379,7 +379,7 @@ extension PurchaseOrder {
 
 extension PurchaseOrder {
     
-    enum VatOption: String,Codable {
+    enum VatOption: String, Codable {
         case vatIncluded = "VAT_INCLUDED"
         case vatExcluded = "VAT_EXCLUDED"
         case noVat = "NO_VAT"

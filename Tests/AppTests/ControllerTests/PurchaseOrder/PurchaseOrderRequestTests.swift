@@ -530,8 +530,7 @@ final class PurchaseOrderRequestTests: XCTestCase {
      */
     func testReplaceItemsInit_WithValidValues_ShouldReturnCorrectValues() {
         let items = [
-            PurchaseOrderRequest.UpdateItem(
-                id: UUID(),
+            PurchaseOrderRequest.CreateItem(
                 itemId: UUID(),
                 kind: .service,
                 name: "Test Service",
@@ -563,7 +562,6 @@ final class PurchaseOrderRequestTests: XCTestCase {
         {
             "items": [
                 {
-                    "id": "00000000-0000-0000-0000-000000000000",
                     "item_id": "00000000-0000-0000-0000-000000000000",
                     "kind": "SERVICE",
                     "name": "Test Service",
@@ -592,8 +590,7 @@ final class PurchaseOrderRequestTests: XCTestCase {
     
     func testReplaceItemsEncode_WithValidValues_ShouldReturnCorrectJson() {
         let items = [
-            PurchaseOrderRequest.UpdateItem(
-                id: UUID(),
+            PurchaseOrderRequest.CreateItem(
                 itemId: UUID(),
                 kind: .service,
                 name: "Test Service",
@@ -622,7 +619,6 @@ final class PurchaseOrderRequestTests: XCTestCase {
         let item = itemsArray?.first
         
         let firstItem = items.first!
-        XCTAssertEqual(item?["id"] as? String, firstItem.id.uuidString)
         XCTAssertEqual(item?["item_id"] as? String, firstItem.itemId.uuidString)
         XCTAssertEqual(item?["kind"] as? String, firstItem.kind.rawValue)
         XCTAssertEqual(item?["name"] as? String, firstItem.name)
