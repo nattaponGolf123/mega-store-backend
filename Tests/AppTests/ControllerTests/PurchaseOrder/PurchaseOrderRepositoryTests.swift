@@ -153,24 +153,42 @@ final class PurchaseOrderRepositoryTests: XCTestCase {
 
         // Then
         XCTAssertEqual(result.items.count, 15)
-        
+
     }
 
     // MARK: - Fetch By ID Tests
 
-    //    func testFetchById_ShouldReturnPurchaseOrder() async throws {
-    //        // Given
-    //        let purchaseOrder = Stub.purchaseOrder1
-    //        try await purchaseOrder.create(on: db)
-    //
-    //        // When
-    //        let result = try await purchaseOrderRepository.fetchById(
-    //            request: .init(id: purchaseOrder.id!), on: db)
-    //
-    //        // Then
-    //        XCTAssertNotNil(result)
-    //        XCTAssertEqual(result.reference, purchaseOrder.reference)
-    //    }
+    func testFetchById_ShouldReturnPurchaseOrder() async throws {
+        //Given
+        let user = Stub.user
+        let contact = Stub.supplier
+        let customer = Stub.customer
+        let product = Product(name: "Product A")
+
+        try await user.create(on: db)
+        try await contact.create(on: db)
+        try await customer.create(on: db)
+        try await product.create(on: db)
+
+        let po1 = Stub.createPo(
+            user: user,
+            supplier: contact,
+            customer: customer,
+            product: product
+        )
+
+        try await po1.create(on: db)
+
+        // When
+        let result = try await purchaseOrderRepository.fetchById(
+            request: .init(id: po1.id!),
+            on: db
+        )
+
+        // Then
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result.id, po1.id)
+    }
 
     func testFetchById_NotFound_ShouldThrowError() async throws {
         // Given
@@ -239,177 +257,385 @@ final class PurchaseOrderRepositoryTests: XCTestCase {
         XCTAssertNotNil(result.id)
         XCTAssertEqual(result.reference, "PO-001")
         XCTAssertEqual(result.note, "Test purchase order")
-        //XCTAssertEqual(result.supplier?.id, contact.id)
-        //XCTAssertEqual(result.customer?.id, business.id)
+        XCTAssertEqual(result.$supplier.id, contact.id)
+        XCTAssertEqual(result.$customer.id, business.id)
+        XCTAssertEqual(
+            result.orderDate.toDateString("yyyy-MM-dd"),
+            request.orderDate.toDateString("yyyy-MM-dd"))
+        XCTAssertEqual(
+            result.deliveryDate.toDateString("yyyy-MM-dd"),
+            request.deliveryDate.toDateString("yyyy-MM-dd"))
+        XCTAssertEqual(result.paymentTermsDays, 30)
+        XCTAssertEqual(result.items.count, 1)
+        XCTAssertEqual(result.additionalDiscountAmount, 0)
+        XCTAssertEqual(result.vatOption, .vatIncluded)
+        XCTAssertEqual(result.includedVat, true)
+        XCTAssertEqual(result.currency, .thb)
+
     }
 
-    //    func testCreate_WithInvalidSupplier_ShouldThrowError() async throws {
-    //        // Given
-    //        let user = Stub.user
-    //        let business = Stub.business
-    //        try await user.create(on: db)
-    //        try await business.create(on: db)
-    //
-    //        let request = PurchaseOrderRequest.Create(
-    //            reference: "PO-001",
-    //            note: "Test purchase order",
-    //            supplierId: UUID(),
-    //            customerId: business.id!,
-    //            orderDate: Date(),
-    //            deliveryDate: Date().addingTimeInterval(86400),
-    //            paymentTermsDays: 30,
-    //            items: Stub.purchaseOrderItems,
-    //            additionalDiscountAmount: 0,
-    //            vatOption: .vat7,
-    //            includedVat: true,
-    //            currency: .thb
-    //        )
-    //
-    //        // When
-    //        do {
-    //            _ = try await purchaseOrderRepository.create(request: request, userId: .init(id: user.id!), on: db)
-    //            XCTFail("Should throw error")
-    //        } catch {
-    //            XCTAssertEqual(error as! PurchaseOrderRequest.Error, .notFoundSupplierId)
-    //        }
-    //    }
-    //
-    //    // MARK: - Update Tests
-    //
-    //    func testUpdate_WithValidData_ShouldUpdatePurchaseOrder() async throws {
-    //        // Given
-    //        let purchaseOrder = Stub.purchaseOrder1
-    //        try await purchaseOrder.create(on: db)
-    //
-    //        let updateRequest = PurchaseOrderRequest.Update(
-    //            reference: "Updated PO-001",
-    //            note: "Updated note",
-    //            paymentTermsDays: 60,
-    //            supplierId: purchaseOrder.supplierId,
-    //            deliveryDate: purchaseOrder.deliveryDate?.addingTimeInterval(86400),
-    //            items: nil,
-    //            vatOption: .vat7,
-    //            orderDate: purchaseOrder.orderDate?.addingTimeInterval(86400),
-    //            additionalDiscountAmount: 0,
-    //            currency: .thb,
-    //            includedVat: true
-    //        )
-    //
-    //        // When
-    //        let result = try await purchaseOrderRepository.update(
-    //            byId: .init(id: purchaseOrder.id!),
-    //            request: updateRequest,
-    //            userId: .init(id: purchaseOrder.userId),
-    //            on: db
-    //        )
-    //
-    //        // Then
-    //        XCTAssertEqual(result.reference, "Updated PO-001")
-    //        XCTAssertEqual(result.note, "Updated note")
-    //        XCTAssertEqual(result.paymentTermsDays, 60)
-    //    }
-    //
-    //    func testUpdate_WithInvalidSupplier_ShouldThrowError() async throws {
-    //        // Given
-    //        let purchaseOrder = Stub.purchaseOrder1
-    //        try await purchaseOrder.create(on: db)
-    //
-    //        let updateRequest = PurchaseOrderRequest.Update(
-    //            reference: "Updated PO-001",
-    //            note: "Updated note",
-    //            paymentTermsDays: 60,
-    //            supplierId: UUID(),
-    //            deliveryDate: purchaseOrder.deliveryDate?.addingTimeInterval(86400),
-    //            items: nil,
-    //            vatOption: .vat7,
-    //            orderDate: purchaseOrder.orderDate?.addingTimeInterval(86400),
-    //            additionalDiscountAmount: 0,
-    //            currency: .thb,
-    //            includedVat: true
-    //        )
-    //
-    //        // When
-    //        do {
-    //            _ = try await purchaseOrderRepository.update(
-    //                byId: .init(id: purchaseOrder.id!),
-    //                request: updateRequest,
-    //                userId: .init(id: purchaseOrder.userId),
-    //                on: db
-    //            )
-    //            XCTFail("Should throw error")
-    //        } catch {
-    //            XCTAssertEqual(error as! PurchaseOrderRequest.Error, .notFoundSupplierId)
-    //        }
-    //    }
-    //
-    //    // MARK: - Search Tests
-    //
-    //    func testSearch_WithValidQuery_ShouldReturnMatchingPurchaseOrders() async throws {
-    //        // Given
-    //        let purchaseOrder = Stub.purchaseOrder1
-    //        try await purchaseOrder.create(on: db)
-    //
-    //        let searchRequest = PurchaseOrderRequest.Search(
-    //            query: "PO-001",
-    //            page: 1,
-    //            perPage: 10,
-    //            status: .all,
-    //            sortBy: .createdAt,
-    //            sortOrder: .asc,
-    //            periodDate: .init(from: Date(), to: Date().addingTimeInterval(3600))
-    //        )
-    //
-    //        // When
-    //        let result = try await purchaseOrderRepository.search(request: searchRequest, on: db)
-    //
-    //        // Then
-    //        XCTAssertEqual(result.items.count, 1)
-    //        XCTAssertEqual(result.items.first?.reference, purchaseOrder.reference)
-    //    }
-    //
-    //    func testSearch_WithInvalidQuery_ShouldReturnEmptyResult() async throws {
-    //        // Given
-    //        let purchaseOrder = Stub.purchaseOrder1
-    //        try await purchaseOrder.create(on: db)
-    //
-    //        let searchRequest = PurchaseOrderRequest.Search(
-    //            query: "Invalid Query",
-    //            page: 1,
-    //            perPage: 10,
-    //            status: .all,
-    //            sortBy: .createdAt,
-    //            sortOrder: .asc,
-    //            periodDate: .init(from: Date(), to: Date().addingTimeInterval(3600))
-    //        )
-    //
-    //        // When
-    //        let result = try await purchaseOrderRepository.search(request: searchRequest, on: db)
-    //
-    //        // Then
-    //        XCTAssertEqual(result.items.count, 0)
-    //    }
-    //
-    //    // MARK: - Fetch Lasted Number Tests
-    //
-    //    func testFetchLastedNumber_ShouldReturnCorrectNumber() async throws {
-    //        // Given
-    //        let purchaseOrder = Stub.purchaseOrder1
-    //        try await purchaseOrder.create(on: db)
-    //
-    //        // When
-    //        let result = try await purchaseOrderRepository.fetchLastedNumber(year: 2023, month: 9, on: db)
-    //
-    //        // Then
-    //        XCTAssertEqual(result, purchaseOrder.number)
-    //    }
-    //
-    //    func testFetchLastedNumber_WithEmptyOrders_ShouldReturnZero() async throws {
-    //        // When
-    //        let result = try await purchaseOrderRepository.fetchLastedNumber(year: 2023, month: 9, on: db)
-    //
-    //        // Then
-    //        XCTAssertEqual(result, 0)
-    //    }
+    func testCreate_WithInvalidSupplier_ShouldThrowError() async throws {
+        // Given
+        let user = Stub.user
+        let business = Stub.customer
+        let product = Product(name: "Product A")
+
+        try await user.create(on: db)
+        try await business.create(on: db)
+        try await product.create(on: db)
+
+        let items: [PurchaseOrderRequest.CreateItem] = [
+            .init(
+                itemId: product.id!,
+                kind: .product,
+                name: "Name",
+                description: "Des",
+                variantId: nil,
+                qty: 1,
+                pricePerUnit: 100,
+                discountPricePerUnit: 0,
+                vatRateOption: .none,
+                vatIncluded: false,
+                withholdingTaxRateOption: .none)
+        ]
+
+        let request = PurchaseOrderRequest.Create(
+            reference: "PO-001",
+            note: "Test purchase order",
+            supplierId: .init(),
+            customerId: business.id!,
+            orderDate: Date(),
+            deliveryDate: Date().addingTimeInterval(86400),
+            paymentTermsDays: 30,
+            items: items,
+            additionalDiscountAmount: 0,
+            vatOption: .vatIncluded,
+            includedVat: true,
+            currency: .thb
+        )
+
+        // When
+        do {
+            _ = try await purchaseOrderRepository.create(
+                request: request,
+                userId: .init(id: user.id!),
+                on: db
+            )
+            XCTFail("Should throw error")
+        } catch {
+            XCTAssertEqual(error as! PurchaseOrderRequest.Error, .notFoundSupplierId)
+        }
+    }
+
+    // MARK: - Update Tests
+
+    func testUpdate_WithValidData_ShouldUpdatePurchaseOrder() async throws {
+        // Given
+        let user = Stub.user
+        let supplier = Stub.supplier
+        let contact = Stub.supplier
+        let business = Stub.customer
+        let product = Product(name: "Product A")
+
+        try await user.create(on: db)
+        try await supplier.create(on: db)
+        try await contact.create(on: db)
+        try await business.create(on: db)
+        try await product.create(on: db)
+
+        // create po
+        let po1 = Stub.createPo(
+            user: user,
+            supplier: supplier,
+            customer: business,
+            product: product)
+
+        try await po1.create(on: db)
+
+        // prepare update
+        let updatedSupplier = Stub.supplier2
+        try await updatedSupplier.create(on: db)
+
+        let updateDeliveryDate = po1.deliveryDate.addingTimeInterval(604800)  // add 7 days
+        let updateOrderDate = po1.orderDate.addingTimeInterval(86400)  // add 1 day
+
+        let updateRequest = PurchaseOrderRequest.Update(
+            reference: "Updated PO-001",
+            note: "Updated note",
+            paymentTermsDays: 61,
+            supplierId: updatedSupplier.id,
+            deliveryDate: updateDeliveryDate,
+            items: nil,
+            vatOption: .vatExcluded,
+            orderDate: updateOrderDate,
+            additionalDiscountAmount: 0,
+            currency: .thb,
+            includedVat: true
+        )
+
+        // When
+        let result = try await purchaseOrderRepository.update(
+            byId: .init(id: po1.id!),
+            request: updateRequest,
+            userId: .init(id: user.id!),
+            on: db
+        )
+
+        // Then
+        XCTAssertEqual(result.reference, "Updated PO-001")
+        XCTAssertEqual(result.note, "Updated note")
+        XCTAssertEqual(result.paymentTermsDays, 61)
+        XCTAssertEqual(result.$supplier.id, updatedSupplier.id)
+        XCTAssertEqual(
+            result.deliveryDate.toDateString("yyyy-MM-dd"),
+            updateDeliveryDate.toDateString("yyyy-MM-dd"))
+        XCTAssertEqual(
+            result.orderDate.toDateString("yyyy-MM-dd"),
+            updateOrderDate.toDateString("yyyy-MM-dd"))
+        XCTAssertEqual(result.items.count, 1)
+        XCTAssertEqual(result.additionalDiscountAmount, 0)
+        XCTAssertEqual(result.vatOption, .vatExcluded)
+        XCTAssertEqual(result.includedVat, true)
+        XCTAssertEqual(result.currency, .thb)
+
+    }
+
+    func testUpdate_WithInvalidSupplier_ShouldThrowError() async throws {
+        // Given
+        let user = Stub.user
+        let supplier = Stub.supplier
+        let contact = Stub.supplier
+        let business = Stub.customer
+        let product = Product(name: "Product A")
+
+        try await user.create(on: db)
+        try await supplier.create(on: db)
+        try await contact.create(on: db)
+        try await business.create(on: db)
+        try await product.create(on: db)
+
+        // create po
+        let po1 = Stub.createPo(
+            user: user,
+            supplier: supplier,
+            customer: business,
+            product: product)
+
+        try await po1.create(on: db)
+
+        // prepare update
+        let updatedSupplierId = UUID()
+
+        let updateDeliveryDate = po1.deliveryDate.addingTimeInterval(604800)  // add 7 days
+        let updateOrderDate = po1.orderDate.addingTimeInterval(86400)  // add 1 day
+
+        let updateRequest = PurchaseOrderRequest.Update(
+            reference: "Updated PO-001",
+            note: "Updated note",
+            paymentTermsDays: 61,
+            supplierId: updatedSupplierId,
+            deliveryDate: updateDeliveryDate,
+            items: nil,
+            vatOption: .vatExcluded,
+            orderDate: updateOrderDate,
+            additionalDiscountAmount: 0,
+            currency: .thb,
+            includedVat: true
+        )
+
+        // When
+        do {
+            _ = try await purchaseOrderRepository.update(
+                byId: .init(id: po1.id!),
+                request: updateRequest,
+                userId: .init(id: user.id!),
+                on: db
+            )
+            XCTFail("Should throw error")
+        } catch {
+            XCTAssertEqual(error as! PurchaseOrderRequest.Error, .notFoundSupplierId)
+        }
+    }
+
+    // MARK: - Search Tests
+
+    func testSearch_WithValidQuery_ShouldReturnMatchingPurchaseOrders() async throws {
+        // Given
+        let user = Stub.user
+        let supplier = Stub.supplier
+        let contact = Stub.supplier
+        let business = Stub.customer
+        let product = Product(name: "Product A")
+
+        try await user.create(on: db)
+        try await supplier.create(on: db)
+        try await contact.create(on: db)
+        try await business.create(on: db)
+        try await product.create(on: db)
+
+        // create po
+        let po1 = Stub.createPo(
+            user: user,
+            supplier: supplier,
+            customer: business,
+            product: product)
+
+        try await po1.create(on: db)
+
+        let searchRequest = PurchaseOrderRequest.Search(
+            query: "PO-001",
+            page: 1,
+            perPage: 10,
+            status: .all,
+            sortBy: .createdAt,
+            sortOrder: .asc,
+            periodDate: .init(
+                from: Date().addingTimeInterval(-3600),
+                to: Date().addingTimeInterval(3600))
+        )
+
+        // When
+        let result = try await purchaseOrderRepository.search(request: searchRequest, on: db)
+
+        // Then
+        XCTAssertEqual(result.items.count, 1)
+        XCTAssertEqual(result.items.first?.reference, po1.reference)
+    }
+
+    func testSearch_WithInvalidQuery_ShouldReturnEmptyResult() async throws {
+        // Given
+        let user = Stub.user
+        let supplier = Stub.supplier
+        let contact = Stub.supplier
+        let business = Stub.customer
+        let product = Product(name: "Product A")
+
+        try await user.create(on: db)
+        try await supplier.create(on: db)
+        try await contact.create(on: db)
+        try await business.create(on: db)
+        try await product.create(on: db)
+
+        // create po
+        let po1 = Stub.createPo(
+            user: user,
+            supplier: supplier,
+            customer: business,
+            product: product)
+
+        try await po1.create(on: db)
+
+        let searchRequest = PurchaseOrderRequest.Search(
+            query: "AAAAAAA",
+            page: 1,
+            perPage: 10,
+            status: .all,
+            sortBy: .createdAt,
+            sortOrder: .asc,
+            periodDate: .init(
+                from: Date().addingTimeInterval(-3600),
+                to: Date().addingTimeInterval(3600))
+        )
+
+        // When
+        let result = try await purchaseOrderRepository.search(
+            request: searchRequest,
+            on: db)
+
+        // Then
+        XCTAssertEqual(result.items.count, 0)
+    }
+    
+    func testSearch_WithStatusPending_ShouldReturnMatchingPurchaseOrders() async throws {
+        // Given
+        let user = Stub.user
+        let supplier = Stub.supplier
+        let contact = Stub.supplier
+        let business = Stub.customer
+        let product = Product(name: "Product A")
+
+        try await user.create(on: db)
+        try await supplier.create(on: db)
+        try await contact.create(on: db)
+        try await business.create(on: db)
+        try await product.create(on: db)
+
+        // create po
+        let po1 = Stub.createPo(
+            user: user,
+            supplier: supplier,
+            customer: business,
+            product: product)
+        po1.status = .pending
+
+        try await po1.create(on: db)
+
+        let searchRequest = PurchaseOrderRequest.Search(
+            query: "PO-001",
+            page: 1,
+            perPage: 10,
+            status: .pending,
+            sortBy: .createdAt,
+            sortOrder: .asc,
+            periodDate: .init(
+                from: Date().addingTimeInterval(-3600),
+                to: Date().addingTimeInterval(3600))
+        )
+
+        // When
+        let result = try await purchaseOrderRepository.search(
+            request: searchRequest,
+            on: db)
+
+        // Then
+        XCTAssertEqual(result.items.count, 1)
+        XCTAssertEqual(result.items.first?.reference, po1.reference)
+    }
+
+    // MARK: - Fetch Lasted Number Tests
+
+    func testFetchLastedNumber_ShouldReturnCorrectNumber() async throws {
+        // Given
+        let user = Stub.user
+        let supplier = Stub.supplier
+        let contact = Stub.supplier
+        let business = Stub.customer
+        let product = Product(name: "Product A")
+
+        try await user.create(on: db)
+        try await supplier.create(on: db)
+        try await contact.create(on: db)
+        try await business.create(on: db)
+        try await product.create(on: db)
+
+        // create po : month: 9, year: 2023, number: 1,
+        let po1 = Stub.createPo(
+            user: user,
+            supplier: supplier,
+            customer: business,
+            product: product)
+
+        try await po1.create(on: db)
+
+        // When
+        let result = try await purchaseOrderRepository.fetchLastedNumber(
+            year: 2023,
+            month: 9,
+            on: db)
+
+        // Then
+        XCTAssertEqual(result, po1.number)
+    }
+    
+    func testFetchLastedNumber_WithEmptyOrders_ShouldReturnZero() async throws {
+        // When
+        let result = try await purchaseOrderRepository.fetchLastedNumber(year: 2030,
+                                                                         month: 1,
+                                                                         on: db)
+        
+        // Then
+        XCTAssertEqual(result, 0)
+    }
 }
 
 // MARK: - Stub Data
@@ -507,6 +733,10 @@ extension PurchaseOrderRepositoryTests {
 
         static var supplier: Contact {
             .Stub.supplier
+        }
+
+        static var supplier2: Contact {
+            .Stub.supplier2
         }
 
         static var customer: MyBusinese {

@@ -546,16 +546,17 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
                     or.filter(\.$number == number)
                 }
                 
+            }.group(.and) { and in
                 // filter by status
                 switch request.status {
                 case .approved:
-                    or.filter(\.$status == PurchaseOrderStatus.approved)
+                    and.filter(\.$status == PurchaseOrderStatus.approved)
                 case .draft:
-                    or.filter(\.$status == PurchaseOrderStatus.draft)
+                    and.filter(\.$status == PurchaseOrderStatus.draft)
                 case .pending:
-                    or.filter(\.$status == PurchaseOrderStatus.pending)
+                    and.filter(\.$status == PurchaseOrderStatus.pending)
                 case .voided:
-                    or.filter(\.$status == PurchaseOrderStatus.voided)
+                    and.filter(\.$status == PurchaseOrderStatus.voided)
                 default:
                     break
                 }
@@ -564,8 +565,8 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
                 let from = request.periodDate.from
                 let to = request.periodDate.to
                 
-                or.filter(\.$orderDate >= from)
-                or.filter(\.$orderDate <= to)
+                and.filter(\.$orderDate >= from)
+                and.filter(\.$orderDate <= to)
             }
         
         let total = try await query.count()

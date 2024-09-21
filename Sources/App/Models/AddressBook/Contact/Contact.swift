@@ -179,6 +179,37 @@ extension Contact {
                     note: "Reliable Contact with consistent quality and delivery times.")
         }
         
+        static var supplier2: Contact {
+            Contact(number: 3,
+                    name: "XYZ Industries",
+                    kind: .supplier,
+                    vatRegistered: true,
+                    contactInformation: ContactInformation(contactPerson: "Jane Doe",
+                                                           phone: "123-456-7890",
+                                                           email: ""),
+                    taxNumber: "123123212123",
+                    legalStatus: .companyLimited,
+                    website: "www.xyzindustries.com",
+                    businessAddress: [BusinessAddress(branch: "HQ",
+                                                      branchCode: "00001",
+                                                      address: "123",
+                                                      city: "Bangkok",
+                                                      postalCode: "12022",
+                                                      country: "Thailand",
+                                                      phone: "123-456-7890",
+                                                      email: "",
+                                                      fax: "")],
+                    shippingAddress: [ShippingAddress(address: "123",
+                                                      subDistrict: "123",
+                                                      city: "Bangkok",
+                                                      province: "ddd",
+                                                      country: "Thailand",
+                                                      postalCode: "12022",
+                                                      phone: "123-456-7890")],
+                    paymentTermsDays: 30,
+                    note: "Reliable Contact with consistent quality and delivery times.")
+        }
+        
         static var both: Contact {
             Contact(number: 1,
                     name: "ABC Industries",
