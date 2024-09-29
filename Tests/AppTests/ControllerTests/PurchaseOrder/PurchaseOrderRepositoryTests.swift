@@ -34,7 +34,9 @@ final class PurchaseOrderRepositoryTests: XCTestCase {
         app = Application(.testing)
         dbHost = try dbHostURL(app)
 
-        try configure(app, dbHost: dbHost, migration: PurchaseOrderMigration())
+        try configure(app,
+                      dbHost: dbHost,
+                      migration: PurchaseOrderMigration())
 
         db = app.db
 
@@ -251,7 +253,8 @@ final class PurchaseOrderRepositoryTests: XCTestCase {
         let result = try await purchaseOrderRepository.create(
             request: request,
             userId: .init(id: user.id!),
-            on: db)
+            on: db
+        )
 
         // Then
         XCTAssertNotNil(result.id)
@@ -733,7 +736,7 @@ extension PurchaseOrderRepositoryTests {
                     itemId: product.id!,
                     kind: .product,
                     itemName: product.name,
-                    itemDescription: product.description,
+                    itemDescription: product.descriptionInfo ?? "",
                     variantId: nil,
                     qty: 1,
                     pricePerUnit: 100.0,
