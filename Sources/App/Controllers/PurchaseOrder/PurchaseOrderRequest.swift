@@ -709,17 +709,17 @@ struct PurchaseOrderRequest {
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             
-            reference = try? container.decode(String.self, forKey: .reference)
-            note = try? container.decode(String.self, forKey: .note)
-            paymentTermsDays = try? container.decode(Int.self, forKey: .paymentTermsDays)
-            supplierId = try? container.decode(UUID.self, forKey: .supplierId)
-            deliveryDate = try? container.decode(String.self, forKey: .deliveryDate).toDate("yyyy-MM-dd")
+            reference = try container.decodeIfPresent(String.self, forKey: .reference)
+            note = try container.decodeIfPresent(String.self, forKey: .note)
+            paymentTermsDays = try container.decodeIfPresent(Int.self, forKey: .paymentTermsDays)
+            supplierId = try container.decodeIfPresent(UUID.self, forKey: .supplierId)
+            deliveryDate = try container.decodeIfPresent(String.self, forKey: .deliveryDate)?.toDate("yyyy-MM-dd")
             //items = try? container.decode([UpdateItem].self, forKey: .items)
-            vatOption = try? container.decode(PurchaseOrder.VatOption.self, forKey: .vatOption)
-            orderDate = try? container.decode(String.self, forKey: .orderDate).toDate("yyyy-MM-dd")
-            additionalDiscountAmount = try? container.decode(Double.self, forKey: .additionalDiscountAmount)
-            currency = try? container.decode(CurrencySupported.self, forKey: .currency)
-            includedVat = try? container.decode(Bool.self, forKey: .includedVat)
+            vatOption = try container.decodeIfPresent(PurchaseOrder.VatOption.self, forKey: .vatOption)
+            orderDate = try container.decodeIfPresent(String.self, forKey: .orderDate)?.toDate("yyyy-MM-dd")
+            additionalDiscountAmount = try container.decodeIfPresent(Double.self, forKey: .additionalDiscountAmount)
+            currency = try container.decodeIfPresent(CurrencySupported.self, forKey: .currency)
+            includedVat = try container.decodeIfPresent(Bool.self, forKey: .includedVat)
         }
         
 //        func poItems() -> [PurchaseOrderItem]? {

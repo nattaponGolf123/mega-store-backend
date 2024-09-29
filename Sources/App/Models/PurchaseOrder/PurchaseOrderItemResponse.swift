@@ -29,7 +29,7 @@ struct PurchaseOrderItemResponse: Content {
     let vatRateOption: VatRateOption
     let vatIncluded: Bool
     
-    let taxWithholdingRate: Double
+    let taxWithholdingRate: Double?
     let taxWithholdingRateOption: TaxWithholdingRateOption
     
     let amountBeforeVat: Double
@@ -81,10 +81,10 @@ struct PurchaseOrderItemResponse: Content {
         additionalDiscount = try container.decode(Double.self, forKey: .additionalDiscount)
         baseDiscountPerUnit = try container.decode(Double.self, forKey: .baseDiscountPerUnit)
         amountDiscount = try container.decode(Double.self, forKey: .amountDiscount)
-        vatRate = try container.decode(Double.self, forKey: .vatRate)
+        vatRate = try container.decodeIfPresent(Double.self, forKey: .vatRate)
         vatRateOption = try container.decode(VatRateOption.self, forKey: .vatRateOption)
         vatIncluded = try container.decode(Bool.self, forKey: .vatIncluded)
-        taxWithholdingRate = try container.decode(Double.self, forKey: .taxWithholdingRate)
+        taxWithholdingRate = try container.decodeIfPresent(Double.self, forKey: .taxWithholdingRate)
         taxWithholdingRateOption = try container.decode(TaxWithholdingRateOption.self, forKey: .taxWithholdingRateOption)
         amountBeforeVat = try container.decode(Double.self, forKey: .amountBeforeVat)
         amountAfterVat = try container.decode(Double.self, forKey: .amountAfterVat)

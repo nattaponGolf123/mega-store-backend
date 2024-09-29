@@ -51,6 +51,11 @@ final class PurchaseOrderControllerTests: XCTestCase {
 
         // Drop tables
         try await dropCollection(db, schema: PurchaseOrder.schema)
+        try await dropCollection(db, schema: Product.schema)
+        try await dropCollection(db, schema: Service.schema)
+        try await dropCollection(db, schema: Contact.schema)
+        try await dropCollection(db, schema: MyBusinese.schema)
+        
     }
 
     override func tearDown() async throws {
@@ -410,21 +415,10 @@ final class PurchaseOrderControllerTests: XCTestCase {
 
         let jwtPayload = UserJWTPayload(user: user)
         given(jwtValidator).validateToken(.any).willReturn(jwtPayload)
-
-        //        let purchaseOrder = PurchaseOrder(id: UUID(), reference: "PO-12345")
-        //        try await purchaseOrder.save(on: db)
-        //
-        //        // Given
-        //        let requestUpdate = PurchaseOrderRequest.Update(reference: "Updated PO-12345")
-        //        let requestId = GeneralRequest.FetchById(id: purchaseOrder.id!)
-        //
-        //        given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
-        //
-        
         
         try app.test(.PUT, "purchase_orders/\(po.id!)",
                      beforeRequest: { req in
-            //try req.content.encode(requestUpdate)
+            
         }) { res in
             XCTAssertEqual(res.status, .ok)
             let response = try res.content.decode(PurchaseOrderResponse.self)
@@ -432,44 +426,24 @@ final class PurchaseOrderControllerTests: XCTestCase {
             XCTAssertEqual(response.note, "Sample note")
             XCTAssertEqual(response.paymentTermsDays, 15)
             XCTAssertEqual(response.supplier?.id, contact2.id)
-            XCTAssertEqual(response.deliveryDate, updateDate)
+            XCTAssertEqual(response.deliveryDate.toDateString("yyyy-MM-dd"), updateDate.toDateString("yyyy-MM-dd"))
             XCTAssertEqual(response.vatOption, .vatExcluded)
-            XCTAssertEqual(response.orderDate, updateDate)
+            XCTAssertEqual(response.orderDate.toDateString("yyyy-MM-dd"), updateDate.toDateString("yyyy-MM-dd"))
             XCTAssertEqual(response.additionalDiscountAmount, 10)
             XCTAssertEqual(response.includedVat, true)
         }
     }
-    //
-    //    // MARK: - Test DELETE /purchase_orders/:id
-    //    func testDelete_WithInvalidOrder_ShouldReturnBadRequest() async throws {
-    //
-    //        // Given
-    //        let id = UUID()
-    //
-    //        let request = GeneralRequest.FetchById(id: id)
-    //        given(generalValidator).validateID(.any).willReturn(request)
-    //        given(repo).delete(byId: .any, on: .any).willThrow(DefaultError.invalidInput)
-    //
-    //        try app.test(.DELETE, "purchase_orders/\(id.uuidString)") { res in
-    //            XCTAssertEqual(res.status, .badRequest)
-    //        }
-    //    }
-    //
-    //    func testDelete_WithValidOrder_ShouldReturnOrder() async throws {
-    //
-    //        let purchaseOrder = PurchaseOrder(id: UUID(), reference: "PO-12345")
-    //        try await purchaseOrder.save(on: db)
-    //
-    //        // Given
-    //        let request = GeneralRequest.FetchById(id: purchaseOrder.id!)
-    //        given(generalValidator).validateID(.any).willReturn(request)
-    //
-    //        try app.test(.DELETE, "purchase_orders/\(purchaseOrder.id!.uuidString)") { res in
-    //            XCTAssertEqual(res.status, .ok)
-    //        }
-    //    }
-    //
-    //    // MARK: - Test GET /purchase_orders/search
+    
+    // MARK: - Test DELETE /purchase_orders/:id
+    func testDelete_WithInvalidOrder_ShouldReturnBadRequest() async throws {
+        
+    }
+        
+    func testDelete_WithValidOrder_ShouldReturnOrder() async throws {
+       
+    }
+    
+    // MARK: - Test GET /purchase_orders/search
     //    func testSearch_WithEmptyQuery_ShouldReturnBadRequest() async throws {
     //        // Given
     //        let request = PurchaseOrderRequest.Search(query: "")

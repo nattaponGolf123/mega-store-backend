@@ -243,11 +243,12 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
         if let supplierId = request.supplierId {
             // check is exist supplier
             guard
-                let _ = try? await contactRepository.fetchById(request: .init(id: supplierId),
-                                                               on: db)
+                let updatedSupplier = try? await contactRepository.fetchById(request: .init(id: supplierId),
+                                                                             on: db)
             else { throw PurchaseOrderRequest.Error.notFoundSupplierId }
             
             po.$supplier.id = supplierId
+            po.$supplier.value = updatedSupplier
             isChanged = true
         }
         
