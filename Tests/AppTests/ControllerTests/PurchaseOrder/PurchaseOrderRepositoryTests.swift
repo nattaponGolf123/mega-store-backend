@@ -155,7 +155,6 @@ final class PurchaseOrderRepositoryTests: XCTestCase {
 
         // Then
         XCTAssertEqual(result.items.count, 15)
-
     }
 
     // MARK: - Fetch By ID Tests
@@ -270,16 +269,15 @@ final class PurchaseOrderRepositoryTests: XCTestCase {
             request.deliveryDate.toDateString("yyyy-MM-dd"))
         XCTAssertEqual(result.paymentTermsDays, 30)
         XCTAssertEqual(result.items.count, 1)
-        
+
         let firstItem = result.items.first!
         XCTAssertEqual(firstItem.itemName, "Name")
         XCTAssertEqual(firstItem.itemDescription, "Des")
-        
+
         XCTAssertEqual(result.additionalDiscountAmount, 0)
         XCTAssertEqual(result.vatOption, .vatIncluded)
         XCTAssertEqual(result.includedVat, true)
         XCTAssertEqual(result.currency, .thb)
-
     }
 
     func testCreate_WithNotFoundSupplierId_ShouldThrowError() async throws {
@@ -334,7 +332,7 @@ final class PurchaseOrderRepositoryTests: XCTestCase {
             XCTAssertEqual(error as! PurchaseOrderRequest.Error, .notFoundSupplierId)
         }
     }
-    
+
     func testCreate_WithNotFoundCustomerId_ShouldThrowError() async throws {
         // Given
         let user = Stub.user
@@ -457,7 +455,6 @@ final class PurchaseOrderRepositoryTests: XCTestCase {
         XCTAssertEqual(result.vatOption, .vatExcluded)
         XCTAssertEqual(result.includedVat, true)
         XCTAssertEqual(result.currency, .thb)
-
     }
 
     func testUpdate_WithInvalidSupplier_ShouldThrowError() async throws {
@@ -604,7 +601,7 @@ final class PurchaseOrderRepositoryTests: XCTestCase {
         // Then
         XCTAssertEqual(result.items.count, 0)
     }
-    
+
     func testSearch_WithStatusPending_ShouldReturnMatchingPurchaseOrders() async throws {
         // Given
         let user = Stub.user
@@ -651,49 +648,208 @@ final class PurchaseOrderRepositoryTests: XCTestCase {
         XCTAssertEqual(result.items.first?.reference, po1.reference)
     }
 
-    // MARK: - Fetch Lasted Number Tests
+    // MARK: - Replace Items Tests
 
-    func testFetchLastedNumber_ShouldReturnCorrectNumber() async throws {
+    func testReplaceItems_WithValidData_ShouldReplaceItems() async throws {
         // Given
         let user = Stub.user
         let supplier = Stub.supplier
-        let contact = Stub.supplier
-        let business = Stub.customer
+        let customer = Stub.customer
+        let product = Product(name: "Product A")
+        let newProduct = Product(name: "Product B")
+
+        try await user.create(on: db)
+        try await supplier.create(on: db)
+        try await customer.create(on: db)
+        try await product.create(on: db)
+        try await newProduct.create(on: db)
+
+        let po = Stub.createPo(user: user, supplier: supplier, customer: customer, product: product)
+        try await po.create(on: db)
+
+        /*
+         struct CreateItem: Content, Validatable {
+             let itemId: UUID
+             let kind: PurchaseOrderItem.Kind
+             let itemName: String
+             let itemDescription: String
+             let variantId: UUID?
+             let qty: Double
+             let pricePerUnit: Double
+             let discountPricePerUnit: Double
+             let vatRateOption: VatRateOption
+             let vatIncluded: Bool
+             let withholdingTaxRateOption: TaxWithholdingRateOption
+
+             init(itemId: UUID,
+                  kind: PurchaseOrderItem.Kind,
+                  itemName: String,
+                  itemDescription: String,
+                  variantId: UUID?,
+                  qty: Double,
+                  pricePerUnit: Double,
+                  discountPricePerUnit: Double,
+                  vatRateOption: VatRateOption,
+                  vatIncluded: Bool,
+                  withholdingTaxRateOption: TaxWithholdingRateOption) {
+                 self.itemId = itemId
+                 self.kind = kind
+                 self.itemName = itemName
+                 self.itemDescription = itemDescription
+                 self.variantId = variantId
+                 self.qty = qty
+                 self.pricePerUnit = pricePerUnit
+                 self.discountPricePerUnit = discountPricePerUnit
+                 self.vatRateOption = vatRateOption
+                 self.vatIncluded = vatIncluded
+                 self.withholdingTaxRateOption = withholdingTaxRateOption
+             }
+         */
+        let newItems: [PurchaseOrderRequest.CreateItem] = [
+            .init(
+                itemId: newProduct.id!,
+                kind: .product,
+                itemName: "Product B",
+                itemDescription: "Description of Product B",
+                variantId: nil,
+                qty: 2,
+                pricePerUnit: 150.0,
+                discountPricePerUnit: 0,
+                vatRateOption: ._7,
+                vatIncluded: true,
+                withholdingTaxRateOption: .none
+            )
+        ]
+
+        let request = PurchaseOrderRequest.ReplaceItems(items: newItems,
+                                                        vatOption: .vatIncluded,
+                                                        additionalDiscountAmount: 50,
+                                                        includedVat: true)
+
+        // When
+        let result = try await purchaseOrderRepository.replaceItems(id: .init(id: po.id!),
+                                                                    request: request,
+                                                                    userId: .init(id: user.id!),
+                                                                    on: db)
+
+        // Then
+        XCTAssertEqual(result.items.count, 1)
+        XCTAssertEqual(result.items.first?.itemName, "Product B")
+    }
+
+    // MARK: - Items Reorder Tests
+
+    func testItemsReorder_WithValidData_ShouldReorderItems() async throws {
+        // Given
+        let user = Stub.user
+        let supplier = Stub.supplier
+        let customer = Stub.customer
+        let product = Product(name: "Product A")
+        let newProduct = Product(name: "Product B")
+
+        try await user.create(on: db)
+        try await supplier.create(on: db)
+        try await customer.create(on: db)
+        try await product.create(on: db)
+        try await newProduct.create(on: db)
+
+        let po = Stub.createPo(user: user, supplier: supplier, customer: customer, product: product)
+        try await po.create(on: db)
+
+        let newItems: [PurchaseOrderRequest.CreateItem] = [
+            .init(
+                itemId: newProduct.id!,
+                kind: .product,
+                itemName: "Product B",
+                itemDescription: "Description B",
+                variantId: nil,
+                qty: 2,
+                pricePerUnit: 200,
+                discountPricePerUnit: 0,
+                vatRateOption: .none,
+                vatIncluded: false,
+                withholdingTaxRateOption: .none
+            )
+        ]
+
+        let replaceRequest = PurchaseOrderRequest.ReplaceItems(
+            items: newItems,
+            vatOption: .vatIncluded,
+            additionalDiscountAmount: 0,
+            includedVat: true
+        )
+        let replacedPo = try await purchaseOrderRepository.replaceItems(
+            id: .init(id: po.id!),
+            request: replaceRequest,
+            userId: .init(id: user.id!),
+            on: db
+        )
+
+        let itemsOrder = replacedPo.items.map { GeneralRequest.FetchById(id: $0.id!) }
+
+        // When
+        let result = try await purchaseOrderRepository.itemsReorder(
+            id: .init(id: po.id!),
+            itemsOrder: itemsOrder,
+            userId: .init(id: user.id!),
+            on: db
+        )
+
+        // Then
+        XCTAssertEqual(result.items.count, 1)
+        XCTAssertEqual(result.items.first?.itemName, "Product B")
+    }
+
+    // MARK: - Approve Tests
+
+    func testApprove_WithValidData_ShouldApprovePurchaseOrder() async throws {
+        // Given
+        let user = Stub.user
+        let supplier = Stub.supplier
+        let customer = Stub.customer
         let product = Product(name: "Product A")
 
         try await user.create(on: db)
         try await supplier.create(on: db)
-        try await contact.create(on: db)
-        try await business.create(on: db)
+        try await customer.create(on: db)
         try await product.create(on: db)
 
-        // create po : month: 9, year: 2023, number: 1,
-        let po1 = Stub.createPo(
-            user: user,
-            supplier: supplier,
-            customer: business,
-            product: product)
-
-        try await po1.create(on: db)
+        let po = Stub.createPo(user: user, supplier: supplier, customer: customer, product: product)
+        po.status = .pending
+        try await po.create(on: db)
 
         // When
-        let result = try await purchaseOrderRepository.fetchLastedNumber(
-            year: 2023,
-            month: 9,
-            on: db)
+        let result = try await purchaseOrderRepository.approve(id: .init(id: po.id!), userId: .init(id: user.id!), on: db)
 
         // Then
-        XCTAssertEqual(result, po1.number)
+        XCTAssertEqual(result.status, .approved)
     }
-    
-    func testFetchLastedNumber_WithEmptyOrders_ShouldReturnZero() async throws {
+
+    // MARK: - Void Tests
+
+    func testVoid_WithValidData_ShouldVoidPurchaseOrder() async throws {
+        // Given
+        let user = Stub.user
+        let supplier = Stub.supplier
+        let customer = Stub.customer
+        let product = Product(name: "Product A")
+
+        try await user.create(on: db)
+        try await supplier.create(on: db)
+        try await customer.create(on: db)
+        try await product.create(on: db)
+
+        let po = Stub.createPo(user: user, supplier: supplier, customer: customer, product: product)
+        po.status = .approved
+        try await po.create(on: db)
+
         // When
-        let result = try await purchaseOrderRepository.fetchLastedNumber(year: 2030,
-                                                                         month: 1,
-                                                                         on: db)
-        
+        let result = try await purchaseOrderRepository.void(id: .init(id: po.id!),
+                                                            userId: .init(id: user.id!),
+                                                            on: db)
+
         // Then
-        XCTAssertEqual(result, 0)
+        XCTAssertEqual(result.status, .voided)
     }
 }
 

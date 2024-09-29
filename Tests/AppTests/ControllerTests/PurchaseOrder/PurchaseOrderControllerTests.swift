@@ -434,45 +434,339 @@ final class PurchaseOrderControllerTests: XCTestCase {
         }
     }
     
-    // MARK: - Test DELETE /purchase_orders/:id
-    func testDelete_WithInvalidOrder_ShouldReturnBadRequest() async throws {
+    // MARK: - Test POST /purchase_orders/:id/approve
+    func testApprove_WithInvalidOrder_ShouldReturnBadRequest() async throws {
+        // Given
+        let id = UUID()
+        let request = GeneralRequest.FetchById(id: id)
+
+        let jwtPayload = UserJWTPayload(user: Stub.user)
+        given(jwtValidator).validateToken(.any).willReturn(jwtPayload)
         
+        given(generalValidator).validateID(.any).willReturn(request)
+        given(repo).approve(id: .matching({ $0.id == id }), userId: .any, on: .any).willThrow(DefaultError.invalidInput)
+
+        try app.test(.POST, "purchase_orders/\(id.uuidString)/approve") { res in
+            XCTAssertEqual(res.status, .badRequest)
+        }
     }
-        
-    func testDelete_WithValidOrder_ShouldReturnOrder() async throws {
-       
+
+    func testApprove_WithValidOrder_ShouldReturnOrder() async throws {
+        // Given
+        let user = Stub.user
+        let contact = Stub.supplier
+        let customer = Stub.customer
+        let product = Product(name: "Product A")
+
+        try await user.create(on: db)
+        try await contact.create(on: db)
+        try await customer.create(on: db)
+        try await product.create(on: db)
+
+        let po = Stub.createPo(
+            user: user,
+            supplier: contact,
+            customer: customer,
+            product: product
+        )
+        try await po.create(on: db)
+
+        let jwtPayload = UserJWTPayload(user: user)
+        given(jwtValidator).validateToken(.any).willReturn(jwtPayload)
+        given(generalValidator).validateID(.any).willReturn(GeneralRequest.FetchById(id: po.id!))
+
+        controller = .init(
+            repository: PurchaseOrderRepository(),
+            validator: validator,
+            generalValidator: generalValidator,
+            jwtValidator: jwtValidator)
+
+        try app.register(collection: controller)
+
+        try app.test(.POST, "purchase_orders/\(po.id!.uuidString)/approve") { res in
+            XCTAssertEqual(res.status, .ok)
+            let response = try res.content.decode(PurchaseOrderResponse.self)
+            XCTAssertEqual(response.reference, po.reference)
+        }
     }
-    
+   
     // MARK: - Test GET /purchase_orders/search
-    //    func testSearch_WithEmptyQuery_ShouldReturnBadRequest() async throws {
-    //        // Given
-    //        let request = PurchaseOrderRequest.Search(query: "")
-    //        given(validator).validateSearchQuery(.any).willReturn(request)
-    //        given(repo).search(request: .any, on: .any).willThrow(DefaultError.invalidInput)
-    //
-    //        try app.test(.GET, "purchase_orders/search") { res in
-    //            XCTAssertEqual(res.status, .badRequest)
-    //        }
-    //    }
-    //
-    //    func testSearch_WithValidQuery_ShouldReturnOrders() async throws {
-    //
-    //        // Given
-    //        let order1 = PurchaseOrder(id: UUID(), reference: "PO-12345")
-    //        let order2 = PurchaseOrder(id: UUID(), reference: "PO-67890")
-    //
-    //        try await order1.save(on: db)
-    //        try await order2.save(on: db)
-    //
-    //        let query = PurchaseOrderRequest.Search(query: "PO")
-    //        given(validator).validateSearchQuery(.any).willReturn(query)
-    //
-    //        try app.test(.GET, "purchase_orders/search?query=PO") { res in
-    //            XCTAssertEqual(res.status, .ok)
-    //            let orders = try res.content.decode(PaginatedResponse<PurchaseOrderResponse>.self)
-    //            XCTAssertEqual(orders.total, 2)
-    //        }
-    //    }
+    func testSearch_WithInvalidQuery_ShouldReturnBadRequest() async throws {
+        // Given
+        let now = Date()
+        let nextDay = now.addingTimeInterval(86400)
+        let searchQuery = PurchaseOrderRequest.Search(query: "",
+                                                      periodDate: .init(from: now,
+                                                                        to: nextDay))
+        given(validator).validateSearchQuery(.any).willReturn(searchQuery)
+        given(repo).search(request: .any,
+                           on: .any).willThrow(DefaultError.invalidInput)
+
+        try app.test(.GET, "purchase_orders/search?query=") { res in
+            XCTAssertEqual(res.status, .badRequest)
+        }
+    }
+
+    func testSearch_WithValidQuery_ShouldReturnOrders() async throws {
+        // Given
+        let user = Stub.user
+        let contact = Stub.supplier
+        let customer = Stub.customer
+        let product = Product(name: "Product A")
+
+        try await user.create(on: db)
+        try await contact.create(on: db)
+        try await customer.create(on: db)
+        try await product.create(on: db)
+
+        let po1 = Stub.createPo(
+            user: user,
+            supplier: contact,
+            customer: customer,
+            product: product
+        )
+        let po2 = Stub.createPo(
+            user: user,
+            supplier: contact,
+            customer: customer,
+            product: product
+        )
+        try await po1.create(on: db)
+        try await po2.create(on: db)
+
+        let ytd = Date().addingTimeInterval(-86400)
+        let nextDay = Date().addingTimeInterval(86400)
+        let searchQuery = PurchaseOrderRequest.Search(query: "PO",
+                                                      periodDate: .init(from: ytd,
+                                                                        to: nextDay))
+        
+        given(validator).validateSearchQuery(.any).willReturn(searchQuery)
+        
+        controller = .init(
+            repository: PurchaseOrderRepository(),
+            validator: validator,
+            generalValidator: generalValidator,
+            jwtValidator: jwtValidator)
+
+        try app.register(collection: controller)
+
+        try app.test(.GET, "purchase_orders/search?query=PO") { res in
+            XCTAssertEqual(res.status, .ok)
+            let response = try res.content.decode(PaginatedResponse<PurchaseOrderResponse>.self)
+            XCTAssertEqual(response.items.count, 2)
+        }
+    }
+
+    // MARK: - Test POST /purchase_orders/:id/void
+    func testVoid_WithInvalidOrder_ShouldReturnBadRequest() async throws {
+        // Given
+        let id = UUID()
+        let request = GeneralRequest.FetchById(id: id)
+
+        let jwtPayload = UserJWTPayload(user: Stub.user)
+        given(jwtValidator).validateToken(.any).willReturn(jwtPayload)
+        
+        given(generalValidator).validateID(.any).willReturn(request)
+        given(repo).void(id: .matching({ $0.id == id }), userId: .any, on: .any).willThrow(DefaultError.invalidInput)
+
+        try app.test(.POST, "purchase_orders/\(id.uuidString)/void") { res in
+            XCTAssertEqual(res.status, .badRequest)
+        }
+    }
+
+    func testVoid_WithValidOrder_ShouldReturnOrder() async throws {
+        // Given
+        let user = Stub.user
+        let contact = Stub.supplier
+        let customer = Stub.customer
+        let product = Product(name: "Product A")
+
+        try await user.create(on: db)
+        try await contact.create(on: db)
+        try await customer.create(on: db)
+        try await product.create(on: db)
+
+        let po = Stub.createPo(
+            user: user,
+            supplier: contact,
+            customer: customer,
+            product: product
+        )
+        try await po.create(on: db)
+
+        let jwtPayload = UserJWTPayload(user: user)
+        given(jwtValidator).validateToken(.any).willReturn(jwtPayload)
+        
+        given(generalValidator).validateID(.any).willReturn(GeneralRequest.FetchById(id: po.id!))
+
+        controller = .init(
+            repository: PurchaseOrderRepository(),
+            validator: validator,
+            generalValidator: generalValidator,
+            jwtValidator: jwtValidator)
+
+        try app.register(collection: controller)
+
+        try app.test(.POST, "purchase_orders/\(po.id!.uuidString)/void") { res in
+            XCTAssertEqual(res.status, .ok)
+            let response = try res.content.decode(PurchaseOrderResponse.self)
+            XCTAssertEqual(response.reference, po.reference)
+        }
+    }
+
+    // MARK: - Test PUT /purchase_orders/:id/replace_items
+    func testReplaceItems_WithInvalidOrder_ShouldReturnBadRequest() async throws {
+        // Given
+        let id = UUID()
+        let request = GeneralRequest.FetchById(id: id)
+        let replaceItemsRequest = PurchaseOrderRequest.ReplaceItems(
+            items: [],
+            vatOption: .vatIncluded,
+            additionalDiscountAmount: 0,
+            includedVat: true
+        )
+        
+        let jwtPayload = UserJWTPayload(user: Stub.user)
+        given(jwtValidator).validateToken(.any).willReturn(jwtPayload)
+
+        given(generalValidator).validateID(.any).willReturn(request)
+        given(validator).validateReplaceItems(.any).willReturn((request, replaceItemsRequest))
+        given(repo).replaceItems(id: .matching({ $0.id == id }), request: .any, userId: .any, on: .any).willThrow(DefaultError.invalidInput)
+
+        try app.test(.PUT, "purchase_orders/\(id.uuidString)/replace_items") { res in
+            XCTAssertEqual(res.status, .badRequest)
+        }
+    }
+
+    func testReplaceItems_WithValidOrder_ShouldReturnOrder() async throws {
+        // Given
+        let user = Stub.user
+        let contact = Stub.supplier
+        let customer = Stub.customer
+        let product = Product(name: "Product A")
+
+        try await user.create(on: db)
+        try await contact.create(on: db)
+        try await customer.create(on: db)
+        try await product.create(on: db)
+
+        let po = Stub.createPo(
+            user: user,
+            supplier: contact,
+            customer: customer,
+            product: product
+        )
+        try await po.create(on: db)
+
+        let replaceItemsRequest = PurchaseOrderRequest.ReplaceItems(
+            items: [PurchaseOrderRequest.CreateItem(
+                itemId: product.id!,
+                kind: .product,
+                itemName: product.name,
+                itemDescription: product.description,
+                variantId: nil,
+                qty: 1,
+                pricePerUnit: 100,
+                discountPricePerUnit: 0,
+                vatRateOption: .none,
+                vatIncluded: false,
+                withholdingTaxRateOption: .none
+            )],
+            vatOption: .vatIncluded,
+            additionalDiscountAmount: 0,
+            includedVat: true
+        )
+        
+        let jwtPayload = UserJWTPayload(user: user)
+        given(jwtValidator).validateToken(.any).willReturn(jwtPayload)
+
+        given(generalValidator).validateID(.any).willReturn(GeneralRequest.FetchById(id: po.id!))
+        given(validator).validateReplaceItems(.any).willReturn((GeneralRequest.FetchById(id: po.id!), replaceItemsRequest))
+
+        controller = .init(
+            repository: PurchaseOrderRepository(),
+            validator: validator,
+            generalValidator: generalValidator,
+            jwtValidator: jwtValidator)
+
+        try app.register(collection: controller)
+
+        try app.test(.PUT, "purchase_orders/\(po.id!.uuidString)/replace_items",
+                     beforeRequest: { req in
+            try req.content.encode(replaceItemsRequest)
+        }) { res in
+            XCTAssertEqual(res.status, .ok)
+            let response = try res.content.decode(PurchaseOrderResponse.self)
+            XCTAssertEqual(response.reference, po.reference)
+        }
+    }
+
+    // MARK: - Test PUT /purchase_orders/:id/reorder_items
+    func testReorderItems_WithInvalidOrder_ShouldReturnBadRequest() async throws {
+        // Given
+        let id = UUID()
+        let request = GeneralRequest.FetchById(id: id)
+        let reorderItemsRequest = PurchaseOrderRequest.ReorderItems(itemIdOrder: [])
+        
+        let jwtPayload = UserJWTPayload(user: Stub.user)
+        given(jwtValidator).validateToken(.any).willReturn(jwtPayload)
+
+        given(generalValidator).validateID(.any).willReturn(request)
+        given(validator).validateReorderItems(.any).willReturn((request, reorderItemsRequest))
+        given(repo).itemsReorder(id: .matching({ $0.id == id }), itemsOrder: .any, userId: .any, on: .any).willThrow(DefaultError.invalidInput)
+
+        try app.test(.PUT, "purchase_orders/\(id.uuidString)/reorder_items") { res in
+            XCTAssertEqual(res.status, .badRequest)
+        }
+    }
+
+    func testReorderItems_WithValidOrder_ShouldReturnOrder() async throws {
+        // Given
+        let user = Stub.user
+        let contact = Stub.supplier
+        let customer = Stub.customer
+        let product = Product(name: "Product A")
+
+        try await user.create(on: db)
+        try await contact.create(on: db)
+        try await customer.create(on: db)
+        try await product.create(on: db)
+
+        let po = Stub.createPo(
+            user: user,
+            supplier: contact,
+            customer: customer,
+            product: product
+        )
+        try await po.create(on: db)
+
+        let jwtPayload = UserJWTPayload(user: user)
+        given(jwtValidator).validateToken(.any).willReturn(jwtPayload)
+        
+        given(generalValidator).validateID(.any).willReturn(GeneralRequest.FetchById(id: po.id!))
+        
+        let id = GeneralRequest.FetchById(id: po.id!)
+        let reorderItemsRequest = PurchaseOrderRequest.ReorderItems(itemIdOrder: [po.items.first!.id!])
+        given(validator).validateReorderItems(.any).willReturn((id, reorderItemsRequest))
+
+        controller = .init(
+            repository: PurchaseOrderRepository(),
+            validator: validator,
+            generalValidator: generalValidator,
+            jwtValidator: jwtValidator)
+
+        try app.register(collection: controller)
+
+        try app.test(.PUT, "purchase_orders/\(po.id!.uuidString)/reorder_items",
+                     beforeRequest: { req in
+            //try req.content.encode(reorderItemsRequest)
+        }) { res in
+            XCTAssertEqual(res.status, .ok)
+            let response = try res.content.decode(PurchaseOrderResponse.self)
+            XCTAssertEqual(response.reference, po.reference)
+        }
+    }
+
 }
 
 //extension PurchaseOrderControllerTests {

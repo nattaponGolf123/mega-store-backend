@@ -32,19 +32,11 @@ class PurchaseOrderController: RouteCollection {
             
             withID.group("void") { withVoid in
                 withVoid.post(use: void)
-            }
-            
-            withID.group("cancel") { withVoid in
-                withVoid.post(use: cancel)
-            }
+            }            
             
             withID.group("approve") { withVoid in
                 withVoid.post(use: approve)
             }
-            
-//            withID.group("reject") { withVoid in
-//                withVoid.post(use: reject)
-//            }
             
             withID.group("replace_items") { withReplaceItem in
                 withReplaceItem.put(use: replaceItems)
@@ -116,27 +108,6 @@ class PurchaseOrderController: RouteCollection {
         let userPayload = try jwtValidator.validateToken(req)
         let id = try generalValidator.validateID(req)
         let po = try await repository.approve(id: id,
-                                            userId: .init(id: userPayload.userID),
-                                            on: req.db)
-        return .init(from: po)
-    }
-    
-    // POST /purchase_orders/:id/reject
-//    func reject(req: Request) async throws -> PurchaseOrderResponse {
-//        let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
-//        let id = try generalValidator.validateID(req)
-//        let po = try await repository.reject(id: id,
-//                                            userId: .init(id: userPayload.userID),
-//                                            on: req.db)
-//        return .init(from: po)
-//    }
-    
-    // POST /purchase_orders/:id/cancel
-    func cancel(req: Request) async throws -> PurchaseOrderResponse {
-        //let userPayload = try req.jwt.verify(as: UserJWTPayload.self)
-        let userPayload = try jwtValidator.validateToken(req)
-        let id = try generalValidator.validateID(req)
-        let po = try await repository.cancel(id: id,
                                             userId: .init(id: userPayload.userID),
                                             on: req.db)
         return .init(from: po)

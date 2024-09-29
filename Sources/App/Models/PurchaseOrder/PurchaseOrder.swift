@@ -10,7 +10,6 @@ enum PurchaseOrderStatus: String, Codable {
     case draft = "DRAFT"
     case pending = "PENDING"
     case approved = "APPROVED"
-    //case rejected = "REJECTED"
     case voided = "VOIDED"
 }
 

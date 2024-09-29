@@ -20,7 +20,6 @@ struct PurchaseOrderRequest {
         case emptyItems
         case notMatchItems
         case notAbleToApprove
-        case notAbleToCancel
         case notAbleToVoid
         
         var reason: String {
@@ -41,8 +40,6 @@ struct PurchaseOrderRequest {
                 return "Items not match"
             case .notAbleToApprove:
                 return "Not able to approve"
-            case .notAbleToCancel:
-                return "Not able to cancel"
             case .notAbleToVoid:
                 return "Not able to void"
             
