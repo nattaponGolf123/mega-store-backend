@@ -719,6 +719,21 @@ struct PurchaseOrderRequest {
             includedVat = try container.decodeIfPresent(Bool.self, forKey: .includedVat)
         }
         
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            
+            try container.encodeIfPresent(reference, forKey: .reference)
+            try container.encodeIfPresent(note, forKey: .note)
+            try container.encodeIfPresent(paymentTermsDays, forKey: .paymentTermsDays)
+            try container.encodeIfPresent(supplierId, forKey: .supplierId)
+            try container.encodeIfPresent(deliveryDate?.toDateString("yyyy-MM-dd"), forKey: .deliveryDate)
+            try container.encodeIfPresent(vatOption, forKey: .vatOption)
+            try container.encodeIfPresent(orderDate?.toDateString("yyyy-MM-dd"), forKey: .orderDate)
+            try container.encodeIfPresent(additionalDiscountAmount, forKey: .additionalDiscountAmount)
+            try container.encodeIfPresent(currency, forKey: .currency)
+            try container.encodeIfPresent(includedVat, forKey: .includedVat)
+        }
+        
 //        func poItems() -> [PurchaseOrderItem]? {
 //            
 //            guard
