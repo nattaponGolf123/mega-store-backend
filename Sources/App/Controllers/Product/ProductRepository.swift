@@ -160,7 +160,7 @@ class ProductRepository: ProductRepositoryProtocol {
         }
         
         if let description = request.description {
-            product.description = description
+            product.descriptionInfo = description
         }
         
         if let price = request.price {
@@ -212,7 +212,7 @@ class ProductRepository: ProductRepositoryProtocol {
             if let number = Int(q) {
                 or.filter(\.$number == number)
             }
-            or.filter(\.$description =~ regexPattern)
+            or.filter(\.$descriptionInfo =~ regexPattern)
             or.filter(\.$barcode == q)
             or.filter(\.$manufacturer =~ regexPattern)            
         }

@@ -22,7 +22,7 @@ final class Product: Model, Content {
     var name: String
 
     @Field(key: "description")
-    var description: String?
+    var descriptionInfo: String?
 
     @Field(key: "unit")
     var unit: String
@@ -89,7 +89,7 @@ final class Product: Model, Content {
         self.id = id ?? .init()
         self.number = max(number, 1)
         self.name = name
-        self.description = description
+        self.descriptionInfo = description
         self.unit = unit
         self.price = price
         self.$category.id = categoryId

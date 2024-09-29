@@ -221,8 +221,8 @@ final class PurchaseOrderRepositoryTests: XCTestCase {
             .init(
                 itemId: product.id!,
                 kind: .product,
-                name: "Name",
-                description: "Des",
+                itemName: "Name",
+                itemDescription: "Des",
                 variantId: nil,
                 qty: 1,
                 pricePerUnit: 100,
@@ -267,6 +267,11 @@ final class PurchaseOrderRepositoryTests: XCTestCase {
             request.deliveryDate.toDateString("yyyy-MM-dd"))
         XCTAssertEqual(result.paymentTermsDays, 30)
         XCTAssertEqual(result.items.count, 1)
+        
+        let firstItem = result.items.first!
+        XCTAssertEqual(firstItem.itemName, "Name")
+        XCTAssertEqual(firstItem.itemDescription, "Des")
+        
         XCTAssertEqual(result.additionalDiscountAmount, 0)
         XCTAssertEqual(result.vatOption, .vatIncluded)
         XCTAssertEqual(result.includedVat, true)
@@ -274,7 +279,7 @@ final class PurchaseOrderRepositoryTests: XCTestCase {
 
     }
 
-    func testCreate_WithInvalidSupplier_ShouldThrowError() async throws {
+    func testCreate_WithNotFoundSupplierId_ShouldThrowError() async throws {
         // Given
         let user = Stub.user
         let business = Stub.customer
@@ -288,8 +293,8 @@ final class PurchaseOrderRepositoryTests: XCTestCase {
             .init(
                 itemId: product.id!,
                 kind: .product,
-                name: "Name",
-                description: "Des",
+                itemName: "Name",
+                itemDescription: "Des",
                 variantId: nil,
                 qty: 1,
                 pricePerUnit: 100,
@@ -324,6 +329,59 @@ final class PurchaseOrderRepositoryTests: XCTestCase {
             XCTFail("Should throw error")
         } catch {
             XCTAssertEqual(error as! PurchaseOrderRequest.Error, .notFoundSupplierId)
+        }
+    }
+    
+    func testCreate_WithNotFoundCustomerId_ShouldThrowError() async throws {
+        // Given
+        let user = Stub.user
+        let contact = Stub.supplier
+        let product = Product(name: "Product A")
+
+        try await user.create(on: db)
+        try await contact.create(on: db)
+        try await product.create(on: db)
+
+        let items: [PurchaseOrderRequest.CreateItem] = [
+            .init(
+                itemId: product.id!,
+                kind: .product,
+                itemName: "Name",
+                itemDescription: "Des",
+                variantId: nil,
+                qty: 1,
+                pricePerUnit: 100,
+                discountPricePerUnit: 0,
+                vatRateOption: .none,
+                vatIncluded: false,
+                withholdingTaxRateOption: .none)
+        ]
+
+        let request = PurchaseOrderRequest.Create(
+            reference: "PO-001",
+            note: "Test purchase order",
+            supplierId: contact.id!,
+            customerId: .init(),
+            orderDate: Date(),
+            deliveryDate: Date().addingTimeInterval(86400),
+            paymentTermsDays: 30,
+            items: items,
+            additionalDiscountAmount: 0,
+            vatOption: .vatIncluded,
+            includedVat: true,
+            currency: .thb
+        )
+
+        // When
+        do {
+            _ = try await purchaseOrderRepository.create(
+                request: request,
+                userId: .init(id: user.id!),
+                on: db
+            )
+            XCTFail("Should throw error")
+        } catch {
+            XCTAssertEqual(error as! PurchaseOrderRequest.Error, .notFoundCustomerId)
         }
     }
 
@@ -365,7 +423,6 @@ final class PurchaseOrderRepositoryTests: XCTestCase {
             paymentTermsDays: 61,
             supplierId: updatedSupplier.id,
             deliveryDate: updateDeliveryDate,
-            items: nil,
             vatOption: .vatExcluded,
             orderDate: updateOrderDate,
             additionalDiscountAmount: 0,
@@ -435,7 +492,6 @@ final class PurchaseOrderRepositoryTests: XCTestCase {
             paymentTermsDays: 61,
             supplierId: updatedSupplierId,
             deliveryDate: updateDeliveryDate,
-            items: nil,
             vatOption: .vatExcluded,
             orderDate: updateOrderDate,
             additionalDiscountAmount: 0,
@@ -676,16 +732,16 @@ extension PurchaseOrderRepositoryTests {
                 PurchaseOrderItem(
                     itemId: product.id!,
                     kind: .product,
-                    name: product.name,
-                    description: product.description,
+                    itemName: product.name,
+                    itemDescription: product.description,
                     variantId: nil,
                     qty: 1,
                     pricePerUnit: 100.0,
                     discountPricePerUnit: 0.0,
                     additionalDiscount: 0.0,
-                    vatRate: ._7,
+                    vatRateOption: ._7,
                     vatIncluded: true,
-                    taxWithholdingRate: .none
+                    taxWithholdingRateOption: .none
                 )
             ]
         }

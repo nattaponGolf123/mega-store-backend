@@ -18,15 +18,15 @@ final class PurchaseOrderTests: XCTestCase {
             PurchaseOrderItem(id: .init(),
                               itemId: .init(),
                               kind: .product,
-                              name: "Product 1",
-                              description: "Product 1",
+                              itemName: "Product 1",
+                              itemDescription: "Product 1",
                               qty: 10,
                               pricePerUnit: 10,
                               discountPricePerUnit: 1,
                               additionalDiscount: 0,
-                              vatRate: ._7,
+                              vatRateOption: ._7,
                               vatIncluded: true,
-                              taxWithholdingRate: ._3)
+                              taxWithholdingRateOption: ._3)
         ]
         let expectedAdditionalDiscountAmount = 0.0
         let expectedVatAdjustmentAmount = 0.0
@@ -113,15 +113,15 @@ final class PurchaseOrderTests: XCTestCase {
                                            items: [.init(id: .init(),
                                                          itemId: .init(),
                                                          kind: .product,
-                                                         name: "Product 1",
-                                                         description: "Product 1",
+                                                         itemName: "Product 1",
+                                                         itemDescription: "Product 1",
                                                          qty: 10,
                                                          pricePerUnit: 10,
                                                          discountPricePerUnit: 1,
                                                          additionalDiscount: 0,
-                                                         vatRate: ._7,
+                                                         vatRateOption: ._7,
                                                          vatIncluded: true,
-                                                         taxWithholdingRate: ._3)],
+                                                         taxWithholdingRateOption: ._3)],
                                            additionalDiscountAmount: 0,
                                            vatAdjustmentAmount: 0,
                                            orderDate: .init(),
@@ -143,15 +143,15 @@ final class PurchaseOrderTests: XCTestCase {
                                items: [.init(id: .init(),
                                              itemId: .init(),
                                              kind: .product,
-                                             name: "Product 1",
-                                             description: "Product 1",
+                                             itemName: "Product 1",
+                                             itemDescription: "Product 1",
                                              qty: 10,
                                              pricePerUnit: 10,
                                              discountPricePerUnit: 1,
                                              additionalDiscount: 0,
-                                             vatRate: ._7,
+                                             vatRateOption: ._7,
                                              vatIncluded: true,
-                                             taxWithholdingRate: ._3)],
+                                             taxWithholdingRateOption: ._3)],
                                additionalDiscountAmount: 0,
                                vatAdjustmentAmount: 0,
                                orderDate: .init(),
@@ -230,7 +230,7 @@ final class PurchaseOrderTests: XCTestCase {
 //                              pricePerUnit: 20,
 //                              discountPricePerUnit: 2,
 //                              additionalDiscount: 0,
-//                              vatRate: ._7,
+//                              vatRateOption: ._7,
 //                              vatIncluded: true,
 //                              taxWithholdingRate: ._3)
 //        ]
@@ -345,15 +345,15 @@ extension PurchaseOrderTests {
                   items: [.init(id: .init(),
                                 itemId: .init(),
                                 kind: .product,
-                                name: "Product 1",
-                                description: "Product 1",
+                                itemName: "Product 1",
+                                itemDescription: "Product 1",
                                 qty: 10,
                                 pricePerUnit: 10,
                                 discountPricePerUnit: 1,
                                 additionalDiscount: 0,
-                                vatRate: ._7,
+                                vatRateOption: ._7,
                                 vatIncluded: true,
-                                taxWithholdingRate: ._3)],
+                                taxWithholdingRateOption: ._3)],
                   additionalDiscountAmount: 0,
                   vatAdjustmentAmount: 0,
                   orderDate: .init(),
@@ -362,3 +362,76 @@ extension PurchaseOrderTests {
         }
     }
 }
+
+/*
+ final class PurchaseOrderItem: Model, Content {
+     static var schema = "PurchaseOrderItem"
+     
+     @ID(key: .id)
+     var id: UUID?
+     
+     @Field(key: "item_id")
+     var itemId: UUID
+     
+     @Enum(key: "kind")
+     var kind: Kind
+     
+     @Field(key: "name")
+     var itemName: String
+     
+     @Field(key: "description")
+     var itemDescription: String
+     
+     @Field(key: "variant_id")
+     var variantId: UUID?
+     
+     @Field(key: "qty")
+     var qty: Double
+     
+     @Field(key: "price_per_unit")
+     var pricePerUnit: Double
+     
+     @Field(key: "discount_price_per_unit")
+     var discountPricePerUnit: Double
+     
+     @Field(key: "additional_discount")
+     var additionalDiscount: Double
+     
+     @Field(key: "base_discount_per_unit")
+     var baseDiscountPerUnit: Double
+     
+     @Field(key: "amount_discount")
+     var amountDiscount: Double
+     
+     @Field(key: "vat_rate")
+     var vatRate: Double?
+     
+     @Field(key: "vat_rate_option")
+     var vatRateOption: VatRateOption
+     
+     @Field(key: "vat_included")
+     var vatIncluded: Bool
+     
+     @Field(key: "tax_withholding_rate")
+     var taxWithholdingRate: Double?
+     
+     @Field(key: "tax_withholding_rate_option")
+     var taxWithholdingRateOption: TaxWithholdingRateOption
+     
+     @Field(key: "amount_before_vat")
+     var amountBeforeVat: Double
+     
+     @Field(key: "amount_after_vat")
+     var amountAfterVat: Double
+     
+     @Field(key: "vat_amount")
+     var vatAmount: Double?
+     
+     @Field(key: "withholding_tax_amount")
+     var withholdingTaxAmount: Double?
+     
+     @Field(key: "amount_due")
+     var amountDue: Double
+
+ }
+ */

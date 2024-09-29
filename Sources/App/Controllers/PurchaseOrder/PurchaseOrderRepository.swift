@@ -3,6 +3,7 @@ import Vapor
 import Fluent
 import Mockable
 
+@Mockable
 protocol PurchaseOrderRepositoryProtocol {
     func fetchAll(request: PurchaseOrderRequest.FetchAll,
                   on db: Database) async throws -> PaginatedResponse<PurchaseOrder>
@@ -69,6 +70,8 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
     func fetchAll(request: PurchaseOrderRequest.FetchAll,
                   on db: Database) async throws -> PaginatedResponse<PurchaseOrder> {
         let query = PurchaseOrder.query(on: db)
+            .with(\.$supplier)
+            .with(\.$customer)
         
         let total = try await query.count()
         let items = try await sortQuery(query: query,
@@ -89,8 +92,14 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
     
     func fetchById(request: GeneralRequest.FetchById,
                    on db: Database) async throws -> PurchaseOrder {
+        
+        let query = PurchaseOrder.query(on: db)
+            .with(\.$supplier)
+            .with(\.$customer)
+            .filter(\.$id == request.id)
+        
         guard
-            let found = try await PurchaseOrder.query(on: db).filter(\.$id == request.id).first()
+            let found = try await query.first()
         else {
             throw DefaultError.notFound
         }
@@ -162,8 +171,10 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
                                currency: request.currency,
                                note: request.note,
                                userId: userId.id)
-        try await po.save(on: db)
-        return po
+        try await po.create(on: db)
+        
+        return try await fetchById(request: .init(id: po.id!),
+                                   on: db)
     }
     
     /*
@@ -276,33 +287,33 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
             po.recalculateItems()
         }
         
-        if let items = request.items {
-            // check all po product item ans service is exist
-            for item in items {
-                switch item.kind {
-                case .product:
-                    guard
-                        let _ = try? await productRepository.fetchById(request: .init(id: item.itemId),
-                                                                       on: db)
-                    else { throw PurchaseOrderRequest.Error.notFoundProductId }
-                    
-                case .service:
-                    guard
-                        let _ = try? await serviceRepository.fetchById(request: .init(id: item.itemId),
-                                                                      on: db)
-                    else { throw PurchaseOrderRequest.Error.notFoundServiceId }
-                }
-            }
+//        if let items = request.items {
+//            // check all po product item ans service is exist
+//            for item in items {
+//                switch item.kind {
+//                case .product:
+//                    guard
+//                        let _ = try? await productRepository.fetchById(request: .init(id: item.itemId),
+//                                                                       on: db)
+//                    else { throw PurchaseOrderRequest.Error.notFoundProductId }
+//                    
+//                case .service:
+//                    guard
+//                        let _ = try? await serviceRepository.fetchById(request: .init(id: item.itemId),
+//                                                                      on: db)
+//                    else { throw PurchaseOrderRequest.Error.notFoundServiceId }
+//                }
+//            }
+//            
+//            guard
+//                let poItems = request.poItems()
+//            else { throw PurchaseOrderRequest.Error.emptyItems }
             
-            guard
-                let poItems = request.poItems()
-            else { throw PurchaseOrderRequest.Error.emptyItems }
+//            po.items = poItems
+           // isChanged = true
             
-            po.items = poItems
-            isChanged = true
-            
-            po.recalculateItems()
-        }
+            //po.recalculateItems()
+        //}
         
         // append new logs
         if isChanged {
@@ -527,20 +538,16 @@ class PurchaseOrderRepository: PurchaseOrderRepositoryProtocol {
         let q = request.query
         let regexPattern = "(?i)\(q)"  // (?i) makes the regex case-insensitive
         let query = PurchaseOrder.query(on: db)
+            .with(\.$supplier)
+            .with(\.$customer)
             .join(Contact.self, on: \PurchaseOrder.$supplier.$id == \Contact.$id)
             .join(MyBusinese.self, on: \PurchaseOrder.$customer.$id == \MyBusinese.$id)
             .group(.or) { or in
                 or.filter(\.$reference =~ regexPattern)
                 or.filter(\.$note =~ regexPattern)
-                
-                //or.filter(\.$supplier, Contact.self, \.$name =~ regexPattern)
-                //or.filter(\.$supplier.$name =~ regexPattern)
-                
-                // Perform a join to the Supplier model (related through the `supplier` relationship)
-                //query.join(Contact.self, on: \PurchaseOrder.$supplier.$id == \Contact.$id)
-                
-                // Add filter for supplier name (case-insensitive 'like' filter)
-                or.filter(Contact.self, \.$name =~ regexPattern)
+                                
+                // Filter by supplier name (case-insensitive 'like' filter)
+                or.filter(Contact.self, \Contact.$name =~ regexPattern)
                 
                 if let number = Int(q) {
                     or.filter(\.$number == number)
@@ -1080,9 +1087,6 @@ private extension PurchaseOrderRepository {
         let pageEnd = pageStart + perPage
         
         let range = pageStart..<pageEnd
-        
-        query.with(\.$supplier)
-        query.with(\.$customer)
         
         switch sortBy {
         case .status:

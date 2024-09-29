@@ -1,6 +1,8 @@
 import Foundation
 import Vapor
+import Mockable
 
+@Mockable
 protocol PurchaseOrderValidatorProtocol {
     typealias Create = PurchaseOrderRequest.Create
     typealias CreateItem = PurchaseOrderRequest.CreateItem

@@ -112,7 +112,7 @@ final class PurchaseOrder: Model, Content {
     var includedVat: Bool
     
     @Field(key: "vat_rate")
-    var vatRate: Double?
+    var vatRateOption: Double?
     
     @Field(key: "total_amount_before_discount")
     var totalAmountBeforeDiscount: Double
@@ -182,7 +182,7 @@ final class PurchaseOrder: Model, Content {
          reference: String? = nil,
          vatOption: VatOption,
          includedVat: Bool,
-         vatRate: VatRate,
+         vatRateOption: VatRate,
          items: [PurchaseOrderItem],
          additionalDiscountAmount: Double = 0,
          orderDate: Date = .init(),
@@ -229,12 +229,12 @@ final class PurchaseOrder: Model, Content {
                                                       quantity: $0.qty,
                                                       pricePerUnit: $0.pricePerUnit,
                                                       discountPerUnit: $0.discountPricePerUnit,
-                                                      vatRate: $0.vatRate,
+                                                      vatRateOption: $0.vatRate,
                                                       withholdingTaxRate: $0.taxWithholdingRate,
                                                       vatIncluded: $0.vatIncluded) })
         let summary = BillSummary(items: billItems,
                                   additionalDiscountAmount: additionalDiscountAmount,
-                                  vatRate: self.vatRate,
+                                  vatRateOption: self.vatRate,
                                   vatIncluded: includedVat)
         
         
@@ -253,7 +253,7 @@ final class PurchaseOrder: Model, Content {
                      reference: String? = nil,
                      vatOption: VatOption,
                      includedVat: Bool,
-                     vatRate: VatRate,
+                     vatRateOption: VatRate,
                      items: [PurchaseOrderItem],
                      additionalDiscountAmount: Double = 0,
                      orderDate: Date = .init(),
@@ -275,7 +275,7 @@ final class PurchaseOrder: Model, Content {
                   reference: reference,
                   vatOption: vatOption,
                   includedVat: includedVat,
-                  vatRate: vatRate,
+                  vatRateOption: vatRate,
                   items: items,
                   additionalDiscountAmount: additionalDiscountAmount,
                   orderDate: orderDate,
@@ -368,7 +368,7 @@ extension PurchaseOrder {
                   reference: "PO-2021-01-01",
                   vatOption: .vatIncluded,
                   includedVat: true,
-                  vatRate: ._7,
+                  vatRateOption: ._7,
                   items: [.init(id: nil,
                                 itemId: .init(),
                                 kind: .product,
@@ -379,7 +379,7 @@ extension PurchaseOrder {
                                 pricePerUnit: 10,
                                 discountPricePerUnit: 1,
                                 additionalDiscount: 0,
-                                vatRate: ._7,
+                                vatRateOption: ._7,
                                 vatIncluded: true,
                                 taxWithholdingRate: ._3)],
                   additionalDiscountAmount: 0,

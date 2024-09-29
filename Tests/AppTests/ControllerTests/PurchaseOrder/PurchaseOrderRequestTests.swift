@@ -23,15 +23,15 @@ final class PurchaseOrderRequestTests: XCTestCase {
         let item = PurchaseOrderRequest.CreateItem(
             itemId: itemId,
             kind: .product,
-            name: "Product 1",
-            description: "Product 1 Description",
+            itemName: "Product 1",
+            itemDescription: "Product 1 Description",
             variantId: nil,
             qty: 10.0,
             pricePerUnit: 100.0,
             discountPricePerUnit: 10.0,
-            vatRateOption: .vat7,
+            vatRateOption: ._7,
             vatIncluded: true,
-            withholdingTaxRateOption: .tax3
+            withholdingTaxRateOption: ._3
         )
 
         let create = PurchaseOrderRequest.Create(
@@ -54,7 +54,8 @@ final class PurchaseOrderRequestTests: XCTestCase {
         XCTAssertEqual(create.supplierId, supplierId)
         XCTAssertEqual(create.customerId, customerId)
         XCTAssertEqual(create.items.count, 1)
-        XCTAssertEqual(create.items.first?.name, "Product 1")
+        XCTAssertEqual(create.items.first?.itemName, "Product 1")
+        XCTAssertEqual(create.items.first?.itemDescription, "Product 1 Description")
         XCTAssertEqual(create.items.first?.pricePerUnit, 100.0)
         XCTAssertEqual(create.vatOption, .vatExcluded)
         XCTAssertEqual(create.includedVat, true)
@@ -70,15 +71,15 @@ final class PurchaseOrderRequestTests: XCTestCase {
         let item = PurchaseOrderRequest.CreateItem(
             itemId: itemId,
             kind: .product,
-            name: "Product 1",
-            description: "Product 1 Description",
+            itemName: "Product 1",
+            itemDescription: "Product 1 Description",
             variantId: nil,
             qty: 10.0,
             pricePerUnit: 100.0,
             discountPricePerUnit: 10.0,
-            vatRateOption: .vat7,
+            vatRateOption: ._7,
             vatIncluded: true,
-            withholdingTaxRateOption: .tax3
+            withholdingTaxRateOption: ._3
         )
 
         let create = PurchaseOrderRequest.Create(
@@ -105,9 +106,19 @@ final class PurchaseOrderRequestTests: XCTestCase {
         XCTAssertEqual(jsonObject?["note"] as? String, "Test Purchase Order")
         XCTAssertEqual(jsonObject?["supplier_id"] as? String, supplierId.uuidString)
         XCTAssertEqual(jsonObject?["customer_id"] as? String, customerId.uuidString)
-//        XCTAssertEqual(jsonObject?["items"] as? [[String: Any]]?.first?["item_id"] as? String, itemId.uuidString)
-//        XCTAssertEqual(jsonObject?["items"] as? [[String: Any]]?.first?["name"] as? String, "Product 1")
-//        XCTAssertEqual(jsonObject?["items"] as? [[String: Any]]?.first?["price_per_unit"] as? Double, 100.0)
+        
+        let firstItem = (jsonObject?["items"] as? [[String: Any]])?.first
+        XCTAssertEqual(firstItem?["item_id"] as? String, itemId.uuidString)
+        XCTAssertEqual(firstItem?["kind"] as? String, "PRODUCT")
+        XCTAssertEqual(firstItem?["item_name"] as? String, "Product 1")
+        XCTAssertEqual(firstItem?["item_description"] as? String, "Product 1 Description")
+        XCTAssertEqual(firstItem?["qty"] as? Double, 10.0)
+        XCTAssertEqual(firstItem?["price_per_unit"] as? Double, 100.0)
+        XCTAssertEqual(firstItem?["discount_price_per_unit"] as? Double, 10.0)
+        XCTAssertEqual(firstItem?["vat_rate_option"] as? String, "VAT7")
+        XCTAssertEqual(firstItem?["vat_included"] as? Bool, true)
+        XCTAssertEqual(firstItem?["withholding_tax_rate_option"] as? String, "TAX3")
+        
         XCTAssertEqual(jsonObject?["vat_option"] as? String, "VAT_EXCLUDED")
         XCTAssertEqual(jsonObject?["included_vat"] as? Bool, true)
     }
@@ -129,14 +140,14 @@ final class PurchaseOrderRequestTests: XCTestCase {
             "items": [{
                 "item_id": "\(itemId.uuidString)",
                 "kind": "PRODUCT",
-                "name": "Product 1",
-                "description": "Product 1 Description",
+                "item_name": "Product 1",
+                "item_description": "Product 1 Description",
                 "qty": 10.0,
                 "price_per_unit": 100.0,
                 "discount_price_per_unit": 10.0,
-                "vat_rate_option": "VAT_7",
+                "vat_rate_option": "VAT7",
                 "vat_included": true,
-                "withholding_tax_rate_option": "TAX_3"
+                "withholding_tax_rate_option": "TAX3"
             }],
             "vat_option": "VAT_INCLUDED",
             "included_vat": true,
@@ -155,7 +166,7 @@ final class PurchaseOrderRequestTests: XCTestCase {
         XCTAssertEqual(create.supplierId, supplierId)
         XCTAssertEqual(create.customerId, customerId)
         XCTAssertEqual(create.items.count, 1)
-        XCTAssertEqual(create.items.first?.name, "Product 1")
+        XCTAssertEqual(create.items.first?.itemName, "Product 1")
         XCTAssertEqual(create.items.first?.pricePerUnit, 100.0)
         XCTAssertEqual(create.vatOption, .vatIncluded)
         XCTAssertEqual(create.includedVat, true)
@@ -178,14 +189,14 @@ final class PurchaseOrderRequestTests: XCTestCase {
             "items": [{
                 "item_id": "\(itemId.uuidString)",
                 "kind": "PRODUCT",
-                "name": "Product 1",
-                "description": "Product 1 Description",
+                "item_name": "Product 1",
+                "item_description": "Product 1 Description",
                 "qty": 10.0,
                 "price_per_unit": 100.0,
                 "discount_price_per_unit": 10.0,
-                "vat_rate_option": "VAT_7",
+                "vat_rate_option": "VAT7",
                 "vat_included": true,
-                "withholding_tax_rate_option": "TAX_3"
+                "withholding_tax_rate_option": "TAX3"
             }],
             "vat_option": "VAT_INCLUDED",
             "included_vat": true,
@@ -220,14 +231,14 @@ final class PurchaseOrderRequestTests: XCTestCase {
             "items": [{
                 "item_id": "\(itemId.uuidString)",
                 "kind": "PRODUCT",
-                "name": "Product 1",
-                "description": "Product 1 Description",
+                "item_name": "Product 1",
+                "item_description": "Product 1 Description",
                 "qty": 10.0,
                 "price_per_unit": 100.0,
                 "discount_price_per_unit": 10.0,
-                "vat_rate_option": "VAT_7",
+                "vat_rate_option": "VAT7",
                 "vat_included": true,
-                "withholding_tax_rate_option": "TAX_3"
+                "withholding_tax_rate_option": "TAX3"
             }],
             "vat_option": "VAT_INCLUDED",
             "included_vat": true,
@@ -373,27 +384,27 @@ final class PurchaseOrderRequestTests: XCTestCase {
         let createItem = PurchaseOrderRequest.CreateItem(
             itemId: itemId,
             kind: .product,
-            name: "Test Product",
-            description: "Product Description",
+            itemName: "Test Product",
+            itemDescription: "Product Description",
             variantId: nil,
             qty: 5.0,
             pricePerUnit: 50.0,
             discountPricePerUnit: 5.0,
-            vatRateOption: .vat7,
+            vatRateOption: ._7,
             vatIncluded: true,
-            withholdingTaxRateOption: .tax3
+            withholdingTaxRateOption: ._3
         )
         
         XCTAssertEqual(createItem.itemId, itemId)
         XCTAssertEqual(createItem.kind, .product)
-        XCTAssertEqual(createItem.name, "Test Product")
-        XCTAssertEqual(createItem.description, "Product Description")
+        XCTAssertEqual(createItem.itemName, "Test Product")
+        XCTAssertEqual(createItem.itemDescription, "Product Description")
         XCTAssertEqual(createItem.qty, 5.0)
         XCTAssertEqual(createItem.pricePerUnit, 50.0)
         XCTAssertEqual(createItem.discountPricePerUnit, 5.0)
-        XCTAssertEqual(createItem.vatRateOption, .vat7)
+        XCTAssertEqual(createItem.vatRateOption, ._7)
         XCTAssertEqual(createItem.vatIncluded, true)
-        XCTAssertEqual(createItem.withholdingTaxRateOption, .tax3)
+        XCTAssertEqual(createItem.withholdingTaxRateOption, ._3)
     }
 
     // MARK: - UpdateItem Tests
@@ -405,13 +416,13 @@ final class PurchaseOrderRequestTests: XCTestCase {
             id: id,
             itemId: itemId,
             kind: .service,
-            name: "Test Service",
-            description: "Service Description",
+            itemName: "Test Service",
+            itemDescription: "Service Description",
             variantId: nil,
             qty: 2.0,
             pricePerUnit: 100.0,
             discountPricePerUnit: 10.0,
-            vatRateOption: .vat7,
+            vatRateOption: ._7,
             vatIncluded: false,
             withholdingTaxRateOption: .none
         )
@@ -419,12 +430,12 @@ final class PurchaseOrderRequestTests: XCTestCase {
         XCTAssertEqual(updateItem.id, id)
         XCTAssertEqual(updateItem.itemId, itemId)
         XCTAssertEqual(updateItem.kind, .service)
-        XCTAssertEqual(updateItem.name, "Test Service")
-        XCTAssertEqual(updateItem.description, "Service Description")
+        XCTAssertEqual(updateItem.itemName, "Test Service")
+        XCTAssertEqual(updateItem.itemDescription, "Service Description")
         XCTAssertEqual(updateItem.qty, 2.0)
         XCTAssertEqual(updateItem.pricePerUnit, 100.0)
         XCTAssertEqual(updateItem.discountPricePerUnit, 10.0)
-        XCTAssertEqual(updateItem.vatRateOption, .vat7)
+        XCTAssertEqual(updateItem.vatRateOption, ._7)
         XCTAssertEqual(updateItem.vatIncluded, false)
         XCTAssertEqual(updateItem.withholdingTaxRateOption, .none)
     }
@@ -440,7 +451,6 @@ final class PurchaseOrderRequestTests: XCTestCase {
             paymentTermsDays: 60,
             supplierId: supplierId,
             deliveryDate: orderDate,
-            items: nil,
             vatOption: .vatIncluded,
             orderDate: orderDate,
             additionalDiscountAmount: 100.0,
@@ -497,14 +507,14 @@ final class PurchaseOrderRequestTests: XCTestCase {
                  .init(id: $0.id,
                        itemId: $0.itemId,
                        kind: $0.kind,
-                       name: $0.name,
-                       description: $0.description,
+                       itemName: $0.name,
+                       itemDescription: $0.description,
                        variantId: $0.variantId,
                        qty: $0.qty,
                        pricePerUnit: $0.pricePerUnit,
                        discountPricePerUnit: $0.discountPricePerUnit,
                        additionalDiscount: 0,//additionalDiscountPerItem,
-                       vatRate: $0.vatRateOption.vatRate,
+                       vatRateOption: $0.vatRateOption.vatRate,
                        vatIncluded: $0.vatIncluded,
                        taxWithholdingRate: $0.withholdingTaxRateOption.taxRate)
              })
@@ -533,13 +543,13 @@ final class PurchaseOrderRequestTests: XCTestCase {
             PurchaseOrderRequest.CreateItem(
                 itemId: UUID(),
                 kind: .service,
-                name: "Test Service",
-                description: "Service Description",
+                itemName: "Test Service",
+                itemDescription: "Service Description",
                 variantId: nil,
                 qty: 2.0,
                 pricePerUnit: 100.0,
                 discountPricePerUnit: 10.0,
-                vatRateOption: .vat7,
+                vatRateOption: ._7,
                 vatIncluded: false,
                 withholdingTaxRateOption: .none
             )
@@ -564,12 +574,12 @@ final class PurchaseOrderRequestTests: XCTestCase {
                 {
                     "item_id": "00000000-0000-0000-0000-000000000000",
                     "kind": "SERVICE",
-                    "name": "Test Service",
-                    "description": "Service Description",
+                    "item_name": "Test Service",
+                    "item_description": "Service Description",
                     "qty": 2.0,
                     "price_per_unit": 100.0,
                     "discount_price_per_unit": 10.0,
-                    "vat_rate_option": "VAT_7",
+                    "vat_rate_option": "VAT7",
                     "vat_included": false,
                     "withholding_tax_rate_option": "NONE"
                 }
@@ -593,13 +603,13 @@ final class PurchaseOrderRequestTests: XCTestCase {
             PurchaseOrderRequest.CreateItem(
                 itemId: UUID(),
                 kind: .service,
-                name: "Test Service",
-                description: "Service Description",
+                itemName: "Test Service",
+                itemDescription: "Service Description",
                 variantId: nil,
                 qty: 2.0,
                 pricePerUnit: 100.0,
                 discountPricePerUnit: 10.0,
-                vatRateOption: .vat7,
+                vatRateOption: ._7,
                 vatIncluded: false,
                 withholdingTaxRateOption: .none
             )
@@ -621,8 +631,8 @@ final class PurchaseOrderRequestTests: XCTestCase {
         let firstItem = items.first!
         XCTAssertEqual(item?["item_id"] as? String, firstItem.itemId.uuidString)
         XCTAssertEqual(item?["kind"] as? String, firstItem.kind.rawValue)
-        XCTAssertEqual(item?["name"] as? String, firstItem.name)
-        XCTAssertEqual(item?["description"] as? String, firstItem.description)
+        XCTAssertEqual(item?["item_name"] as? String, firstItem.itemName)
+        XCTAssertEqual(item?["item_description"] as? String, firstItem.itemDescription)
         XCTAssertEqual(item?["qty"] as? Double, firstItem.qty)
         XCTAssertEqual(item?["price_per_unit"] as? Double, firstItem.pricePerUnit)
         XCTAssertEqual(item?["discount_price_per_unit"] as? Double, firstItem.discountPricePerUnit)

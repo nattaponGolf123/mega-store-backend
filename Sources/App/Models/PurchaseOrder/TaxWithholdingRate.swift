@@ -1,16 +1,16 @@
 import Foundation
 import Vapor
 
-enum TaxWithholdingRate {
-    case none
-    case _0_75
-    case _1
-    case _1_5
-    case _2
-    case _3
-    case _5
-    case _10
-    case _15
+enum TaxWithholdingRateOption: String, Codable {
+    case none = "NONE"
+    case _0_75 = "TAX0_75"
+    case _1 = "TAX1"
+    case _1_5 = "TAX1_5"
+    case _2 = "TAX2"
+    case _3 = "TAX3"
+    case _5 = "TAX5"
+    case _10 = "TAX10"
+    case _15 = "TAX15"
     
     var value: Double? {
         switch self {

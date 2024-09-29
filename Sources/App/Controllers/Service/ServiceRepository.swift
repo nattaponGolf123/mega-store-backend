@@ -68,6 +68,7 @@ class ServiceRepository: ServiceRepositoryProtocol {
     ) async throws -> PaginatedResponse<App.Service> {
         
         let query = Service.query(on: db)
+            .with(\.$category)
         
         if request.showDeleted {
             query.withDeleted()
@@ -93,8 +94,12 @@ class ServiceRepository: ServiceRepositoryProtocol {
         request: GeneralRequest.FetchById,
         on db: Database
     ) async throws -> App.Service {
+        let query = Service.query(on: db)
+            .with(\.$category)
+            .filter(\.$id == request.id)
+        
         guard
-            let found = try await Service.query(on: db).filter(\.$id == request.id).first()
+            let found = try await query.first()
         else {
             throw DefaultError.notFound
         }
@@ -106,8 +111,12 @@ class ServiceRepository: ServiceRepositoryProtocol {
         request: GeneralRequest.FetchByName,
         on db: Database
     ) async throws -> App.Service {
+        let query = Service.query(on: db)
+            .with(\.$category)
+            .filter(\.$name == request.name)
+        
         guard
-            let found = try await Service.query(on: db).filter(\.$name == request.name).first()
+            let found = try await query.first()
         else {
             throw DefaultError.notFound
         }
@@ -145,8 +154,9 @@ class ServiceRepository: ServiceRepositoryProtocol {
                               coverImage: request.coverImage,
                               tags: request.tags)
         
-        try await service.save(on: db)
-        return service
+        try await service.create(on: db)
+        return try await fetchById(request: .init(id: service.id!),
+                                   on: db)
     }
     
     func update(
@@ -201,6 +211,7 @@ class ServiceRepository: ServiceRepositoryProtocol {
         }
         
         try await service.save(on: db)
+        
         return service
     }
     
@@ -211,6 +222,7 @@ class ServiceRepository: ServiceRepositoryProtocol {
         let service = try await fetchById(request: .init(id: byId.id),
                                         on: db)
         try await service.delete(on: db)
+        
         return service
     }
     
@@ -219,7 +231,9 @@ class ServiceRepository: ServiceRepositoryProtocol {
         
         let q = request.query
         let regexPattern = "(?i)\(q)"  // (?i) makes the regex case-insensitive
-        let query = Service.query(on: db).group(.or) { or in
+        let query = Service.query(on: db)
+            .with(\.$category)
+            .group(.or) { or in
             or.filter(\.$name =~ regexPattern)
             if let number = Int(q) {
                 or.filter(\.$number == number)
@@ -274,14 +288,7 @@ private extension ServiceRepository {
         let pageEnd = pageStart + perPage
         
         let range = pageStart..<pageEnd
-                
-        //query.join(ServiceCategory.self, on: \Service.$category.$id == \ServiceCategory.$id)
-        query.with(\.$category)
         
-        /*
-         .join(parent: \Service.$category)  // Join with the ServiceCategory model
-                .sort(ServiceCategory.self, \.$name)  // Sort by the name field in the ServiceCategory mod
-         */
         switch sortBy {
         case .name:
             switch sortOrder {

@@ -1,10 +1,10 @@
 import Foundation
 import Vapor
 
-enum VatRate {
-    case none
-    case _7
-    case _0
+enum VatRateOption: String, Codable {
+    case none = "NONE"
+    case _7 = "VAT7"
+    case _0 = "VAT0"
 
     var value: Double? {
         switch self {
