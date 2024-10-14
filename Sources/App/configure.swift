@@ -11,6 +11,15 @@ public func configure(_ app: Application) async throws {
      // call cli 'vapor list-migrations'
     //app.commands.use(ListMigrationsCommand(), as: "list-migrations")
         
+    
+    let corsConfiguration = CORSMiddleware.Configuration(
+        allowedOrigin:  .all ,//.origin("http://localhost:8081"),
+        allowedMethods: [.GET, .POST, .PUT, .DELETE, .PATCH, .OPTIONS],
+        allowedHeaders: [.accept, .authorization, .contentType, .origin, .xRequestedWith]
+    )
+    let cors = CORSMiddleware(configuration: corsConfiguration)
+    app.middleware.use(cors)
+    
     switch app.environment {
     case .production:
         print("ENV: production")

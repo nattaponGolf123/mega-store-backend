@@ -86,19 +86,7 @@ final class PurchaseOrderValidatorTests: XCTestCase {
     
     func testValidateUpdate_WithValidRequest_ShouldReturnCorrectValues() throws {
         let id = UUID()
-//        let items = [PurchaseOrderRequest.UpdateItem(id: UUID(),
-//                                                     itemId: UUID(),
-//                                                     kind: .product,
-//                                                     itemName: "Updated Product",
-//                                                     itemDescription: "Updated Description",
-//                                                     variantId: nil,
-//                                                     qty: 5.0,
-//                                                     pricePerUnit: 50.0,
-//                                                     discountPricePerUnit: 5.0,
-//                                                     vatRateOption: ._7,
-//                                                     vatIncluded: true,
-//                                                     withholdingTaxRateOption: ._3)]
-//        
+
         let content = PurchaseOrderRequest.Update(reference: "PO-12345-Updated",
                                                   note: "Updated Note",
                                                   paymentTermsDays: 15,

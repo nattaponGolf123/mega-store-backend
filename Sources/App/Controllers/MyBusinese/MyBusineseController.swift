@@ -42,9 +42,11 @@ class MyBusineseController: RouteCollection {
     }
     
     // POST /my_busineses
-    func create(req: Request) async throws -> MyBusinese {
+    func create(req: Request) async throws -> Response {
         let content = try validator.validateCreate(req)
-        return try await repository.create(request: content, on: req.db)
+        let myBusinese = try await repository.create(request: content, on: req.db)
+        return Response(status: .created, 
+                        body: .init(data: try JSONEncoder().encode(myBusinese)))
     }
     
      // GET /my_busineses:id
