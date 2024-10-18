@@ -35,6 +35,9 @@ class AuthController: RouteCollection {
         let auth = routes.grouped("auth")
         auth.post(use: signinJWT)
         
+        auth.post("login-apple", use: signinWithApple)
+
+        
         auth.group("token_verify") { authVerify in
             authVerify.post(use: verifyToken)
         }
@@ -42,6 +45,52 @@ class AuthController: RouteCollection {
         auth.group("logout") { authLogout in
             authLogout.post(use: logout)
         }
+    }
+
+    // POST /auth/login-apple
+    func signinWithApple(req: Request) async throws -> [String: String] {
+
+        // client call to https://appleid.apple.com/auth/token
+        //let client = try req.client()
+        //let content = try req.content.decode(AuthRequest.SignInApple.self)
+        
+        // let path = "Sources/App/Controllers/Auth/AuthKey_K9U9M59K86.p8"
+        
+        // let buffer = try await req.fileio.collectFile(at: path)
+        // print(buffer)
+        
+//        let filePath = "Sources/App/Controllers/Auth/AuthKey_K9U9M59K86.p8"
+//        let privateKeyData = try await req.fileio.readFile(at: filePath)
+//        let privateKeyString = String(data: privateKeyData, encoding: .utf8) ?? ""
+        
+        // Read the file asynchronously
+       
+        let myJWT = try AppleSignInPayload.generateAppleClientSecret()
+
+        // 001_032.369cf96334b140a6944e1794a90ea98c .1215
+
+        // let appleTokenResponse = try await client.post("https://appleid.apple.com/auth/token") { req in
+        //     try req.content.encode(content)
+        // }
+
+
+        // let content = try validator.validateSignInWithApple(req)
+        
+        // let foundUser = try await userRepository.fetchByUsername(request: .init(username: content.username),
+        //                                                          on: req.db)
+        // // generate new token
+        // let (token, payload) = try jwtRepository.generateToken(request: .init(user: foundUser),
+        //                                                        req: req)
+        
+        // // update and save user token
+        // let updateUser = try await userRepository.updateToken(byId: .init(id: payload.userID),
+        //                                                       request: .init(token: token,
+        //                                                                      expiration: payload.expiration.value),
+        //                                                       on: req.db)
+                
+        // // return new token
+        // return ["token": updateUser.token ?? ""]
+        return ["token": myJWT]
     }
     
     // POST /user
