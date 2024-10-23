@@ -4,7 +4,7 @@ struct ShippingAddress: Codable {
     let id: UUID
     var address: String
     var subDistrict: String
-    var city: String
+    var district: String
     var province: String
     var country: String
     
@@ -16,7 +16,7 @@ struct ShippingAddress: Codable {
     init(id: UUID = .init(),
          address: String = "",
          subDistrict: String = "",
-         city: String = "",
+         district: String = "",
          province: String = "",
          country: String = "THA",
          postalCode: String = "00000",
@@ -24,7 +24,7 @@ struct ShippingAddress: Codable {
         self.id = id
         self.address = address
         self.subDistrict = subDistrict
-        self.city = city
+        self.district = district
         self.province = province
         self.country = country
         self.postalCode = postalCode
@@ -40,8 +40,8 @@ struct ShippingAddress: Codable {
                                               forKey: .address)) ?? ""
         self.subDistrict = (try? container.decode(String.self,
                                                   forKey: .subDistrict)) ?? ""
-        self.city = (try? container.decode(String.self,
-                                           forKey: .city)) ?? ""
+        self.district = (try? container.decode(String.self,
+                                           forKey: .district)) ?? ""
         self.province = (try? container.decode(String.self,
                                                forKey: .province)) ?? ""
         self.postalCode = (try? container.decode(String.self,
@@ -58,7 +58,7 @@ struct ShippingAddress: Codable {
         try container.encode(id, forKey: .id)
         try container.encode(address, forKey: .address)
         try container.encode(subDistrict, forKey: .subDistrict)
-        try container.encode(city, forKey: .city)
+        try container.encode(district, forKey: .district)
         try container.encode(province, forKey: .province)
         try container.encode(postalCode, forKey: .postalCode)
         try container.encode(country, forKey: .country)
@@ -69,7 +69,7 @@ struct ShippingAddress: Codable {
         case id
         case address
         case subDistrict = "sub_district"
-        case city
+        case district
         case province
         case postalCode = "postal_code"
         case country
@@ -82,7 +82,7 @@ extension ShippingAddress: Equatable {
         lhs.id == rhs.id &&
             lhs.address == rhs.address &&
             lhs.subDistrict == rhs.subDistrict &&
-            lhs.city == rhs.city &&
+            lhs.district == rhs.district &&
             lhs.province == rhs.province &&
             lhs.country == rhs.country &&
             lhs.postalCode == rhs.postalCode &&
@@ -95,7 +95,7 @@ extension ShippingAddress {
         static var home: ShippingAddress {
             ShippingAddress(address: "123",
                             subDistrict: "123",
-                            city: "Bangkok",
+                            district: "Bangkok",
                             province: "ddd",
                             country: "Thailand",
                             postalCode: "12022",

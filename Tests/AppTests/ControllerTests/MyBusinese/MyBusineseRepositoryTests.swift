@@ -191,7 +191,7 @@ final class MyBusineseRepositoryTests: XCTestCase {
                                                                branch: "New Branch",
                                                                branchCode: nil,
                                                                subDistrict: nil,
-                                                               city: nil,
+                                                               district: nil,
                                                                province: nil,
                                                                country: nil,
                                                                postalCode: nil,

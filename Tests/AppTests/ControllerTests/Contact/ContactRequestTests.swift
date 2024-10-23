@@ -207,7 +207,7 @@ final class ContactRequestTests: XCTestCase {
             branch: "Main",
             branchCode: "001",
             subDistrict: "District",
-            city: "City",
+            district: "City",
             province: "Province",
             country: "Country",
             postalCode: "12345",
@@ -220,7 +220,7 @@ final class ContactRequestTests: XCTestCase {
         XCTAssertEqual(updateBusinessAddress.branch, "Main")
         XCTAssertEqual(updateBusinessAddress.branchCode, "001")
         XCTAssertEqual(updateBusinessAddress.subDistrict, "District")
-        XCTAssertEqual(updateBusinessAddress.city, "City")
+        XCTAssertEqual(updateBusinessAddress.district, "City")
         XCTAssertEqual(updateBusinessAddress.province, "Province")
         XCTAssertEqual(updateBusinessAddress.country, "Country")
         XCTAssertEqual(updateBusinessAddress.postalCode, "12345")
@@ -235,7 +235,7 @@ final class ContactRequestTests: XCTestCase {
             branch: "Main",
             branchCode: "001",
             subDistrict: "District",
-            city: "City",
+            district: "City",
             province: "Province",
             country: "Country",
             postalCode: "12345",
@@ -252,7 +252,7 @@ final class ContactRequestTests: XCTestCase {
         XCTAssertEqual(jsonObject?["branch"] as? String, "Main")
         XCTAssertEqual(jsonObject?["branch_code"] as? String, "001")
         XCTAssertEqual(jsonObject?["sub_district"] as? String, "District")
-        XCTAssertEqual(jsonObject?["city"] as? String, "City")
+        XCTAssertEqual(jsonObject?["district"] as? String, "City")
         XCTAssertEqual(jsonObject?["province"] as? String, "Province")
         XCTAssertEqual(jsonObject?["country"] as? String, "Country")
         XCTAssertEqual(jsonObject?["postal_code"] as? String, "12345")
@@ -268,7 +268,7 @@ final class ContactRequestTests: XCTestCase {
             "branch": "Main",
             "branch_code": "001",
             "sub_district": "District",
-            "city": "City",
+            "district": "City",
             "province": "Province",
             "country": "Country",
             "postal_code": "12345",
@@ -285,7 +285,7 @@ final class ContactRequestTests: XCTestCase {
         XCTAssertEqual(updateBusinessAddress.branch, "Main")
         XCTAssertEqual(updateBusinessAddress.branchCode, "001")
         XCTAssertEqual(updateBusinessAddress.subDistrict, "District")
-        XCTAssertEqual(updateBusinessAddress.city, "City")
+        XCTAssertEqual(updateBusinessAddress.district, "City")
         XCTAssertEqual(updateBusinessAddress.province, "Province")
         XCTAssertEqual(updateBusinessAddress.country, "Country")
         XCTAssertEqual(updateBusinessAddress.postalCode, "12345")
@@ -300,7 +300,7 @@ final class ContactRequestTests: XCTestCase {
         let updateShippingAddress = ContactRequest.UpdateShippingAddress(
             address: "123 Main St",
             subDistrict: "District",
-            city: "City",
+            district: "City",
             province: "Province",
             country: "Country",
             postalCode: "12345",
@@ -309,7 +309,7 @@ final class ContactRequestTests: XCTestCase {
 
         XCTAssertEqual(updateShippingAddress.address, "123 Main St")
         XCTAssertEqual(updateShippingAddress.subDistrict, "District")
-        XCTAssertEqual(updateShippingAddress.city, "City")
+        XCTAssertEqual(updateShippingAddress.district, "City")
         XCTAssertEqual(updateShippingAddress.province, "Province")
         XCTAssertEqual(updateShippingAddress.country, "Country")
         XCTAssertEqual(updateShippingAddress.postalCode, "12345")
@@ -320,7 +320,7 @@ final class ContactRequestTests: XCTestCase {
         let updateShippingAddress = ContactRequest.UpdateShippingAddress(
             address: "123 Main St",
             subDistrict: "District",
-            city: "City",
+            district: "City",
             province: "Province",
             country: "Country",
             postalCode: "12345",
@@ -333,7 +333,7 @@ final class ContactRequestTests: XCTestCase {
 
         XCTAssertEqual(jsonObject?["address"] as? String, "123 Main St")
         XCTAssertEqual(jsonObject?["sub_district"] as? String, "District")
-        XCTAssertEqual(jsonObject?["city"] as? String, "City")
+        XCTAssertEqual(jsonObject?["district"] as? String, "City")
         XCTAssertEqual(jsonObject?["province"] as? String, "Province")
         XCTAssertEqual(jsonObject?["country"] as? String, "Country")
         XCTAssertEqual(jsonObject?["postal_code"] as? String, "12345")
@@ -345,7 +345,7 @@ final class ContactRequestTests: XCTestCase {
         {
             "address": "123 Main St",
             "sub_district": "District",
-            "city": "City",
+            "district": "City",
             "province": "Province",
             "country": "Country",
             "postal_code": "12345",
@@ -358,7 +358,7 @@ final class ContactRequestTests: XCTestCase {
 
         XCTAssertEqual(updateShippingAddress.address, "123 Main St")
         XCTAssertEqual(updateShippingAddress.subDistrict, "District")
-        XCTAssertEqual(updateShippingAddress.city, "City")
+        XCTAssertEqual(updateShippingAddress.district, "City")
         XCTAssertEqual(updateShippingAddress.province, "Province")
         XCTAssertEqual(updateShippingAddress.country, "Country")
         XCTAssertEqual(updateShippingAddress.postalCode, "12345")

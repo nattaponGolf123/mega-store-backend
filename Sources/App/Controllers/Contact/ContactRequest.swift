@@ -121,7 +121,7 @@ struct ContactRequest {
         let branch: String?
         let branchCode: String?
         let subDistrict: String?
-        let city: String?
+        let district: String?
         let province: String?
         let country: String?
         let postalCode: String?
@@ -133,7 +133,7 @@ struct ContactRequest {
              branch: String? = nil,
              branchCode: String? = nil,
              subDistrict: String? = nil,
-             city: String? = nil,
+             district: String? = nil,
              province: String? = nil,
              country: String? = nil,
              postalCode: String? = nil,
@@ -144,7 +144,7 @@ struct ContactRequest {
             self.branch = branch
             self.branchCode = branchCode
             self.subDistrict = subDistrict
-            self.city = city
+            self.district = district
             self.province = province
             self.country = country
             self.postalCode = postalCode
@@ -166,7 +166,7 @@ struct ContactRequest {
                             as: String.self,
                             is: .count(1...300),
                             required: false)
-            validations.add("city",
+            validations.add("district",
                             as: String.self,
                             is: .count(1...300),
                             required: false)
@@ -186,7 +186,7 @@ struct ContactRequest {
             case branchCode = "branch_code"
             case address
             case subDistrict = "sub_district"
-            case city
+            case district
             case province
             case postalCode = "postal_code"
             case country
@@ -199,7 +199,7 @@ struct ContactRequest {
     struct UpdateShippingAddress: Content, Validatable {
         let address: String?
         let subDistrict: String?
-        let city: String?
+        let district: String?
         let province: String?
         let country: String?
         let postalCode: String?
@@ -207,14 +207,14 @@ struct ContactRequest {
         
         init(address: String? = nil,
              subDistrict: String? = nil,
-             city: String? = nil,
+             district: String? = nil,
              province: String? = nil,
              country: String? = nil,
              postalCode: String? = nil,
              phone: String? = nil) {
             self.address = address
             self.subDistrict = subDistrict
-            self.city = city
+            self.district = district
             self.province = province
             self.country = country
             self.postalCode = postalCode
@@ -234,7 +234,7 @@ struct ContactRequest {
                             as: String.self,
                             is: .count(1...300),
                             required: false)
-            validations.add("city",
+            validations.add("district",
                             as: String.self,
                             is: .count(1...300),
                             required: false)
@@ -251,7 +251,7 @@ struct ContactRequest {
         enum CodingKeys: String, CodingKey {
             case address
             case subDistrict = "sub_district"
-            case city
+            case district
             case province
             case postalCode = "postal_code"
             case country

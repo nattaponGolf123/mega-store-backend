@@ -10,7 +10,7 @@ struct BusinessAddress: Content {
 
     var address: String
     var subDistrict: String  
-    var city: String
+    var district: String
     var province: String
     var country: String
     
@@ -26,7 +26,7 @@ struct BusinessAddress: Content {
          branchCode: String = "",
          address: String = "",         
          subDistrict: String = "",
-         city: String = "",
+         district: String = "",
          province: String = "",
          postalCode: String = "00000",
          country: String = "THA",
@@ -38,7 +38,7 @@ struct BusinessAddress: Content {
         self.branchCode = branchCode
         self.address = address        
         self.subDistrict = subDistrict
-        self.city = city
+        self.district = district
         self.province = province
         self.postalCode = postalCode
         self.country = country
@@ -60,8 +60,8 @@ struct BusinessAddress: Content {
                                             forKey: .subDistrict)) ?? ""
         self.address = (try? container.decode(String.self,
                                             forKey: .address)) ?? ""                                                       
-        self.city = (try? container.decode(String.self,
-                                         forKey: .city)) ?? ""
+        self.district = (try? container.decode(String.self,
+                                         forKey: .district)) ?? ""
         self.province = (try? container.decode(String.self,
                                              forKey: .province)) ?? ""
         self.postalCode = (try? container.decode(String.self,
@@ -85,7 +85,7 @@ struct BusinessAddress: Content {
         try container.encode(branchCode, forKey: .branchCode)
         try container.encode(address, forKey: .address)        
         try container.encode(subDistrict, forKey: .subDistrict)
-        try container.encode(city, forKey: .city)
+        try container.encode(district, forKey: .district)
         try container.encode(province, forKey: .province)
         try container.encode(postalCode, forKey: .postalCode)
         try container.encode(country, forKey: .country)
@@ -100,7 +100,7 @@ struct BusinessAddress: Content {
         case branchCode = "branch_code"
         case address
         case subDistrict = "sub_district"
-        case city
+        case district
         case province
         case postalCode = "postal_code"
         case country
@@ -117,7 +117,7 @@ extension BusinessAddress {
                             branchCode: "00001",
                             address: "123 Main St",                            
                             subDistrict: "123",
-                            city: "New York",
+                            district: "New York",
                             province: "NY",
                             postalCode: "10001",
                             country: "USA",

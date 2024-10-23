@@ -165,8 +165,8 @@ class MyBusineseRepository: MyBusineseRepositoryProtocol {
             addr.subDistrict = subDistrict
         }
 
-        if let city = request.city {
-            addr.city = city
+        if let district = request.district {
+            addr.district = district
         }
 
         if let province = request.province {
@@ -218,8 +218,8 @@ class MyBusineseRepository: MyBusineseRepositoryProtocol {
             addr.subDistrict = subDistrict
         }
 
-        if let city = request.city {
-            addr.city = city
+        if let district = request.district {
+            addr.district = district
         }
 
         if let province = request.province {

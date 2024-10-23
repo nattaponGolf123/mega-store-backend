@@ -558,7 +558,7 @@ final class ContactRepositoryTests: XCTestCase {
                                                             branch: "Head Office",
                                                             branchCode: "00000",
                                                             subDistrict: "Bank Chak",
-                                                            city: "Prakanong",
+                                                            district: "Prakanong",
                                                             province: "Bangkok",
                                                             country: "Thailand",
                                                             postalCode: "12345",
@@ -578,7 +578,7 @@ final class ContactRepositoryTests: XCTestCase {
         XCTAssertEqual(result.businessAddress.first?.branch, "Head Office")
         XCTAssertEqual(result.businessAddress.first?.branchCode, "00000")
         XCTAssertEqual(result.businessAddress.first?.subDistrict, "Bank Chak")
-        XCTAssertEqual(result.businessAddress.first?.city, "Prakanong")
+        XCTAssertEqual(result.businessAddress.first?.district, "Prakanong")
         XCTAssertEqual(result.businessAddress.first?.province, "Bangkok")
         XCTAssertEqual(result.businessAddress.first?.country, "Thailand")
         XCTAssertEqual(result.businessAddress.first?.postalCode, "12345")
@@ -602,7 +602,7 @@ final class ContactRepositoryTests: XCTestCase {
                                                             branch: "Head Office",
                                                             branchCode: "00000",
                                                             subDistrict: "Bank Chak",
-                                                            city: "Prakanong",
+                                                            district: "Prakanong",
                                                             province: "Bangkok",
                                                             country: "Thailand",
                                                             postalCode: "12345",
@@ -635,7 +635,7 @@ final class ContactRepositoryTests: XCTestCase {
                                                             branch: "Head Office",
                                                             branchCode: "00000",
                                                             subDistrict: "Bank Chak",
-                                                            city: "Prakanong",
+                                                            district: "Prakanong",
                                                             province: "Bangkok",
                                                             country: "Thailand",
                                                             postalCode: "12345",
@@ -669,7 +669,7 @@ final class ContactRepositoryTests: XCTestCase {
         let requestAddressId = GeneralRequest.FetchById(id: address.id)
         let request = ContactRequest.UpdateShippingAddress(address: "928/12",
                                                             subDistrict: "Bank Chak",
-                                                            city: "Prakanong",
+                                                            district: "Prakanong",
                                                             province: "Bangkok",
                                                             country: "Thailand",
                                                             postalCode: "12345",
@@ -685,7 +685,7 @@ final class ContactRepositoryTests: XCTestCase {
         XCTAssertEqual(result.shippingAddress.count, 1)
         XCTAssertEqual(result.shippingAddress.first?.address, "928/12")
         XCTAssertEqual(result.shippingAddress.first?.subDistrict, "Bank Chak")
-        XCTAssertEqual(result.shippingAddress.first?.city, "Prakanong")
+        XCTAssertEqual(result.shippingAddress.first?.district, "Prakanong")
         XCTAssertEqual(result.shippingAddress.first?.province, "Bangkok")
         XCTAssertEqual(result.shippingAddress.first?.country, "Thailand")
         XCTAssertEqual(result.shippingAddress.first?.postalCode, "12345")
@@ -704,7 +704,7 @@ final class ContactRepositoryTests: XCTestCase {
         let requestAddressId = GeneralRequest.FetchById(id: address.id)
         let request = ContactRequest.UpdateShippingAddress(address: "928/12",
                                                             subDistrict: "Bank Chak",
-                                                            city: "Prakanong",
+                                                            district: "Prakanong",
                                                             province: "Bangkok",
                                                             country: "Thailand",
                                                             postalCode: "12345",
@@ -733,7 +733,7 @@ final class ContactRepositoryTests: XCTestCase {
         let requestAddressId = GeneralRequest.FetchById(id: UUID())
         let request = ContactRequest.UpdateShippingAddress(address: "928/12",
                                                             subDistrict: "Bank Chak",
-                                                            city: "Prakanong",
+                                                            district: "Prakanong",
                                                             province: "Bangkok",
                                                             country: "Thailand",
                                                             postalCode: "12345",
