@@ -65,10 +65,11 @@ class MyBusineseRepository: MyBusineseRepositoryProtocol {
         request: MyBusineseRequest.Create,
         on db: Database
     ) async throws -> MyBusinese {
-        guard
-            try await MyBusinese.query(on: db).filter(\.$name == request.name).count() == 0
-        else { throw CommonError.duplicateName }
-                
+        
+        if let _ = try await self.fetchAll(on: db).first {
+            throw Self.Error.existingMyBusinese
+        }
+      
         let businese = MyBusinese(name: request.name,
                                   vatRegistered: request.vatRegistered,
                                   contactInformation: request.contactInformation,
