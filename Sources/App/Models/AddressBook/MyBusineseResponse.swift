@@ -10,19 +10,6 @@ import Vapor
 
 struct MyBusineseResponse: Content {
     let id: UUID?
-//    let name: String
-//    let vatRegistered: Bool
-//    let contactInformation: ContactInformation
-//    let taxNumber: String?
-//    let legalStatus: BusinessType
-//    let website: String?
-//    let businessAddress: [BusinessAddress]
-//    let shippingAddress: [ShippingAddress]
-//    let paymentTermsDays: Int
-//    let note: String?
-//    let createdAt: Date?
-//    let updatedAt: Date?
-//    let deletedAt: Date?
     let name: String
     let vatRegistered: Bool //= false,
     let contactInformation: ContactInformation? //= .init(),
