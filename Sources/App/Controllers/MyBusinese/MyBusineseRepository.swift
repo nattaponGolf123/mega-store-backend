@@ -53,7 +53,7 @@ class MyBusineseRepository: MyBusineseRepositoryProtocol {
         request: GeneralRequest.FetchById,
         on db: Database
     ) async throws -> MyBusinese {
-        guard 
+        guard
             let businese = try await MyBusinese.find(request.id,
                                                      on: db)
         else { throw DefaultError.notFound }
@@ -69,13 +69,31 @@ class MyBusineseRepository: MyBusineseRepositoryProtocol {
         if let _ = try await self.fetchAll(on: db).first {
             throw Self.Error.existingMyBusinese
         }
+              
+        let businessAddress: [BusinessAddress] = { (content: MyBusineseRequest.CreateBussineseAddress?) -> [BusinessAddress] in
+            if let businessAddressContent = request.businessAddress {
+                return [businessAddressContent.toBusinessAddress()]
+            }
+            return []
+            
+        }(request.businessAddress)
       
+        let shippingAddress: [ShippingAddress] = { (content: MyBusineseRequest.CreateShippingAddress?) -> [ShippingAddress] in
+            if let shippingAddressContent = request.shippingAddress {
+                return [shippingAddressContent.toShippingAddress()]
+            }
+            return []
+            
+        }(request.shippingAddress)
+        
         let businese = MyBusinese(name: request.name,
                                   vatRegistered: request.vatRegistered,
                                   contactInformation: request.contactInformation,
                                   taxNumber: request.taxNumber,
                                   legalStatus: request.legalStatus,
                                   website: request.website,
+                                  businessAddress: businessAddress,
+                                  shippingAddress: shippingAddress,
                                   note: request.note)
         
         try await businese.save(on: db)
