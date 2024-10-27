@@ -156,6 +156,9 @@ struct MyBusineseRequest {
     }
     
     struct CreateBussineseAddress: Content, Validatable  {
+        let branchName: String
+        let branchCode: String
+        
         let address: String
         let subDistrict: String
         let district: String
@@ -167,7 +170,9 @@ struct MyBusineseRequest {
         let fax: String?
         let email: String?
         
-        init(address: String,
+        init(branchName: String,
+             branchCode: String,
+             address: String,
              subDistrict: String,
              district: String,
              province: String,
@@ -182,13 +187,35 @@ struct MyBusineseRequest {
             self.province = province
             self.country = country
             self.postalCode = postalCode
+            self.branchCode = branchCode
+            self.branchName = branchName
             self.phone = phone
             self.fax = fax
             self.email = email
         }
         
+        //decode
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            self.branchName = try container.decode(String.self, forKey: .branchName)
+            self.branchCode = try container.decode(String.self, forKey: .branchCode)
+            
+            self.address = try container.decode(String.self, forKey: .address)
+            self.subDistrict = try container.decode(String.self, forKey: .subDistrict)
+            self.district = try container.decode(String.self, forKey: .district)
+            self.province = try container.decode(String.self, forKey: .province)
+            self.country = try container.decode(String.self, forKey: .country)
+            self.postalCode = try container.decode(String.self, forKey: .postalCode)
+            
+            self.phone = try container.decodeIfPresent(String.self, forKey: .phone)
+            self.fax = try container.decodeIfPresent(String.self, forKey: .fax)
+            self.email = try container.decodeIfPresent(String.self, forKey: .email)
+        }
+        
         func toBusinessAddress() -> BusinessAddress {
-            return BusinessAddress(address: address,
+            return BusinessAddress(branch: branchName,
+                                   branchCode: branchCode,
+                                   address: address,
                                    subDistrict: subDistrict,
                                    district: district,
                                    province: province,
@@ -200,6 +227,14 @@ struct MyBusineseRequest {
         }
         
         static func validations(_ validations: inout Validations) {
+            validations.add("branch_name",
+                            as: String.self,
+                            is: .count(1...300),
+                            required: true)
+            validations.add("branch_code",
+                            as: String.self,
+                            is: .count(5...5),
+                            required: true)
             validations.add("postal_code",
                             as: String.self,
                             is: .count(5...5),
@@ -239,6 +274,8 @@ struct MyBusineseRequest {
         }
         
         enum CodingKeys: String, CodingKey {
+            case branchName = "branch"
+            case branchCode = "branch_code"
             case address
             case subDistrict = "sub_district"
             case district
@@ -276,6 +313,18 @@ struct MyBusineseRequest {
             self.phone = phone
         }
         
+        //decode
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            self.address = try container.decode(String.self, forKey: .address)
+            self.subDistrict = try container.decode(String.self, forKey: .subDistrict)
+            self.district = try container.decode(String.self, forKey: .district)
+            self.province = try container.decode(String.self, forKey: .province)
+            self.country = try container.decode(String.self, forKey: .country)
+            self.postalCode = try container.decode(String.self, forKey: .postalCode)
+            self.phone = try container.decodeIfPresent(String.self, forKey: .phone)
+        }
+        
         func toShippingAddress() -> ShippingAddress {
             return ShippingAddress(address: address,
                                    subDistrict: subDistrict,
@@ -311,10 +360,10 @@ struct MyBusineseRequest {
                             as: String.self,
                             is: .count(1...300),
                             required: true)
-        validations.add("phone",
-                        as: String.self,
-                        is: .count(10...10),
-                        required: false)
+            validations.add("phone",
+                            as: String.self,
+                            is: .count(10...10),
+                            required: false)
         }
         
         enum CodingKeys: String, CodingKey {
