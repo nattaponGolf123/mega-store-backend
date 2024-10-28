@@ -61,15 +61,3 @@ struct ContactGroupRequest {
         }
     }
 }
-
-//extension ContactGroupRequest {
-//    enum SortBy: String, Sortable {
-//        case name
-//        case createdAt = "created_at"
-//        
-//        static func == (lhs: Self, rhs: Self) -> Bool {
-//            return lhs.rawValue == rhs.rawValue
-//        }
-//    }
-//
-//}

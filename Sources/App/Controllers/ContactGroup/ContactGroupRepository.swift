@@ -19,7 +19,7 @@ protocol ContactGroupRepositoryProtocol {
     func fetchAll(
         request: FetchAll,
         on db: Database
-    ) async throws -> PaginatedResponse<ContactGroup>
+    ) async throws -> [ContactGroup]
     
     func fetchById(
         request: GeneralRequest.FetchById,
@@ -61,7 +61,7 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
     func fetchAll(
         request: FetchAll,
         on db: Database
-    ) async throws -> PaginatedResponse<ContactGroup> {
+    ) async throws -> [ContactGroup] {
         let query = ContactGroup.query(on: db)
         
         if request.showDeleted {
@@ -70,23 +70,13 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
             query.filter(\.$deletedAt == nil)
         }
         
-        let total = try await query.count()
-        let items = try await sortQuery(
+        return try await sortQuery(
             query: query,
             sortBy: request.sortBy,
             sortOrder: request.sortOrder,
             page: request.page,
             perPage: request.perPage
         )
-        
-        let response = PaginatedResponse(
-            page: request.page,
-            perPage: request.perPage,
-            total: total,
-            items: items
-        )
-        
-        return response
     }
     
     func fetchById(
