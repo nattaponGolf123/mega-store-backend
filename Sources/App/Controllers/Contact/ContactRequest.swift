@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by IntrodexMac on 29/7/2567 BE.
 //
@@ -9,7 +9,7 @@ import Foundation
 import Vapor
 
 struct ContactRequest {
-    
+
     struct Create: Content, Validatable {
         let name: String
         let vatRegistered: Bool
@@ -20,16 +20,18 @@ struct ContactRequest {
         let note: String?
         let groupIds: [UUID]?
         let paymentTermsDays: Int?
-        
-        init(name: String, 
-             vatRegistered: Bool = false,
-             contactInformation: ContactInformation? = nil,
-             taxNumber: String? = nil,
-             legalStatus: BusinessType = .individual,
-             website: String? = nil,
-             note: String? = nil,
-             groupIds: [UUID]?,
-             paymentTermsDays: Int? = nil) {
+
+        init(
+            name: String,
+            vatRegistered: Bool = false,
+            contactInformation: ContactInformation? = nil,
+            taxNumber: String? = nil,
+            legalStatus: BusinessType = .individual,
+            website: String? = nil,
+            note: String? = nil,
+            groupIds: [UUID]?,
+            paymentTermsDays: Int? = nil
+        ) {
             self.name = name
             self.vatRegistered = vatRegistered
             self.contactInformation = contactInformation
@@ -40,16 +42,18 @@ struct ContactRequest {
             self.groupIds = groupIds
             self.paymentTermsDays = paymentTermsDays
         }
-        
+
         static func validations(_ validations: inout Validations) {
-            validations.add("name", as: String.self,
-                            is: .count(3...200),
-                            required: true)
-            validations.add("tax_number", as: String.self,
-                            is: .count(13...13),
-                            required: false)
+            validations.add(
+                "name", as: String.self,
+                is: .count(3...200),
+                required: true)
+            validations.add(
+                "tax_number", as: String.self,
+                is: .count(13...13),
+                required: false)
         }
-        
+
         enum CodingKeys: String, CodingKey {
             case name
             case groupIds = "group_ids"
@@ -73,16 +77,18 @@ struct ContactRequest {
         let note: String?
         let paymentTermsDays: Int?
         let groupIds: [UUID]?
-        
-        init(name: String? = nil,
-             vatRegistered: Bool? = nil,
-             contactInformation: ContactInformation? = nil,
-             taxNumber: String? = nil,
-             legalStatus: BusinessType? = nil,
-             website: String? = nil,
-             note: String? = nil,
-             paymentTermsDays: Int? = nil,
-             groupIds: [UUID]? = nil) {
+
+        init(
+            name: String? = nil,
+            vatRegistered: Bool? = nil,
+            contactInformation: ContactInformation? = nil,
+            taxNumber: String? = nil,
+            legalStatus: BusinessType? = nil,
+            website: String? = nil,
+            note: String? = nil,
+            paymentTermsDays: Int? = nil,
+            groupIds: [UUID]? = nil
+        ) {
             self.name = name
             self.vatRegistered = vatRegistered
             self.contactInformation = contactInformation
@@ -93,16 +99,18 @@ struct ContactRequest {
             self.paymentTermsDays = paymentTermsDays
             self.groupIds = groupIds
         }
-        
+
         static func validations(_ validations: inout Validations) {
-            validations.add("name", as: String.self,
-                            is: .count(3...200),
-                            required: false)
-            validations.add("tax_number", as: String.self,
-                            is: .count(13...13),
-                            required: false)
+            validations.add(
+                "name", as: String.self,
+                is: .count(3...200),
+                required: false)
+            validations.add(
+                "tax_number", as: String.self,
+                is: .count(13...13),
+                required: false)
         }
-        
+
         enum CodingKeys: String, CodingKey {
             case name
             case groupIds = "group_ids"
@@ -115,7 +123,7 @@ struct ContactRequest {
             case paymentTermsDays = "payment_terms_days"
         }
     }
-    
+
     struct UpdateBussineseAddress: Content, Validatable {
         let address: String?
         let branch: String?
@@ -128,18 +136,20 @@ struct ContactRequest {
         let phone: String?
         let email: String?
         let fax: String?
-        
-        init(address: String? = nil,
-             branch: String? = nil,
-             branchCode: String? = nil,
-             subDistrict: String? = nil,
-             district: String? = nil,
-             province: String? = nil,
-             country: String? = nil,
-             postalCode: String? = nil,
-             phone: String? = nil,
-             email: String? = nil,
-             fax: String? = nil) {
+
+        init(
+            address: String? = nil,
+            branch: String? = nil,
+            branchCode: String? = nil,
+            subDistrict: String? = nil,
+            district: String? = nil,
+            province: String? = nil,
+            country: String? = nil,
+            postalCode: String? = nil,
+            phone: String? = nil,
+            email: String? = nil,
+            fax: String? = nil
+        ) {
             self.address = address
             self.branch = branch
             self.branchCode = branchCode
@@ -152,35 +162,41 @@ struct ContactRequest {
             self.email = email
             self.fax = fax
         }
-        
+
         static func validations(_ validations: inout Validations) {
-            validations.add("postal_code",
-                            as: String.self,
-                            is: .count(5...5),
-                            required: false)
-            validations.add("address", 
-                            as: String.self,
-                            is: .count(1...300),
-                            required: false)
-            validations.add("sub_district", 
-                            as: String.self,
-                            is: .count(1...300),
-                            required: false)
-            validations.add("district",
-                            as: String.self,
-                            is: .count(1...300),
-                            required: false)
-            validations.add("province", 
-                            as: String.self,
-                            is: .count(1...300),
-                            required: false)
-            validations.add("country",
-                            as: String.self,
-                            is: .count(1...300),
-                            required: false)
-            
+            validations.add(
+                "postal_code",
+                as: String.self,
+                is: .count(5...5),
+                required: false)
+            validations.add(
+                "address",
+                as: String.self,
+                is: .count(1...300),
+                required: false)
+            validations.add(
+                "sub_district",
+                as: String.self,
+                is: .count(1...300),
+                required: false)
+            validations.add(
+                "district",
+                as: String.self,
+                is: .count(1...300),
+                required: false)
+            validations.add(
+                "province",
+                as: String.self,
+                is: .count(1...300),
+                required: false)
+            validations.add(
+                "country",
+                as: String.self,
+                is: .count(1...300),
+                required: false)
+
         }
-        
+
         enum CodingKeys: String, CodingKey {
             case branch
             case branchCode = "branch_code"
@@ -195,7 +211,7 @@ struct ContactRequest {
             case fax
         }
     }
-    
+
     struct UpdateShippingAddress: Content, Validatable {
         let address: String?
         let subDistrict: String?
@@ -204,14 +220,16 @@ struct ContactRequest {
         let country: String?
         let postalCode: String?
         let phone: String?
-        
-        init(address: String? = nil,
-             subDistrict: String? = nil,
-             district: String? = nil,
-             province: String? = nil,
-             country: String? = nil,
-             postalCode: String? = nil,
-             phone: String? = nil) {
+
+        init(
+            address: String? = nil,
+            subDistrict: String? = nil,
+            district: String? = nil,
+            province: String? = nil,
+            country: String? = nil,
+            postalCode: String? = nil,
+            phone: String? = nil
+        ) {
             self.address = address
             self.subDistrict = subDistrict
             self.district = district
@@ -220,34 +238,40 @@ struct ContactRequest {
             self.postalCode = postalCode
             self.phone = phone
         }
-        
+
         static func validations(_ validations: inout Validations) {
-            validations.add("postal_code",
-                            as: String.self,
-                            is: .count(5...5),
-                            required: false)
-            validations.add("address",
-                            as: String.self,
-                            is: .count(1...300),
-                            required: false)
-            validations.add("sub_district",
-                            as: String.self,
-                            is: .count(1...300),
-                            required: false)
-            validations.add("district",
-                            as: String.self,
-                            is: .count(1...300),
-                            required: false)
-            validations.add("province",
-                            as: String.self,
-                            is: .count(1...300),
-                            required: false)
-            validations.add("country",
-                            as: String.self,
-                            is: .count(1...300),
-                            required: false)
+            validations.add(
+                "postal_code",
+                as: String.self,
+                is: .count(5...5),
+                required: false)
+            validations.add(
+                "address",
+                as: String.self,
+                is: .count(1...300),
+                required: false)
+            validations.add(
+                "sub_district",
+                as: String.self,
+                is: .count(1...300),
+                required: false)
+            validations.add(
+                "district",
+                as: String.self,
+                is: .count(1...300),
+                required: false)
+            validations.add(
+                "province",
+                as: String.self,
+                is: .count(1...300),
+                required: false)
+            validations.add(
+                "country",
+                as: String.self,
+                is: .count(1...300),
+                required: false)
         }
-        
+
         enum CodingKeys: String, CodingKey {
             case address
             case subDistrict = "sub_district"
@@ -258,17 +282,45 @@ struct ContactRequest {
             case phone
         }
     }
-    
+
     struct UpdateBusineseAdressResponse {
         let id: GeneralRequest.FetchById
         let addressID: GeneralRequest.FetchById
         let content: ContactRequest.UpdateBussineseAddress
     }
-    
+
     struct UpdateShippingAddressResponse {
         let id: GeneralRequest.FetchById
         let addressID: GeneralRequest.FetchById
         let content: ContactRequest.UpdateShippingAddress
+    }
+
+    struct AddToGroup: Content, Validatable {
+        let groupId: UUID
+        let toContactIds: [UUID]
+
+        init(groupId: UUID, toContactIds: [UUID]) {
+            self.groupId = groupId
+            self.toContactIds = toContactIds
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case groupId = "group_id"
+            case toContactIds = "to_contact_ids"
+        }
+        
+        static func validations(_ validations: inout Validations) {
+            validations.add(
+                "to_contact_ids",
+                as: [UUID].self,
+                required: true
+            )
+            validations.add(
+                "group_id",
+                as: UUID.self,
+                required: true
+            )
+        }
     }
 }
 
@@ -278,7 +330,7 @@ struct ContactRequest {
 //        case number
 //        case groupId = "group_id"
 //        case createdAt = "created_at"
-//        
+//
 //        static func == (lhs: Self, rhs: Self) -> Bool {
 //            return lhs.rawValue == rhs.rawValue
 //        }

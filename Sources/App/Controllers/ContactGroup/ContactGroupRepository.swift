@@ -48,6 +48,7 @@ protocol ContactGroupRepositoryProtocol {
         byId: GeneralRequest.FetchById,
         on db: Database
     ) async throws -> ContactGroup
+
 }
 
 class ContactGroupRepository: ContactGroupRepositoryProtocol {

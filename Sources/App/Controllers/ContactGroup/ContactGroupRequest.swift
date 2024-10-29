@@ -153,4 +153,22 @@ struct ContactGroupRequest {
                 required: false)
         }
     }
+
+    struct AddContacts: Content, Validatable {
+        let contactIds: [UUID]
+
+        init(contactIds: [UUID]) {
+            self.contactIds = contactIds
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case contactIds = "contact_ids"
+        }
+
+        static func validations(_ validations: inout Validations) {
+            validations.add(
+                "contact_ids", as: [UUID].self,
+                required: true)
+        }
+    }
 }

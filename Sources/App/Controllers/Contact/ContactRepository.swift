@@ -65,6 +65,11 @@ protocol ContactRepositoryProtocol {
     func fetchLastedNumber(
         on db: Database
     ) async throws -> Int
+    
+    func addToGroup(
+        request: ContactRequest.AddToGroup,
+        on db: Database
+    ) async throws -> [Contact]
 }
 
 class ContactRepository: ContactRepositoryProtocol {
@@ -84,7 +89,7 @@ class ContactRepository: ContactRepositoryProtocol {
             query.withDeleted()
         } else {
             query.filter(\.$deletedAt == nil)
-        }        
+        }
         
         let total = try await query.count()
         let items = try await sortQuery(query: query,
@@ -408,6 +413,41 @@ class ContactRepository: ContactRepositoryProtocol {
         let model = try await query.first()
         
         return model?.number ?? 0
+    }
+    
+    func addToGroup(
+        request: ContactRequest.AddToGroup,
+        on db: Database
+    ) async throws -> [Contact] {
+        // Verify group exists
+        guard
+            let _ = try? await contactGroupRepository.fetchById(
+                request: .init(id: request.groupId),
+                on: db
+            )
+        else { throw DefaultError.notFound }
+        
+        var updatedContacts: [Contact] = []
+        
+        // Update each contact
+        for contactId in request.toContactIds {
+            guard var contact = try await Contact.find(contactId, on: db) else {
+                throw DefaultError.notFound
+            }
+            
+            // Initialize groupIds array if nil
+            var groupIds = contact.groupIds ?? []
+            
+            // Add group if not already present
+            if !groupIds.contains(request.groupId) {
+                groupIds.append(request.groupId)
+                contact.groupIds = groupIds
+                try await contact.save(on: db)
+                updatedContacts.append(contact)
+            }
+        }
+        
+        return updatedContacts
     }
     
 }
