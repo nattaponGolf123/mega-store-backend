@@ -13,7 +13,7 @@ struct ContactResponse: Content {
     let code: String
     let name: String
     let kind: ContactKind
-    let groupId: UUID?
+    let groups: [ContactGroupResponse]
     let number: Int
     let vatRegistered: Bool
     let contactInformation: ContactInformation
@@ -28,12 +28,12 @@ struct ContactResponse: Content {
     let updatedAt: Date?
     let deletedAt: Date?
 
-    init(from: Contact) {
+    init(from: Contact, groups: [ContactGroup]) {
         self.id = from.id
         self.code = ContactCode(number: from.number).code
         self.name = from.name
         self.kind = from.kind
-        self.groupId = from.groupId
+        self.groups = groups.map { ContactGroupResponse(from: $0) }
         self.number = from.number
         self.vatRegistered = from.vatRegistered
         self.contactInformation = from.contactInformation
@@ -54,7 +54,7 @@ struct ContactResponse: Content {
         case code
         case name
         case kind
-        case groupId = "group_id"
+        case groups
         case number
         case vatRegistered = "vat_registered"
         case contactInformation = "contact_information"

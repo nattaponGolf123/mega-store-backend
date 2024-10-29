@@ -49,7 +49,8 @@ class ContactController: RouteCollection {
         let content = try req.query.decode(FetchAll.self)
         let pageResponse = try await repository.fetchAll(request: content,
                                                          on: req.db)
-        let responseItems: [ContactResponse] = pageResponse.items.map({ .init(from: $0) })
+        let responseItems: [ContactResponse] = pageResponse.items.map({ .init(from: $0,
+                                                                              groups: []) })
         return .init(page: pageResponse.page,
                      perPage: pageResponse.perPage,
                      total: pageResponse.total,
@@ -62,7 +63,8 @@ class ContactController: RouteCollection {
         
         let contact = try await repository.create(request: content,
                                                   on: req.db)
-        return .init(from: contact)
+        return .init(from: contact,
+                     groups: [])
     }
     
     // GET /contacts:id
@@ -71,7 +73,8 @@ class ContactController: RouteCollection {
         
         let contact = try await repository.fetchById(request: content,
                                                      on: req.db)
-        return .init(from: contact)
+        return .init(from: contact,
+                     groups: [])
     }
     
     // PUT /contacts/:id
@@ -80,7 +83,8 @@ class ContactController: RouteCollection {
         let contact = try await repository.update(byId: id,
                                                   request: content,
                                                   on: req.db)
-        return .init(from: contact)
+        return .init(from: contact,
+                     groups: [])
     }
     
     // PUT /contacts/:id/businese_address/:address_id
@@ -91,7 +95,8 @@ class ContactController: RouteCollection {
                                                                   addressID: content.addressID,
                                                                   request: content.content,
                                                                   on: req.db)
-        return .init(from: contact)
+        return .init(from: contact,
+                     groups: [])
     }
     
     // PUT /contacts/:id/shipping_address/:address_id
@@ -102,7 +107,8 @@ class ContactController: RouteCollection {
                                                                  addressID: content.addressID,
                                                                  request: content.content,
                                                                  on: req.db)
-        return .init(from: contact)
+        return .init(from: contact,
+                     groups: [])
     }
     
     // DELETE /contacts/:id
@@ -111,7 +117,8 @@ class ContactController: RouteCollection {
         
         let contact = try await repository.delete(byId: id,
                                                   on: req.db)
-        return .init(from: contact)
+        return .init(from: contact,
+                     groups: [])
     }
     
     // GET /contacts/search?q=xxx&page=1&per_page=10
@@ -119,7 +126,8 @@ class ContactController: RouteCollection {
         let content = try validator.validateSearchQuery(req)
         
         let pageResponse = try await repository.search(request: content, on: req.db)
-        let responseItems: [ContactResponse] = pageResponse.items.map({ .init(from: $0) })
+        let responseItems: [ContactResponse] = pageResponse.items.map({ .init(from: $0,
+                                                                              groups: []) })
         return .init(page: pageResponse.page,
                      perPage: pageResponse.perPage,
                      total: pageResponse.total,

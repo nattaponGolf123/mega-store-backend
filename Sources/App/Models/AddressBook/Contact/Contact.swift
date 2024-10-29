@@ -28,7 +28,7 @@ final class Contact: Model, Content {
     var kind: ContactKind
     
     @Field(key: "group_id")
-    var groupId: UUID?
+    var groupIds: [UUID]?
     
     @Field(key: "name")
     var name: String
@@ -80,7 +80,7 @@ final class Contact: Model, Content {
     init(id: UUID? = nil,
          number: Int = 1,
          name: String = "",
-         groupId: UUID? = nil,
+         groupIds: [UUID]? = nil,
          kind: ContactKind = .both,
          vatRegistered: Bool = false,
          contactInformation: ContactInformation = .init(),
@@ -97,7 +97,7 @@ final class Contact: Model, Content {
         
         self.id = id ?? UUID()
         self.number = max(number, 1)
-        self.groupId = groupId
+        self.groupIds = groupIds
         self.kind = kind
         self.name = name
         self.vatRegistered = vatRegistered

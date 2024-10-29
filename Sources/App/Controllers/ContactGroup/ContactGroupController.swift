@@ -3,7 +3,6 @@ import Foundation
 import Vapor
 
 class ContactGroupController: RouteCollection {
-    typealias FetchAll = GeneralRequest.FetchAll
 
     private(set) var repository: ContactGroupRepositoryProtocol
     private(set) var validator: ContactGroupValidatorProtocol
@@ -29,7 +28,7 @@ class ContactGroupController: RouteCollection {
 
     // GET /contact_groups
     func all(req: Request) async throws -> [ContactGroupResponse] {
-        let content = try req.query.decode(FetchAll.self)
+        let content = try req.query.decode(ContactGroupRequest.FetchAll.self)
 
         let groups = try await repository.fetchAll(request: content,
                                              on: req.db)

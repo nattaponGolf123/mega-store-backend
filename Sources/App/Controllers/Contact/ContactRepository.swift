@@ -84,8 +84,7 @@ class ContactRepository: ContactRepositoryProtocol {
             query.withDeleted()
         } else {
             query.filter(\.$deletedAt == nil)
-        }
-        
+        }        
         
         let total = try await query.count()
         let items = try await sortQuery(query: query,
@@ -155,11 +154,15 @@ class ContactRepository: ContactRepositoryProtocol {
             throw CommonError.duplicateTaxNumber
         }
         
-        if let groupId = request.groupId {
-            guard 
-                let _ = try? await contactGroupRepository.fetchById(request: .init(id: groupId),
-                                                                                 on: db)
-            else { throw DefaultError.notFound }
+        // validate exist contact group id
+        if let groupIds = request.groupIds {
+            for groupId in groupIds {
+                // try to fetch group id to check is exist
+                guard
+                    let _ = try? await contactGroupRepository.fetchById(request: .init(id: groupId),
+                                                                        on: db)
+                else { throw DefaultError.notFound }
+            }
         }
         
         let lastedNumber = try await fetchLastedNumber(on: db)
@@ -167,7 +170,7 @@ class ContactRepository: ContactRepositoryProtocol {
         
         let contact = Contact(number: nextNumber,
                               name: request.name,
-                              groupId: request.groupId,
+                              groupIds: request.groupIds,
                               vatRegistered: request.vatRegistered,
                               contactInformation: request.contactInformation ?? .init(),
                               taxNumber: request.taxNumber,
@@ -208,14 +211,17 @@ class ContactRepository: ContactRepositoryProtocol {
             contact.taxNumber = taxNumber
         }
         
-        if let groupId = request.groupId {
-            // try to fetch group id to check is exist
-            guard
-                let _ = try? await contactGroupRepository.fetchById(request: .init(id: groupId),
-                                                                   on: db)
-            else { throw DefaultError.notFound }
+        // validate exist contact group id
+        if let groupIds = request.groupIds {
+            for groupId in groupIds {
+                // try to fetch group id to check is exist
+                guard
+                    let _ = try? await contactGroupRepository.fetchById(request: .init(id: groupId),
+                                                                        on: db)
+                else { throw DefaultError.notFound }
+            }
             
-            contact.groupId = groupId
+            contact.groupIds = groupIds
         }
         
         if let vatRegistered = request.vatRegistered {
@@ -432,13 +438,13 @@ private extension ContactRepository {
             case .desc:
                 return try await query.sort(\.$createdAt, .descending).range(range).all()
             }
-        case .groupId:
-            switch sortOrder {
-            case .asc:
-                return try await query.sort(\.$groupId).range(range).all()
-            case .desc:
-                return try await query.sort(\.$groupId, .descending).range(range).all()
-            }
+//        case .groupId:
+//            switch sortOrder {
+//            case .asc:
+//                return try await query.sort(\.$groupId).range(range).all()
+//            case .desc:
+//                return try await query.sort(\.$groupId, .descending).range(range).all()
+//            }
         case .number:
             switch sortOrder {
             case .asc:

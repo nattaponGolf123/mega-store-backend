@@ -18,7 +18,7 @@ struct ContactRequest {
         let legalStatus: BusinessType
         let website: String?
         let note: String?
-        let groupId: UUID?
+        let groupIds: [UUID]?
         let paymentTermsDays: Int?
         
         init(name: String, 
@@ -28,7 +28,7 @@ struct ContactRequest {
              legalStatus: BusinessType = .individual,
              website: String? = nil,
              note: String? = nil,
-             groupId: UUID? = nil,
+             groupIds: [UUID]?,
              paymentTermsDays: Int? = nil) {
             self.name = name
             self.vatRegistered = vatRegistered
@@ -37,7 +37,7 @@ struct ContactRequest {
             self.legalStatus = legalStatus
             self.website = website
             self.note = note
-            self.groupId = groupId
+            self.groupIds = groupIds
             self.paymentTermsDays = paymentTermsDays
         }
         
@@ -52,7 +52,7 @@ struct ContactRequest {
         
         enum CodingKeys: String, CodingKey {
             case name
-            case groupId = "group_id"
+            case groupIds = "group_ids"
             case vatRegistered = "vat_registered"
             case contactInformation = "contact_information"
             case taxNumber = "tax_number"
@@ -72,7 +72,7 @@ struct ContactRequest {
         let website: String?
         let note: String?
         let paymentTermsDays: Int?
-        let groupId: UUID?
+        let groupIds: [UUID]?
         
         init(name: String? = nil,
              vatRegistered: Bool? = nil,
@@ -82,7 +82,7 @@ struct ContactRequest {
              website: String? = nil,
              note: String? = nil,
              paymentTermsDays: Int? = nil,
-             groupId: UUID? = nil) {
+             groupIds: [UUID]? = nil) {
             self.name = name
             self.vatRegistered = vatRegistered
             self.contactInformation = contactInformation
@@ -91,7 +91,7 @@ struct ContactRequest {
             self.website = website
             self.note = note
             self.paymentTermsDays = paymentTermsDays
-            self.groupId = groupId
+            self.groupIds = groupIds
         }
         
         static func validations(_ validations: inout Validations) {
@@ -105,7 +105,7 @@ struct ContactRequest {
         
         enum CodingKeys: String, CodingKey {
             case name
-            case groupId = "group_id"
+            case groupIds = "group_ids"
             case vatRegistered = "vat_registered"
             case contactInformation = "contact_information"
             case taxNumber = "tax_number"

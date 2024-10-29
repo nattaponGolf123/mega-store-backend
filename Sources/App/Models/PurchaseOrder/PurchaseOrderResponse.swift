@@ -57,7 +57,9 @@ struct PurchaseOrderResponse: Content {
         orderDate = from.orderDate
         deliveryDate = from.deliveryDate
         paymentTermsDays = from.paymentTermsDays
-        supplier = ContactResponse(from: from.supplier!)
+        // TODO: fix later
+        supplier = ContactResponse(from: from.supplier!,
+                                   groups: [])
         customer = MyBusineseResponse(from: from.customer!)
         status = from.status
         vatOption = from.vatOption

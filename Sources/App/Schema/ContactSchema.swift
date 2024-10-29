@@ -11,7 +11,7 @@ struct ContactSchema {
             .field("number", .int, .required)
             .unique(on: "number")            
             .field("kind", .string, .required)
-            .field("group_id", .uuid)
+            .field("group_ids", .array(of: .uuid))
             .field("name", .string, .required)
             .field("vat_registered", .bool, .required)
             .field("contact_information", .json, .required)
