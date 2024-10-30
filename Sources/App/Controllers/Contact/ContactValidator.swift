@@ -14,6 +14,7 @@ protocol ContactValidatorProtocol {
     func validateUpdateShippingAddress(_ req: Request) throws -> UpdateShippingAddressResponse
     func validateID(_ req: Request) throws -> GeneralRequest.FetchById
     func validateSearchQuery(_ req: Request) throws -> Search
+    func validateAddToGroup(_ req: Request) throws -> ContactRequest.AddToGroup
 }
 
 class ContactValidator: ContactValidatorProtocol {
@@ -80,6 +81,18 @@ class ContactValidator: ContactValidatorProtocol {
         let content = try req.query.decode(Search.self)
         
         guard content.query.isEmpty == false else { throw DefaultError.invalidInput }
+        
+        return content
+    }
+    
+    func validateAddToGroup(_ req: Request) throws -> ContactRequest.AddToGroup {
+        try ContactRequest.AddToGroup.validate(content: req)
+        
+        let content = try req.content.decode(ContactRequest.AddToGroup.self)
+        
+        guard !content.contactIds.isEmpty else {
+            throw DefaultError.invalidInput
+        }
         
         return content
     }

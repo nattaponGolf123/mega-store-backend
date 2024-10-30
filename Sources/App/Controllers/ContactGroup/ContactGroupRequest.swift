@@ -2,7 +2,6 @@ import Foundation
 import Vapor
 
 struct ContactGroupRequest {
-
     struct FetchAll: Content {
         let showDeleted: Bool
         let sortBy: SortBy
@@ -23,11 +22,11 @@ struct ContactGroupRequest {
 
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.showDeleted =
+            showDeleted =
                 (try? container.decodeIfPresent(Bool.self, forKey: .showDeleted)) ?? false
-            self.sortBy =
+            sortBy =
                 (try? container.decodeIfPresent(SortBy.self, forKey: .sortBy)) ?? .createdAt
-            self.sortOrder =
+            sortOrder =
                 (try? container.decodeIfPresent(SortOrder.self, forKey: .sortOrder)) ?? .asc
         }
 
@@ -62,9 +61,9 @@ struct ContactGroupRequest {
 
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.query = try container.decode(String.self, forKey: .query)
-            self.sortBy = (try? container.decode(SortBy.self, forKey: .sortBy)) ?? .createdAt
-            self.sortOrder = (try? container.decode(SortOrder.self, forKey: .sortOrder)) ?? .asc
+            query = try container.decode(String.self, forKey: .query)
+            sortBy = (try? container.decode(SortBy.self, forKey: .sortBy)) ?? .createdAt
+            sortOrder = (try? container.decode(SortOrder.self, forKey: .sortOrder)) ?? .asc
         }
 
         func encode(to encoder: Encoder) throws {
@@ -83,8 +82,9 @@ struct ContactGroupRequest {
         static func validations(_ validations: inout Validations) {
             validations.add(
                 "q", as: String.self,
-                is: .count(1...200),
-                required: true)
+                is: .count(1 ... 200),
+                required: true
+            )
         }
     }
 
@@ -102,12 +102,14 @@ struct ContactGroupRequest {
 
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.name = try container.decode(
+            name = try container.decode(
                 String.self,
-                forKey: .name)
-            self.description = try? container.decode(
+                forKey: .name
+            )
+            description = try? container.decode(
                 String.self,
-                forKey: .description)
+                forKey: .description
+            )
         }
 
         func encode(to encoder: Encoder) throws {
@@ -124,8 +126,9 @@ struct ContactGroupRequest {
         static func validations(_ validations: inout Validations) {
             validations.add(
                 "name", as: String.self,
-                is: .count(3...200),
-                required: true)
+                is: .count(3 ... 200),
+                required: true
+            )
         }
     }
 
@@ -149,26 +152,39 @@ struct ContactGroupRequest {
         static func validations(_ validations: inout Validations) {
             validations.add(
                 "name", as: String.self,
-                is: .count(3...200),
-                required: false)
+                is: .count(3 ... 200),
+                required: false
+            )
         }
     }
 
-    struct AddContacts: Content, Validatable {
-        let contactIds: [UUID]
+    struct FetchByIds: Content, Validatable {
+        let ids: [UUID]
+        let sortBy: SortBy
+        let sortOrder: SortOrder
 
-        init(contactIds: [UUID]) {
-            self.contactIds = contactIds
+        init(
+            ids: [UUID],
+            sortBy: SortBy = .createdAt,
+            sortOrder: SortOrder = .asc
+        ) {
+            self.ids = ids
+            self.sortBy = sortBy
+            self.sortOrder = sortOrder
         }
 
         enum CodingKeys: String, CodingKey {
-            case contactIds = "contact_ids"
+            case ids
+            case sortBy = "sort_by"
+            case sortOrder = "sort_order"
         }
 
         static func validations(_ validations: inout Validations) {
             validations.add(
-                "contact_ids", as: [UUID].self,
-                required: true)
+                "ids", as: [UUID].self,
+                required: true
+            )
         }
     }
+
 }

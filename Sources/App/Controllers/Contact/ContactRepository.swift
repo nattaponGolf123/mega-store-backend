@@ -422,7 +422,7 @@ class ContactRepository: ContactRepositoryProtocol {
         // Verify group exists
         guard
             let _ = try? await contactGroupRepository.fetchById(
-                request: .init(id: request.groupId),
+                request: .init(id: request.toGroupId),
                 on: db
             )
         else { throw DefaultError.notFound }
@@ -430,7 +430,7 @@ class ContactRepository: ContactRepositoryProtocol {
         var updatedContacts: [Contact] = []
         
         // Update each contact
-        for contactId in request.toContactIds {
+        for contactId in request.contactIds {
             guard var contact = try await Contact.find(contactId, on: db) else {
                 throw DefaultError.notFound
             }
@@ -439,9 +439,10 @@ class ContactRepository: ContactRepositoryProtocol {
             var groupIds = contact.groupIds ?? []
             
             // Add group if not already present
-            if !groupIds.contains(request.groupId) {
-                groupIds.append(request.groupId)
+            if !groupIds.contains(request.toGroupId) {
+                groupIds.append(request.toGroupId)
                 contact.groupIds = groupIds
+                
                 try await contact.save(on: db)
                 updatedContacts.append(contact)
             }

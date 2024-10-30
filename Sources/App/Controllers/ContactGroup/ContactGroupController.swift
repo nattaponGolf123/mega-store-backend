@@ -25,6 +25,8 @@ class ContactGroupController: RouteCollection {
             withID.put(use: update)
             withID.delete(use: delete)
         }
+
+        groups.get("ids", use: getByIds)
     }
 
     // GET /contact_groups
@@ -82,6 +84,16 @@ class ContactGroupController: RouteCollection {
             byId: id,
             on: req.db)
         return ContactGroupResponse(from: group)
+    }
+
+    // GET /contact_groups/ids?ids[]=...
+    func getByIds(req: Request) async throws -> [ContactGroupResponse] {
+        let content = try validator.validateFetchByIds(req)        
+        
+        let groups = try await repository.fetchByIds(
+            request: content,
+            on: req.db)
+        return groups.map { ContactGroupResponse(from: $0) }
     }
 
 }

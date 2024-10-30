@@ -296,43 +296,30 @@ struct ContactRequest {
     }
 
     struct AddToGroup: Content, Validatable {
-        let groupId: UUID
-        let toContactIds: [UUID]
+        let toGroupId: UUID
+        let contactIds: [UUID]
 
-        init(groupId: UUID, toContactIds: [UUID]) {
-            self.groupId = groupId
-            self.toContactIds = toContactIds
+        init(toGroupId: UUID, contactIds: [UUID]) {
+            self.toGroupId = toGroupId
+            self.contactIds = contactIds
         }
 
         enum CodingKeys: String, CodingKey {
-            case groupId = "group_id"
-            case toContactIds = "to_contact_ids"
+            case toGroupId = "to_group_id"
+            case contactIds = "contact_ids"
         }
         
         static func validations(_ validations: inout Validations) {
             validations.add(
-                "to_contact_ids",
+                "contact_ids",
                 as: [UUID].self,
                 required: true
             )
             validations.add(
-                "group_id",
+                "to_group_id",
                 as: UUID.self,
                 required: true
             )
         }
     }
 }
-
-//extension ContactRequest {
-//    enum SortBy: String, Codable, Sortable {
-//        case name
-//        case number
-//        case groupId = "group_id"
-//        case createdAt = "created_at"
-//
-//        static func == (lhs: Self, rhs: Self) -> Bool {
-//            return lhs.rawValue == rhs.rawValue
-//        }
-//    }
-//}

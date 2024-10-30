@@ -49,6 +49,11 @@ protocol ContactGroupRepositoryProtocol {
         on db: Database
     ) async throws -> ContactGroup
 
+    func fetchByIds(
+        request: ContactGroupRequest.FetchByIds,
+        on db: Database
+    ) async throws -> [ContactGroup]
+
 }
 
 class ContactGroupRepository: ContactGroupRepositoryProtocol {
@@ -167,6 +172,20 @@ class ContactGroupRepository: ContactGroupRepositoryProtocol {
             on: db)
         try await group.delete(on: db)
         return group
+    }
+
+    func fetchByIds(
+        request: ContactGroupRequest.FetchByIds,
+        on db: Database
+    ) async throws -> [ContactGroup] {
+        let query = ContactGroup.query(on: db)
+            .filter(\.$id ~~ request.ids)
+        
+        return try await sortQuery(
+            query: query,
+            sortBy: request.sortBy,
+            sortOrder: request.sortOrder
+        )
     }
 
 }

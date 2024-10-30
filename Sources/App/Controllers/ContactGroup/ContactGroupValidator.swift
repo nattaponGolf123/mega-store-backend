@@ -10,6 +10,7 @@ protocol ContactGroupValidatorProtocol {
     func validateUpdate(_ req: Request) throws -> (id: GeneralRequest.FetchById, content: ContactGroupRequest.Update)
     func validateID(_ req: Request) throws -> GeneralRequest.FetchById
     func validateSearchQuery(_ req: Request) throws -> Search
+    func validateFetchByIds(_ req: Request) throws -> ContactGroupRequest.FetchByIds
 }
 
 class ContactGroupValidator: ContactGroupValidatorProtocol {
@@ -46,6 +47,16 @@ class ContactGroupValidator: ContactGroupValidatorProtocol {
         let content = try req.query.decode(Search.self)
         
         guard content.query.isEmpty == false else { throw DefaultError.invalidInput }
+        
+        return content
+    }
+    
+    func validateFetchByIds(_ req: Request) throws -> ContactGroupRequest.FetchByIds {
+        try ContactGroupRequest.FetchByIds.validate(query: req)
+        
+        let content = try req.query.decode(ContactGroupRequest.FetchByIds.self)
+        
+        guard !content.ids.isEmpty else { throw DefaultError.invalidInput }
         
         return content
     }
