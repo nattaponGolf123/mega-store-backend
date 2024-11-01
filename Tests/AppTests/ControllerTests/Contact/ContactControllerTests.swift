@@ -20,6 +20,7 @@ final class ContactControllerTests: XCTestCase {
     var db: Database!
     
     lazy var repo = MockContactRepositoryProtocol()
+    lazy var groupRepo = MockContactGroupRepositoryProtocol()
     lazy var validator = MockContactValidatorProtocol()
     
     var controller: ContactController!
@@ -44,6 +45,7 @@ final class ContactControllerTests: XCTestCase {
         
         //register service controller
         controller = .init(repository: repo,
+                           groupRepository: groupRepo,
                            validator: validator)
         try app.register(collection: controller)
     }
@@ -109,6 +111,8 @@ final class ContactControllerTests: XCTestCase {
         }
         
     }
+
+    
     
     func testGetByID_WithMatchID_ShouldReturnContact() async throws {
         
@@ -123,6 +127,41 @@ final class ContactControllerTests: XCTestCase {
             XCTAssertEqual(res.status, .ok)
             let group = try res.content.decode(ContactResponse.self)
             XCTAssertEqual(group.name, "Test")
+        }
+    }
+    
+    // Add this test after testGetByID_WithMatchID_ShouldReturnContact
+    func testGetByID_WithID_ShouldReturnContactWithGroups() async throws {
+        // Given
+        let id = UUID()
+        let groupIds = [UUID(), UUID()]
+        let request = GeneralRequest.FetchById(id: id)
+        
+        let contact = Contact(id: .init(),
+                              name: "Test",
+                              groupIds: groupIds,
+                              createAt: .now,
+                              updatedAt: .now)
+        
+        let groups = [
+            ContactGroup(id: groupIds[0], name: "Group 1"),
+            ContactGroup(id: groupIds[1], name: "Group 2"),
+        ]
+        
+        given(repo).fetchById(request: .matching { $0.id == id },
+                              on: .any).willReturn(contact)
+        given(groupRepo).fetchByIds(request: .matching { $0.ids == groupIds },
+                                    on: .any).willReturn(groups)
+        
+        given(validator).validateID(.any).willReturn(request)
+        
+        try app.test(.GET, "contacts/\(id.uuidString)") { res in
+            XCTAssertEqual(res.status, .ok)
+            let response = try res.content.decode(ContactResponse.self)
+            XCTAssertEqual(response.name, "Test")
+            XCTAssertEqual(response.groups.count, 2)
+            XCTAssertEqual(response.groups[0].name, "Group 1")
+            XCTAssertEqual(response.groups[1].name, "Group 2")
         }
     }
     
