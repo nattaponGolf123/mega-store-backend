@@ -157,9 +157,9 @@ final class ContactGroupControllerTests: XCTestCase {
         
         try app.test(.POST, "contact_groups",
                      beforeRequest: { req in
-                        try req.content.encode(request)
-                     }) { res in
-            XCTAssertEqual(res.status, .ok)
+            try req.content.encode(request)
+        }) { res in
+            XCTAssertEqual(res.status, .created)
             let group = try res.content.decode(ContactGroup.self)
             XCTAssertEqual(group.name, "Test")
         }

@@ -8,6 +8,14 @@
 import Foundation
 
 extension Date {
+ 
+    struct Format {
+        static let yyyyMMdd = "yyyy-MM-dd"
+        static let iso8601 = "yyyy-MM-dd'T'HH:mm:ssZ"
+    }
+}
+
+extension Date {
     
     static func dateFrom(_ year: Int,
                          month: Int,

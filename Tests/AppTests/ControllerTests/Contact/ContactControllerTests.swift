@@ -161,9 +161,11 @@ final class ContactControllerTests: XCTestCase {
                      beforeRequest: { req in
             try req.content.encode(request)
         }) { res in
-            XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(ContactResponse.self)
-            XCTAssertEqual(group.name, "Test")
+            //print res in json
+            print(res.body.string)
+            XCTAssertEqual(res.status, .created)
+            let responseObj = try res.content.decode(ContactResponse.self)
+            XCTAssertEqual(responseObj.name, "Test")
         }
     }
     
