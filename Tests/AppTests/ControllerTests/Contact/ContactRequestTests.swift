@@ -73,6 +73,7 @@ final class ContactRequestTests: XCTestCase {
         let json = """
         {
             "name": "John Doe",
+            "kind" : "CUSTOMER",
             "vat_registered": true,
             "contact_information": {
                 "email": "test@example.com",
@@ -91,6 +92,7 @@ final class ContactRequestTests: XCTestCase {
         let create = try decoder.decode(ContactRequest.Create.self, from: data)
 
         XCTAssertEqual(create.name, "John Doe")
+        XCTAssertEqual(create.kind, .customer)
         XCTAssertEqual(create.vatRegistered, true)
         XCTAssertEqual(create.contactInformation?.email, "test@example.com")
         XCTAssertEqual(create.contactInformation?.phone, "123456789")
@@ -136,6 +138,7 @@ final class ContactRequestTests: XCTestCase {
         let groupIds = [UUID()]
         let update = ContactRequest.Update(
             name: "John Doe",
+            kind: .customer,
             vatRegistered: false,
             contactInformation: contactInfo,
             taxNumber: "1234567890123",
@@ -151,6 +154,7 @@ final class ContactRequestTests: XCTestCase {
         let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
 
         XCTAssertEqual(jsonObject?["name"] as? String, "John Doe")
+        XCTAssertEqual(jsonObject?["kind"] as? String, "CUSTOMER")
         XCTAssertEqual(jsonObject?["vat_registered"] as? Bool, false)
         
         let contactInformation = jsonObject?["contact_information"] as? [String: Any]

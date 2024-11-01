@@ -37,8 +37,9 @@ class MyBusineseController: RouteCollection {
     }
     
     // GET /my_busineses
-    func all(req: Request) async throws -> [MyBusinese] {
-        return try await repository.fetchAll(on: req.db)
+    func all(req: Request) async throws -> [MyBusineseResponse] {
+        let all = try await repository.fetchAll(on: req.db)
+        return all.map { MyBusineseResponse(from: $0) }
     }
     
     // POST /my_busineses
@@ -53,35 +54,39 @@ class MyBusineseController: RouteCollection {
     }
     
      // GET /my_busineses:id
-    func getByID(req: Request) async throws -> MyBusinese {
+    func getByID(req: Request) async throws -> MyBusineseResponse {
         let content = try validator.validateID(req)
-        return try await repository.fetchById(request: content, on: req.db)
+        let model = try await repository.fetchById(request: content, on: req.db)
+        return .init(from: model)
     }
     
     // PUT /my_busineses/:id
-    func update(req: Request) async throws -> MyBusinese {
+    func update(req: Request) async throws -> MyBusineseResponse {
         let (id, content) = try validator.validateUpdate(req)
-        return try await repository.update(byId: id,
+        let model = try await repository.update(byId: id,
                                            request: content,
                                            on: req.db)
+        return .init(from: model)
     }
     
     // PUT /my_busineses/:id/businese_address/:address_id
-    func updateBusinessAddress(req: Request) async throws -> MyBusinese {
+    func updateBusinessAddress(req: Request) async throws -> MyBusineseResponse {
         let content = try validator.validateUpdateBusineseAddress(req)
-        return try await repository.updateBusinessAddress(byId: content.id,
+        let model = try await repository.updateBusinessAddress(byId: content.id,
                                                            addressID: content.addressID,
                                                            request: content.content,
                                                            on: req.db)
+        return .init(from: model)
     }
     
     // PUT /my_busineses/:id/shipping_address/:address_id
-    func updateShippingAddress(req: Request) async throws -> MyBusinese {
+    func updateShippingAddress(req: Request) async throws -> MyBusineseResponse {
         let content = try validator.validateUpdateShippingAddress(req)
-        return try await repository.updateShippingAddress(byId: content.id,
+        let model = try await repository.updateShippingAddress(byId: content.id,
                                                           addressID: content.addressID,
                                                           request: content.content,
                                                           on: req.db)
+        return .init(from: model)
     }
     
 }

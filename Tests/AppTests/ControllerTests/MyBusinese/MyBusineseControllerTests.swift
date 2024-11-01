@@ -62,7 +62,7 @@ final class MyBusineseControllerTests: XCTestCase {
 
         try app.test(.GET, "my_busineses") { res in
             XCTAssertEqual(res.status, .ok)
-            let items = try res.content.decode([MyBusinese].self)
+            let items = try res.content.decode([MyBusineseResponse].self)
             XCTAssertEqual(items.count, 0)
         }
     }
@@ -74,7 +74,7 @@ final class MyBusineseControllerTests: XCTestCase {
 
         try app.test(.GET, "my_busineses") { res in
             XCTAssertEqual(res.status, .ok)
-            let items = try res.content.decode([MyBusinese].self)
+            let items = try res.content.decode([MyBusineseResponse].self)
             XCTAssertEqual(items.count, 1)
         }
     }
@@ -106,7 +106,7 @@ final class MyBusineseControllerTests: XCTestCase {
 
         try app.test(.GET, "my_busineses/\(id.uuidString)") { res in
             XCTAssertEqual(res.status, .ok)
-            let item = try res.content.decode(MyBusinese.self)
+            let item = try res.content.decode(MyBusineseResponse.self)
             XCTAssertEqual(item.name, "Test")
         }
     }
@@ -164,8 +164,8 @@ final class MyBusineseControllerTests: XCTestCase {
                      beforeRequest: { req in
             try req.content.encode(request)
         }) { res in
-            XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(MyBusinese.self)
+            XCTAssertEqual(res.status, .created)
+            let group = try res.content.decode(MyBusineseResponse.self)
             XCTAssertEqual(group.name, "Test")
         }
     }
@@ -202,8 +202,8 @@ final class MyBusineseControllerTests: XCTestCase {
                      beforeRequest: { req in
             try req.content.encode(request)
         }) { res in
-            XCTAssertEqual(res.status, .ok)
-            let contact = try res.content.decode(MyBusinese.self)
+            XCTAssertEqual(res.status, .created)
+            let contact = try res.content.decode(MyBusineseResponse.self)
             XCTAssertEqual(contact.name, "Test")
             XCTAssertEqual(contact.vatRegistered, true)
             XCTAssertEqual(contact.contactInformation, contactInfo)
@@ -211,6 +211,116 @@ final class MyBusineseControllerTests: XCTestCase {
             XCTAssertEqual(contact.legalStatus, .individual)
             XCTAssertEqual(contact.website, "https://example.com")
             XCTAssertEqual(contact.note, "Test note")
+        }
+    }
+
+    func testCreate_WithBusinessAddress_ShouldReturnMyBusinese() async throws {
+        // Given
+        let contactInfo = ContactInformation(phone: "123456789",
+                                             email: "test@example.com")
+        let businessAddress = ContactRequest.CreateBusinessAddress(
+            branchName: "123 Main St",
+            branchCode: "HQ",
+            address: "001",
+            subDistrict: "Test Sub",
+            district: "Test District",
+            province: "Test Province",
+            country: "12345",
+            postalCode: "Test Country",
+            phone: "1234567890",
+            fax: "branch@test.com",
+            email: "0987654321"
+        )
+        
+        let request = MyBusinessRequest.Create(
+            name: "Test",
+            vatRegistered: true,
+            contactInformation: contactInfo,
+            taxNumber: "1234567890123",
+            legalStatus: .individual,
+            website: "https://example.com",
+            note: "Test note",
+            businessAddress: businessAddress
+        )
+        
+        given(validator).validateCreate(.any).willReturn(request)
+        
+        let stub = MyBusinese(id: .init(),
+                              name: request.name,
+                              vatRegistered: request.vatRegistered,
+                              contactInformation: request.contactInformation,
+                              taxNumber: request.taxNumber,
+                              legalStatus: request.legalStatus,
+                              website: request.website,
+                              businessAddress: [businessAddress.toBusinessAddress()],
+                              note: request.note)
+        
+        given(repo).create(request: .any, on: .any).willReturn(stub)
+
+        try app.test(.POST, "my_busineses",
+                     beforeRequest: { req in
+            try req.content.encode(request)
+        }) { res in
+            XCTAssertEqual(res.status, .created)
+            let response = try res.content.decode(MyBusineseResponse.self)
+            XCTAssertEqual(response.name, "Test")
+            XCTAssertEqual(response.businessAddress.count, 1)
+            XCTAssertEqual(response.businessAddress[0].address, "001")
+            XCTAssertEqual(response.businessAddress[0].branch, "123 Main St")
+            XCTAssertEqual(response.businessAddress[0].branchCode, "HQ")
+        }
+    }
+
+    func testCreate_WithShippingAddress_ShouldReturnMyBusinese() async throws {
+        // Given
+        let contactInfo = ContactInformation(phone: "123456789",
+                                             email: "test@example.com")
+        let shippingAddress = ContactRequest.CreateShippingAddress(
+            address: "456 Ship St",
+            subDistrict: "Ship Sub",
+            district: "Ship District",
+            province: "Ship Province",
+            country: "Ship Country",
+            postalCode: "54321",
+            phone: "9876543210"
+        )
+        
+        let request = MyBusinessRequest.Create(
+            name: "Test",
+            vatRegistered: true,
+            contactInformation: contactInfo,
+            taxNumber: "1234567890123",
+            legalStatus: .individual,
+            website: "https://example.com",
+            note: "Test note",
+            shippingAddress: shippingAddress
+        )
+        
+        given(validator).validateCreate(.any).willReturn(request)
+        
+        let stub = MyBusinese(id: .init(),
+                              name: request.name,
+                              vatRegistered: request.vatRegistered,
+                              contactInformation: request.contactInformation,
+                              taxNumber: request.taxNumber,
+                              legalStatus: request.legalStatus,
+                              website: request.website,
+                              shippingAddress: [shippingAddress.toShippingAddress()],
+                              note: request.note)
+        
+        given(repo).create(request: .any, on: .any).willReturn(stub)
+
+        try app.test(.POST, "my_busineses",
+                     beforeRequest: { req in
+            try req.content.encode(request)
+        }) { res in
+            XCTAssertEqual(res.status, .created)
+            let response = try res.content.decode(MyBusineseResponse.self)
+            XCTAssertEqual(response.name, "Test")
+            XCTAssertEqual(response.shippingAddress.count, 1)
+            XCTAssertEqual(response.shippingAddress[0].address, "456 Ship St")
+            XCTAssertEqual(response.shippingAddress[0].subDistrict, "Ship Sub")
+            XCTAssertEqual(response.shippingAddress[0].phone, "9876543210")
         }
     }
 
@@ -252,7 +362,7 @@ final class MyBusineseControllerTests: XCTestCase {
             try req.content.encode(requestUpdate)
         }) { res in
             XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(MyBusinese.self)
+            let group = try res.content.decode(MyBusineseResponse.self)
             XCTAssertEqual(group.name, "Test")
         }
     }
@@ -294,7 +404,7 @@ final class MyBusineseControllerTests: XCTestCase {
             try req.content.encode(requestUpdate)
         }) { res in
             XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(MyBusinese.self)
+            let group = try res.content.decode(MyBusineseResponse.self)
             XCTAssertEqual(group.taxNumber, "1234567890123")
         }
     }
@@ -341,7 +451,7 @@ final class MyBusineseControllerTests: XCTestCase {
 
         try app.test(.PUT, "my_busineses/\(id.uuidString)/businese_address/\(addressID.uuidString)") { res in
             XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(MyBusinese.self)
+            let group = try res.content.decode(MyBusineseResponse.self)
             XCTAssertEqual(group.name, "Name")
         }
     }
@@ -387,7 +497,7 @@ final class MyBusineseControllerTests: XCTestCase {
 
         try app.test(.PUT, "my_busineses/\(id.uuidString)/shipping_address/\(addressID.uuidString)") { res in
             XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(MyBusinese.self)
+            let group = try res.content.decode(MyBusineseResponse.self)
             XCTAssertEqual(group.name, "Name")
         }
     }

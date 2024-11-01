@@ -108,7 +108,7 @@ final class MyBusineseRepositoryTests: XCTestCase {
         XCTAssertEqual(result.note, "Test Note")
     }
 
-    func testCreate_DuplicateName_ShouldThrowError() async throws {
+    func testCreate_ExistModel_ShouldThrowError() async throws {
         // Given
         let existingBusinese = MyBusinese(name: "Business", vatRegistered: true, contactInformation: nil, taxNumber: "1234567890123", legalStatus: .companyLimited, website: "example.com", note: "Test Note")
         try await existingBusinese.save(on: db)
@@ -120,7 +120,7 @@ final class MyBusineseRepositoryTests: XCTestCase {
             _ = try await myBusineseRepository.create(request: request, on: db)
             XCTFail("Expected to throw error but didn't.")
         } catch {
-            XCTAssertEqual(error as? CommonError, CommonError.duplicateName)
+            XCTAssertEqual(error as? MyBusineseRepository.Error, MyBusineseRepository.Error.existingMyBusinese)
         }
     }
 
@@ -174,7 +174,7 @@ final class MyBusineseRepositoryTests: XCTestCase {
     func testUpdateBusinessAddress_ShouldUpdateAddress() async throws {
         // Given
         
-        var address = BusinessAddress(id: UUID(),
+        let address = BusinessAddress(id: UUID(),
                                       branch: "Branch",
                                       address: "Address")
         let business = MyBusinese(name: "Business",
