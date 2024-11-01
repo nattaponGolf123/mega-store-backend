@@ -161,8 +161,6 @@ final class ContactControllerTests: XCTestCase {
                      beforeRequest: { req in
             try req.content.encode(request)
         }) { res in
-            //print res in json
-            print(res.body.string)
             XCTAssertEqual(res.status, .created)
             let responseObj = try res.content.decode(ContactResponse.self)
             XCTAssertEqual(responseObj.name, "Test")
@@ -213,7 +211,7 @@ final class ContactControllerTests: XCTestCase {
                      beforeRequest: { req in
             try req.content.encode(request)
         }) { res in
-            XCTAssertEqual(res.status, .ok)
+            XCTAssertEqual(res.status, .created)
             let contact = try res.content.decode(ContactResponse.self)
             XCTAssertEqual(contact.name, "Test")
             XCTAssertEqual(contact.code, "C00001")
@@ -223,7 +221,7 @@ final class ContactControllerTests: XCTestCase {
             XCTAssertEqual(contact.contactInformation, request.contactInformation)
             XCTAssertEqual(contact.website, "website")
             XCTAssertEqual(contact.note, "note")
-            XCTAssertNil(contact.groups)
+            XCTAssertEqual(contact.groups.count, 0)
             XCTAssertEqual(contact.vatRegistered, false)
         }
     }

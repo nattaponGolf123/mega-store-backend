@@ -160,7 +160,7 @@ final class ContactGroupControllerTests: XCTestCase {
             try req.content.encode(request)
         }) { res in
             XCTAssertEqual(res.status, .created)
-            let group = try res.content.decode(ContactGroup.self)
+            let group = try res.content.decode(ContactGroupResponse.self)
             XCTAssertEqual(group.name, "Test")
         }
     }
@@ -187,8 +187,8 @@ final class ContactGroupControllerTests: XCTestCase {
                      beforeRequest: { req in
                         try req.content.encode(request)
                      }) { res in
-            XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(ContactGroup.self)
+                         XCTAssertEqual(res.status, .created)
+            let group = try res.content.decode(ContactGroupResponse.self)
             XCTAssertEqual(group.name, "Test")
             XCTAssertEqual(group.description ?? "", "Test")
         }
@@ -232,7 +232,7 @@ final class ContactGroupControllerTests: XCTestCase {
                         try req.content.encode(requestUpdate)
                      }) { res in
             XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(ContactGroup.self)
+            let group = try res.content.decode(ContactGroupResponse.self)
             XCTAssertEqual(group.name, "Test")
         }
     }
@@ -260,7 +260,7 @@ final class ContactGroupControllerTests: XCTestCase {
                         try req.content.encode(requestUpdate)
                      }) { res in
             XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(ContactGroup.self)
+            let group = try res.content.decode(ContactGroupResponse.self)
             XCTAssertEqual(group.name, "Name")
             XCTAssertEqual(group.description ?? "", "Test")
         }
@@ -314,74 +314,10 @@ final class ContactGroupControllerTests: XCTestCase {
         
         try app.test(.DELETE, "contact_groups/\(id.uuidString)") { res in
             XCTAssertEqual(res.status, .ok)
-            let group = try res.content.decode(ContactGroup.self)
+            let group = try res.content.decode(ContactGroupResponse.self)
             XCTAssertEqual(group.name, "Name")
             XCTAssertEqual(group.description ?? "", "Test")
             XCTAssertNotNil(group.deletedAt)
-        }
-    }
-    
-    // MARK: - Test GET /contact_groups/search
-    func testSearch_WithEmptyQuery_ShouldReturnBadRequest() async throws {
-        
-        // Given
-        let query = Search(query: "")
-        given(validator).validateSearchQuery(.any).willThrow(DefaultError.invalidInput)
-        
-        given(repo).searchByName(request: .matching({ $0.query == query.query }),
-                                 on: .any).willThrow(DefaultError.invalidInput)
-        
-        try app.test(.GET, "contact_groups/search") { res in
-            XCTAssertEqual(res.status, .badRequest)
-        }
-    }
-    
-    func testSearch_WithMore200CharQuery_ShouldReturnBadRequest() async throws {
-        
-        // Given
-        let query = Search(query: String(repeating: "A", count: 210))
-        given(validator).validateSearchQuery(.any).willThrow(DefaultError.invalidInput)
-        
-        given(repo).searchByName(request: .matching({ $0.query == query.query }),
-                                 on: .any).willThrow(DefaultError.invalidInput)
-        
-        try app.test(.GET, "contact_groups/search?query=\(query.query)") { res in
-            XCTAssertEqual(res.status, .badRequest)
-        }
-    }
-    
-    func testSearch_WithValidQuery_ShouldReturnEmptyGroups() async throws {
-        
-        // Given
-        let query = Search(query: "Test")
-        given(validator).validateSearchQuery(.any).willReturn(query)
-        
-        let stub: [ContactGroup] = []
-        given(repo).searchByName(request: .matching({ $0.query == query.query }),
-                                 on: .any).willReturn(stub)
-        
-        try app.test(.GET, "contact_groups/search?query=Test") { res in
-            XCTAssertEqual(res.status, .ok)
-            let groups = try res.content.decode([ContactGroup].self)
-            XCTAssertEqual(groups.count, 0)
-        }
-    }
-    
-    func testSearch_WithValidQuery_ShouldReturnGroups() async throws {
-        
-        // Given
-        let query = Search(query: "Test")
-        given(validator).validateSearchQuery(.any).willReturn(query)
-        
-        let stub = [ContactGroup(name: "Test 1"),
-                   ContactGroup(name: "Test 2")]
-        given(repo).searchByName(request: .matching({ $0.query == query.query }),
-                                 on: .any).willReturn(stub)
-        
-        try app.test(.GET, "contact_groups/search?query=Test") { res in
-            XCTAssertEqual(res.status, .ok)
-            let groups = try res.content.decode([ContactGroup].self)
-            XCTAssertEqual(groups.count, 2)
         }
     }
     

@@ -25,6 +25,30 @@ final class ContactGroupResponse: Content {
         self.updatedAt = from.updatedAt
         self.deletedAt = from.deletedAt
     }
+
+    //decode
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decodeIfPresent(UUID.self, forKey: .id)
+        self.name = try container.decode(String.self, forKey: .name)
+        self.description = try container.decodeIfPresent(String.self, forKey: .description)
+        let dateFormat = Date.Format.iso8601
+        self.createdAt = try container.decodeIfPresent(String.self, forKey: .createdAt)?.tryToDate(dateFormat)
+        self.updatedAt = try container.decodeIfPresent(String.self, forKey: .updatedAt)?.tryToDate(dateFormat)
+        self.deletedAt = try container.decodeIfPresent(String.self, forKey: .deletedAt)?.tryToDate(dateFormat)
+    }
+
+    //encode
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(self.id, forKey: .id)
+        try container.encode(self.name, forKey: .name)
+        try container.encode(self.description, forKey: .description)
+        let dateFormat = Date.Format.iso8601
+        try container.encode(self.createdAt?.toDateString(dateFormat), forKey: .createdAt)
+        try container.encode(self.updatedAt?.toDateString(dateFormat), forKey: .updatedAt)
+        try container.encode(self.deletedAt?.toDateString(dateFormat), forKey: .deletedAt)
+    }
     
     enum CodingKeys: String, CodingKey {
         case id
