@@ -10,7 +10,7 @@ final class MyBusineseRequestTests: XCTestCase {
         
         let contactInfo = ContactInformation(phone: "123456789",
                                              email: "test@example.com")
-        let create = MyBusineseRequest.Create(
+        let create = MyBusinessRequest.Create(
             name: "John Doe",
             vatRegistered: true,
             contactInformation: contactInfo,
@@ -33,7 +33,7 @@ final class MyBusineseRequestTests: XCTestCase {
         let contactInfo = ContactInformation(phone: "123456789",
                                              email: "test@example.com")
         
-        let create = MyBusineseRequest.Create(
+        let create = MyBusinessRequest.Create(
             name: "John Doe",
             vatRegistered: true,
             contactInformation: contactInfo,
@@ -80,7 +80,7 @@ final class MyBusineseRequestTests: XCTestCase {
         """
         let data = json.data(using: .utf8)!
         let decoder = JSONDecoder()
-        let create = try decoder.decode(MyBusineseRequest.Create.self, from: data)
+        let create = try decoder.decode(MyBusinessRequest.Create.self, from: data)
         
         XCTAssertEqual(create.name, "John Doe")
         XCTAssertEqual(create.vatRegistered, true)
@@ -101,7 +101,7 @@ final class MyBusineseRequestTests: XCTestCase {
                                              phone: "123456789",
                                              email: "abc@email.com")
         
-        let update = MyBusineseRequest.Update(
+        let update = MyBusinessRequest.Update(
             name: "John Doe",
             vatRegistered: false,
             contactInformation: contactInfo,
@@ -131,7 +131,7 @@ final class MyBusineseRequestTests: XCTestCase {
                                              phone: "123456789",
                                              email: "abc@email.com")
         
-        let update = MyBusineseRequest.Update(
+        let update = MyBusinessRequest.Update(
             name: "John Doe",
             vatRegistered: false,
             contactInformation: contactInfo,
@@ -187,7 +187,7 @@ final class MyBusineseRequestTests: XCTestCase {
         """.data(using: .utf8)!
         
         let decoder = JSONDecoder()
-        let update = try decoder.decode(MyBusineseRequest.Update.self, from: json)
+        let update = try decoder.decode(MyBusinessRequest.Update.self, from: json)
         
         XCTAssertEqual(update.name, "John Doe")
         XCTAssertEqual(update.vatRegistered, false)
@@ -206,7 +206,7 @@ final class MyBusineseRequestTests: XCTestCase {
     // MARK: - Update Business Address Tests
 
     func testUpdateBusinessAddressInit_WithValidValues_ShouldReturnCorrectValues() {
-        let updateBusinessAddress = MyBusineseRequest.UpdateBussineseAddress(
+        let updateBusinessAddress = MyBusinessRequest.UpdateBusinessAddress(
             address: "123 Main St",
             branch: "Main",
             branchCode: "001",
@@ -234,7 +234,7 @@ final class MyBusineseRequestTests: XCTestCase {
     }
 
     func testUpdateBusinessAddressEncode_WithValidInstance_ShouldReturnJSON() throws {
-        let updateBusinessAddress = MyBusineseRequest.UpdateBussineseAddress(
+        let updateBusinessAddress = MyBusinessRequest.UpdateBusinessAddress(
             address: "123 Main St",
             branch: "Main",
             branchCode: "001",
@@ -283,7 +283,7 @@ final class MyBusineseRequestTests: XCTestCase {
         """
         let data = json.data(using: .utf8)!
         let decoder = JSONDecoder()
-        let updateBusinessAddress = try decoder.decode(MyBusineseRequest.UpdateBussineseAddress.self, from: data)
+        let updateBusinessAddress = try decoder.decode(MyBusinessRequest.UpdateBusinessAddress.self, from: data)
 
         XCTAssertEqual(updateBusinessAddress.address, "123 Main St")
         XCTAssertEqual(updateBusinessAddress.branch, "Main")
@@ -301,7 +301,7 @@ final class MyBusineseRequestTests: XCTestCase {
     // MARK: - Update Shipping Address Tests
 
     func testUpdateShippingAddressInit_WithValidValues_ShouldReturnCorrectValues() {
-        let updateShippingAddress = MyBusineseRequest.UpdateShippingAddress(
+        let updateShippingAddress = MyBusinessRequest.UpdateShippingAddress(
             address: "123 Main St",
             subDistrict: "District",
             district: "City",
@@ -321,7 +321,7 @@ final class MyBusineseRequestTests: XCTestCase {
     }
 
     func testUpdateShippingAddressEncode_WithValidInstance_ShouldReturnJSON() throws {
-        let updateShippingAddress = MyBusineseRequest.UpdateShippingAddress(
+        let updateShippingAddress = MyBusinessRequest.UpdateShippingAddress(
             address: "123 Main St",
             subDistrict: "District",
             district: "City",
@@ -358,7 +358,7 @@ final class MyBusineseRequestTests: XCTestCase {
         """
         let data = json.data(using: .utf8)!
         let decoder = JSONDecoder()
-        let updateShippingAddress = try decoder.decode(MyBusineseRequest.UpdateShippingAddress.self, from: data)
+        let updateShippingAddress = try decoder.decode(MyBusinessRequest.UpdateShippingAddress.self, from: data)
 
         XCTAssertEqual(updateShippingAddress.address, "123 Main St")
         XCTAssertEqual(updateShippingAddress.subDistrict, "District")

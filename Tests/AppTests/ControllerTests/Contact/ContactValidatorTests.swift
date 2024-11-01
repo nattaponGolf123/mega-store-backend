@@ -43,8 +43,10 @@ final class ContactValidatorTests: XCTestCase {
             legalStatus: .companyLimited,
             website: "https://example.com",
             note: "A note",
-            groupId: nil,
-            paymentTermsDays: 30
+            groupIds: nil,
+            paymentTermsDays: 30,
+            businessAddress: nil,
+            shippingAddress: nil
         )
         let request = mockRequest(content: content)
         
@@ -60,8 +62,10 @@ final class ContactValidatorTests: XCTestCase {
             legalStatus: .companyLimited,
             website: "https://example.com",
             note: "A note",
-            groupId: nil,
-            paymentTermsDays: 30
+            groupIds: nil,
+            paymentTermsDays: 30,
+            businessAddress: nil,
+            shippingAddress: nil
         )
         let request = mockRequest(content: content)
 
@@ -78,8 +82,10 @@ final class ContactValidatorTests: XCTestCase {
             legalStatus: .companyLimited,
             website: "https://example.com",
             note: "A note",
-            groupId: nil,
-            paymentTermsDays: 30
+            groupIds: nil,
+            paymentTermsDays: 30,
+            businessAddress: nil,
+            shippingAddress: nil
         )
         let request = mockRequest(content: content)
 
@@ -95,8 +101,10 @@ final class ContactValidatorTests: XCTestCase {
             legalStatus: .companyLimited,
             website: "https://example.com",
             note: "A note",
-            groupId: nil,
-            paymentTermsDays: 30
+            groupIds: nil,
+            paymentTermsDays: 30,
+            businessAddress: nil,
+            shippingAddress: nil
         )
         let request = mockRequest(content: content)
 
@@ -116,7 +124,7 @@ final class ContactValidatorTests: XCTestCase {
             website: nil,
             note: nil,
             paymentTermsDays: nil,
-            groupId: nil
+            groupIds: nil
         )
         let request = mockRequest(url: "/mock/:id", pathParameters: ["id": id], content: content)
 
@@ -134,7 +142,7 @@ final class ContactValidatorTests: XCTestCase {
             website: nil,
             note: nil,
             paymentTermsDays: nil,
-            groupId: nil
+            groupIds: nil
         )
         let request = mockRequest(url: "/mock/:id", pathParameters: ["id": id], content: content)
 
@@ -153,7 +161,7 @@ final class ContactValidatorTests: XCTestCase {
             website: nil,
             note: nil,
             paymentTermsDays: nil,
-            groupId: nil
+            groupIds: nil
         )
         let request = mockRequest(url: "/mock/:id", pathParameters: ["id": id], content: content)
 
@@ -171,7 +179,7 @@ final class ContactValidatorTests: XCTestCase {
             website: nil,
             note: "A description",
             paymentTermsDays: nil,
-            groupId: nil
+            groupIds: nil
         )
         let request = mockRequest(url: "/mock/:id", pathParameters: ["id": id], content: content)
 
@@ -180,10 +188,10 @@ final class ContactValidatorTests: XCTestCase {
 
     // MARK: - Update Business Address Tests
 
-    func testValidateUpdateBussineseAddress_WithValidRequest_ShouldReturnCorrectValues() throws {
+    func testValidateUpdateBusinessAddress_WithValidRequest_ShouldReturnCorrectValues() throws {
         let id = UUID()
         let addressID = UUID()
-        let content = ContactRequest.UpdateBussineseAddress(
+        let content = ContactRequest.UpdateBusinessAddress(
             address: "123 Main St",
             branch: nil,
             branchCode: nil,
@@ -198,13 +206,13 @@ final class ContactValidatorTests: XCTestCase {
         )
         let request = mockRequest(url: "/mock/:id/address/:address_id", pathParameters: ["id": id, "address_id": addressID], content: content)
 
-        XCTAssertNoThrow(try validator.validateUpdateBussineseAddress(request))
+        XCTAssertNoThrow(try validator.validateUpdateBusineseAddress(request))
     }
     
-    func testValidateUpdateBussineseAddress_WithInvalidPostCodeRequest_ShouldThrow() throws {
+    func testValidateUpdateBusinessAddress_WithInvalidPostCodeRequest_ShouldThrow() throws {
         let id = UUID()
         let addressID = UUID()
-        let content = ContactRequest.UpdateBussineseAddress(
+        let content = ContactRequest.UpdateBusinessAddress(
             address: nil,
             branch: nil,
             branchCode: nil,
@@ -224,7 +232,7 @@ final class ContactValidatorTests: XCTestCase {
                                   ],
                                   content: content)
 
-        XCTAssertThrowsError(try validator.validateUpdateBussineseAddress(request))
+        XCTAssertThrowsError(try validator.validateUpdateBusineseAddress(request))
     }
 
     // MARK: - Update Shipping Address Tests

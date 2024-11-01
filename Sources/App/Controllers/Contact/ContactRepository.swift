@@ -43,10 +43,10 @@ protocol ContactRepositoryProtocol {
         on db: Database
     ) async throws -> Contact
     
-    func updateBussineseAddress(
+    func updateBusinessAddress(
         byId: GeneralRequest.FetchById,
         addressID: GeneralRequest.FetchById,
-        request: ContactRequest.UpdateBussineseAddress,
+        request: ContactRequest.UpdateBusinessAddress,
         on db: Database
     ) async throws -> Contact
     
@@ -257,9 +257,9 @@ class ContactRepository: ContactRepositoryProtocol {
         return contact
     }
     
-    func updateBussineseAddress(byId: GeneralRequest.FetchById,
+    func updateBusinessAddress(byId: GeneralRequest.FetchById,
                                 addressID: GeneralRequest.FetchById,
-                                request: ContactRequest.UpdateBussineseAddress,
+                                request: ContactRequest.UpdateBusinessAddress,
                                 on db: Database) async throws -> Contact {
         guard let contact = try await Contact.find(byId.id, on: db) else {
             throw DefaultError.notFound

@@ -260,7 +260,7 @@ final class ContactRepositoryTests: XCTestCase {
         let request = ContactRequest.Create(name: "Contact",
                                             vatRegistered: false,
                                             legalStatus: .individual,
-                                            groupId: group1.id)
+                                            groupIds: [group1.id!])
         
         // When
         let result = try await contactRepository.create(request: request,
@@ -270,7 +270,7 @@ final class ContactRepositoryTests: XCTestCase {
         XCTAssertNotNil(result.id)
         XCTAssertEqual(result.number, 1)
         XCTAssertEqual(result.name, "Contact")
-        XCTAssertEqual(result.groupId, group1.id)
+        XCTAssertEqual(result.groupIds?.count, 1)
         XCTAssertEqual(result.kind, .both)
         XCTAssertEqual(result.vatRegistered, false)
         XCTAssertNil(result.taxNumber)
@@ -342,7 +342,7 @@ final class ContactRepositoryTests: XCTestCase {
         let request = ContactRequest.Create(name: "Contact",
                                             vatRegistered: false,
                                             legalStatus: .individual,
-                                            groupId: UUID())
+                                            groupIds: [UUID()])
         
         // When
         do {
@@ -370,7 +370,7 @@ final class ContactRepositoryTests: XCTestCase {
         XCTAssertNotNil(result.id)
         XCTAssertEqual(result.number, 1)
         XCTAssertEqual(result.name, "Contact")
-        XCTAssertNil(result.groupId)
+        XCTAssertNil(result.groupIds)
         XCTAssertEqual(result.kind, .both)
         XCTAssertEqual(result.vatRegistered, true)
         XCTAssertNil(result.taxNumber)
@@ -422,12 +422,12 @@ final class ContactRepositoryTests: XCTestCase {
                                                 on: .any).willReturn(group)
         
         let contact = Contact(name: "Contact",
-                            groupId: nil)
+                              groupIds: nil)
         try await contact.create(on: db)
         
         let request = ContactRequest.Update(name: "Contact 3",
                                             vatRegistered: false,
-                                            groupId: group.id)
+                                            groupIds: [group.id!])
         
         let fetchById = GeneralRequest.FetchById(id: contact.id!)
         
@@ -437,7 +437,7 @@ final class ContactRepositoryTests: XCTestCase {
                                                         on: db)
         
         // Then
-        XCTAssertEqual(result.groupId, group.id)
+        XCTAssertEqual(result.groupIds?.count, 1)
     }
     
     func testUpdate_WithDuplicateName_ShouldThrowError() async throws {
@@ -507,7 +507,7 @@ final class ContactRepositoryTests: XCTestCase {
         let request = ContactRequest.Update(name: "Contact2",
                                             vatRegistered: false,
                                             legalStatus: .individual,
-                                            groupId: UUID())
+                                            groupIds: [UUID()])
         
         let fetchById = GeneralRequest.FetchById(id: contact.id!)
         
@@ -542,7 +542,7 @@ final class ContactRepositoryTests: XCTestCase {
         }
     }
     
-    //MARK: updateBussineseAddress
+    //MARK: updateBusinessAddress
 
     func testUpdateBusinessAddress_WithExistAddressAndValidInfo_ShouldUpdateContact() async throws {
         
@@ -554,7 +554,7 @@ final class ContactRepositoryTests: XCTestCase {
                 
         let requestId = GeneralRequest.FetchById(id: contact.id!)
         let requestAddressId = GeneralRequest.FetchById(id: address.id)
-        let request = ContactRequest.UpdateBussineseAddress(address: "928/12",
+        let request = ContactRequest.UpdateBusinessAddress(address: "928/12",
                                                             branch: "Head Office",
                                                             branchCode: "00000",
                                                             subDistrict: "Bank Chak",
@@ -567,10 +567,10 @@ final class ContactRepositoryTests: XCTestCase {
                                                             fax: "0293848839")        
         
         // When
-        let result = try await contactRepository.updateBussineseAddress(byId: requestId,
-                                                                        addressID: requestAddressId,
-                                                                        request: request,
-                                                                        on: db)
+        let result = try await contactRepository.updateBusinessAddress(byId: requestId,
+                                                                       addressID: requestAddressId,
+                                                                       request: request,
+                                                                       on: db)
         
         // Then
         XCTAssertEqual(result.businessAddress.count, 1)
@@ -598,7 +598,7 @@ final class ContactRepositoryTests: XCTestCase {
         
         let requestId = GeneralRequest.FetchById(id: UUID())
         let requestAddressId = GeneralRequest.FetchById(id: address.id)
-        let request = ContactRequest.UpdateBussineseAddress(address: "928/12",
+        let request = ContactRequest.UpdateBusinessAddress(address: "928/12",
                                                             branch: "Head Office",
                                                             branchCode: "00000",
                                                             subDistrict: "Bank Chak",
@@ -612,7 +612,7 @@ final class ContactRepositoryTests: XCTestCase {
         
         // When
         do {
-            _ = try await contactRepository.updateBussineseAddress(byId: requestId,
+            _ = try await contactRepository.updateBusinessAddress(byId: requestId,
                                                                    addressID: requestAddressId,
                                                                    request: request,
                                                                    on: db)
@@ -631,7 +631,7 @@ final class ContactRepositoryTests: XCTestCase {
         
         let requestId = GeneralRequest.FetchById(id: contact.id!)
         let requestAddressId = GeneralRequest.FetchById(id: UUID())
-        let request = ContactRequest.UpdateBussineseAddress(address: "928/12",
+        let request = ContactRequest.UpdateBusinessAddress(address: "928/12",
                                                             branch: "Head Office",
                                                             branchCode: "00000",
                                                             subDistrict: "Bank Chak",
@@ -645,7 +645,7 @@ final class ContactRepositoryTests: XCTestCase {
         
         // When
         do {
-            _ = try await contactRepository.updateBussineseAddress(byId: requestId,
+            _ = try await contactRepository.updateBusinessAddress(byId: requestId,
                                                                    addressID: requestAddressId,
                                                                    request: request,
                                                                    on: db)

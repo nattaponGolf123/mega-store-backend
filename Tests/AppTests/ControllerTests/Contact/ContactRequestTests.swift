@@ -9,7 +9,7 @@ final class ContactRequestTests: XCTestCase {
     func testCreateInit_WithValidValues_ShouldReturnCorrectValues() {
         
         let contactInfo = ContactInformation(phone: "123456789", email: "test@example.com")
-        let groupId = UUID()
+        let groupIds = [UUID()]
         let create = ContactRequest.Create(
             name: "John Doe",
             vatRegistered: true,
@@ -18,7 +18,7 @@ final class ContactRequestTests: XCTestCase {
             legalStatus: .individual,
             website: "https://example.com",
             note: "Test note",
-            groupId: groupId,
+            groupIds: groupIds,
             paymentTermsDays: 30
         )
 
@@ -29,14 +29,14 @@ final class ContactRequestTests: XCTestCase {
         XCTAssertEqual(create.legalStatus, .individual)
         XCTAssertEqual(create.website, "https://example.com")
         XCTAssertEqual(create.note, "Test note")
-        XCTAssertEqual(create.groupId, groupId)
+        XCTAssertEqual(create.groupIds?.count, 1)
         XCTAssertEqual(create.paymentTermsDays, 30)
     }
 
     func testCreateEncode_WithValidInstance_ShouldReturnJSON() throws {
         let contactInfo = ContactInformation(phone: "123456789",
                                              email: "test@example.com")
-        let groupId = UUID()
+        let groupIds = [UUID()]
         let create = ContactRequest.Create(
             name: "John Doe",
             vatRegistered: true,
@@ -45,7 +45,7 @@ final class ContactRequestTests: XCTestCase {
             legalStatus: .individual,
             website: "https://example.com",
             note: "Test note",
-            groupId: groupId,
+            groupIds: groupIds,
             paymentTermsDays: 30
         )
 
@@ -64,12 +64,12 @@ final class ContactRequestTests: XCTestCase {
         XCTAssertEqual(jsonObject?["legal_status"] as? String, "INDIVIDUAL")
         XCTAssertEqual(jsonObject?["website"] as? String, "https://example.com")
         XCTAssertEqual(jsonObject?["note"] as? String, "Test note")
-        XCTAssertEqual(jsonObject?["group_id"] as? String, groupId.uuidString)
+        XCTAssertEqual(jsonObject?["group_ids"] as? [String], groupIds.map { $0.uuidString })
         XCTAssertEqual(jsonObject?["payment_terms_days"] as? Int, 30)
     }
 
     func testCreateDecode_WithValidJSON_ShouldReturnInstance() throws {
-        let groupId = UUID()
+        let groupIds = [UUID()]
         let json = """
         {
             "name": "John Doe",
@@ -82,7 +82,7 @@ final class ContactRequestTests: XCTestCase {
             "legal_status": "INDIVIDUAL",
             "website": "https://example.com",
             "note": "Test note",
-            "group_id": "\(groupId.uuidString)",
+            "group_ids": ["\(groupIds[0].uuidString)"],
             "payment_terms_days": 30
         }
         """
@@ -98,7 +98,7 @@ final class ContactRequestTests: XCTestCase {
         XCTAssertEqual(create.legalStatus, .individual)
         XCTAssertEqual(create.website, "https://example.com")
         XCTAssertEqual(create.note, "Test note")
-        XCTAssertEqual(create.groupId, groupId)
+        XCTAssertEqual(create.groupIds, groupIds)
         XCTAssertEqual(create.paymentTermsDays, 30)
     }
 
@@ -106,7 +106,7 @@ final class ContactRequestTests: XCTestCase {
 
     func testUpdateInit_WithValidValues_ShouldReturnCorrectValues() {
         let contactInfo = ContactInformation(phone: "123456789", email: "test@example.com")
-        let groupId = UUID()
+        let groupIds = [UUID()]
         let update = ContactRequest.Update(
             name: "John Doe",
             vatRegistered: false,
@@ -116,7 +116,7 @@ final class ContactRequestTests: XCTestCase {
             website: "https://example.com",
             note: "Updated note",
             paymentTermsDays: 45,
-            groupId: groupId
+            groupIds: groupIds
         )
 
         XCTAssertEqual(update.name, "John Doe")
@@ -127,13 +127,13 @@ final class ContactRequestTests: XCTestCase {
         XCTAssertEqual(update.website, "https://example.com")
         XCTAssertEqual(update.note, "Updated note")
         XCTAssertEqual(update.paymentTermsDays, 45)
-        XCTAssertEqual(update.groupId, groupId)
+        XCTAssertEqual(update.groupIds, groupIds)
     }
 
     func testUpdateEncode_WithValidInstance_ShouldReturnJSON() throws {
         let contactInfo = ContactInformation(phone: "123456789", 
                                              email: "test@example.com")
-        let groupId = UUID()
+        let groupIds = [UUID()]
         let update = ContactRequest.Update(
             name: "John Doe",
             vatRegistered: false,
@@ -143,7 +143,7 @@ final class ContactRequestTests: XCTestCase {
             website: "https://example.com",
             note: "Updated note",
             paymentTermsDays: 45,
-            groupId: groupId
+            groupIds: groupIds
         )
 
         let encoder = JSONEncoder()
@@ -162,11 +162,11 @@ final class ContactRequestTests: XCTestCase {
         XCTAssertEqual(jsonObject?["website"] as? String, "https://example.com")
         XCTAssertEqual(jsonObject?["note"] as? String, "Updated note")
         XCTAssertEqual(jsonObject?["payment_terms_days"] as? Int, 45)
-        XCTAssertEqual(jsonObject?["group_id"] as? String, groupId.uuidString)
+        XCTAssertEqual(jsonObject?["group_ids"] as? [String], groupIds.map { $0.uuidString })
     }
 
     func testUpdateDecode_WithValidJSON_ShouldReturnInstance() throws {
-        let groupId = UUID()
+        let groupIds = [UUID()]
         let json = """
         {
             "name": "John Doe",
@@ -180,7 +180,7 @@ final class ContactRequestTests: XCTestCase {
             "website": "https://example.com",
             "note": "Updated note",
             "payment_terms_days": 45,
-            "group_id": "\(groupId.uuidString)"
+            "group_ids": ["\(groupIds[0].uuidString)"]
         }
         """
         let data = json.data(using: .utf8)!
@@ -196,13 +196,13 @@ final class ContactRequestTests: XCTestCase {
         XCTAssertEqual(update.website, "https://example.com")
         XCTAssertEqual(update.note, "Updated note")
         XCTAssertEqual(update.paymentTermsDays, 45)
-        XCTAssertEqual(update.groupId, groupId)
+        XCTAssertEqual(update.groupIds, groupIds)
     }
     
     // MARK: - Update Business Address Tests
 
     func testUpdateBusinessAddressInit_WithValidValues_ShouldReturnCorrectValues() {
-        let updateBusinessAddress = ContactRequest.UpdateBussineseAddress(
+        let updateBusinessAddress = ContactRequest.UpdateBusinessAddress(
             address: "123 Main St",
             branch: "Main",
             branchCode: "001",
@@ -230,7 +230,7 @@ final class ContactRequestTests: XCTestCase {
     }
 
     func testUpdateBusinessAddressEncode_WithValidInstance_ShouldReturnJSON() throws {
-        let updateBusinessAddress = ContactRequest.UpdateBussineseAddress(
+        let updateBusinessAddress = ContactRequest.UpdateBusinessAddress(
             address: "123 Main St",
             branch: "Main",
             branchCode: "001",
@@ -279,7 +279,7 @@ final class ContactRequestTests: XCTestCase {
         """
         let data = json.data(using: .utf8)!
         let decoder = JSONDecoder()
-        let updateBusinessAddress = try decoder.decode(ContactRequest.UpdateBussineseAddress.self, from: data)
+        let updateBusinessAddress = try decoder.decode(ContactRequest.UpdateBusinessAddress.self, from: data)
 
         XCTAssertEqual(updateBusinessAddress.address, "123 Main St")
         XCTAssertEqual(updateBusinessAddress.branch, "Main")
@@ -363,6 +363,54 @@ final class ContactRequestTests: XCTestCase {
         XCTAssertEqual(updateShippingAddress.country, "Country")
         XCTAssertEqual(updateShippingAddress.postalCode, "12345")
         XCTAssertEqual(updateShippingAddress.phone, "123456789")
+    }
+    
+    // MARK: - Add To Group Tests
+    
+    func testAddToGroupInit_WithValidValues_ShouldReturnCorrectValues() {
+        let contactIds = [UUID(), UUID()]
+        let toGroupId = UUID()
+        let addToGroup = ContactRequest.AddToGroup(
+            toGroupId: toGroupId,
+            contactIds: contactIds
+        )
+        
+        XCTAssertEqual(addToGroup.toGroupId, toGroupId)
+        XCTAssertEqual(addToGroup.contactIds, contactIds)
+    }
+    
+    func testAddToGroupEncode_WithValidInstance_ShouldReturnJSON() throws {
+        let contactIds = [UUID(), UUID()]
+        let toGroupId = UUID()
+        let addToGroup = ContactRequest.AddToGroup(
+            toGroupId: toGroupId,
+            contactIds: contactIds
+        )
+        
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(addToGroup)
+        let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+        
+        XCTAssertEqual(jsonObject?["to_group_id"] as? String, toGroupId.uuidString)
+        XCTAssertEqual(jsonObject?["contact_ids"] as? [String], contactIds.map { $0.uuidString })
+    }
+    
+    func testAddToGroupDecode_WithValidJSON_ShouldReturnInstance() throws {
+        let contactIds = [UUID(), UUID()]
+        let toGroupId = UUID()
+        let json = """
+        {
+            "to_group_id": "\(toGroupId.uuidString)",
+            "contact_ids": ["\(contactIds[0].uuidString)", "\(contactIds[1].uuidString)"]
+        }
+        """
+        
+        let data = json.data(using: .utf8)!
+        let decoder = JSONDecoder()
+        let addToGroup = try decoder.decode(ContactRequest.AddToGroup.self, from: data)
+        
+        XCTAssertEqual(addToGroup.toGroupId, toGroupId)
+        XCTAssertEqual(addToGroup.contactIds, contactIds)
     }
 
 }

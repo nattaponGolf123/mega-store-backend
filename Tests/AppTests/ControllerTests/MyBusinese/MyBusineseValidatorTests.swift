@@ -37,7 +37,7 @@ final class MyBusineseValidatorTests: XCTestCase {
     func testValidateCreate_WithValidRequest_ShouldReturnCorrectValues() {
         let contactInfo = ContactInformation(phone: "123456789",
                                              email: "test@example.com")
-        let content = MyBusineseRequest.Create(
+        let content = MyBusinessRequest.Create(
             name: "John Doe",
             vatRegistered: true,
             contactInformation: contactInfo,
@@ -54,7 +54,7 @@ final class MyBusineseValidatorTests: XCTestCase {
     func testValidateCreate_WithLessThan3CharName_ShouldThrow() {
         let contactInfo = ContactInformation(phone: "123456789",
                                              email: "test@example.com")
-        let content = MyBusineseRequest.Create(
+        let content = MyBusinessRequest.Create(
             name: "AB",
             vatRegistered: true,
             contactInformation: contactInfo,
@@ -72,7 +72,7 @@ final class MyBusineseValidatorTests: XCTestCase {
         let name = String(repeating: "A", count: 201)
         let contactInfo = ContactInformation(phone: "123456789",
                                              email: "test@example.com")
-        let content = MyBusineseRequest.Create(
+        let content = MyBusinessRequest.Create(
             name: name,
             vatRegistered: true,
             contactInformation: contactInfo,
@@ -89,7 +89,7 @@ final class MyBusineseValidatorTests: XCTestCase {
     func testValidateCreate_WithInvalidTaxNumber_ShouldThrow() {
         let contactInfo = ContactInformation(phone: "123456789",
                                              email: "test@example.com")
-        let content = MyBusineseRequest.Create(
+        let content = MyBusinessRequest.Create(
             name: "Doe",
             vatRegistered: true,
             contactInformation: contactInfo,
@@ -111,7 +111,7 @@ final class MyBusineseValidatorTests: XCTestCase {
                                              phone: "123456789",
                                              email: "abc@email.com")
         
-        let content = MyBusineseRequest.Update(
+        let content = MyBusinessRequest.Update(
             name: "John Doe",
             vatRegistered: false,
             contactInformation: contactInfo,
@@ -130,7 +130,7 @@ final class MyBusineseValidatorTests: XCTestCase {
 
     func testValidateUpdate_WithLessThan3CharName_ShouldThrow() {
         let id = UUID()
-        let content = MyBusineseRequest.Update(
+        let content = MyBusinessRequest.Update(
             name: "Do"
         )
         let request = mockRequest(url: "/mock/:id", pathParameters: ["id": id], content: content)
@@ -141,7 +141,7 @@ final class MyBusineseValidatorTests: XCTestCase {
     func testValidateUpdate_WithOver200CharName_ShouldThrow() {
         let id = UUID()
         let name = String(repeating: "A", count: 201)
-        let content = MyBusineseRequest.Update(
+        let content = MyBusinessRequest.Update(
             name: name
         )
         let request = mockRequest(url: "/mock/:id", pathParameters: ["id": id], content: content)
@@ -151,7 +151,7 @@ final class MyBusineseValidatorTests: XCTestCase {
     
     func testValidateUpdate_WithInvalidTaxNumber_ShouldThrow() {
         let id = UUID()
-        let content = MyBusineseRequest.Update(
+        let content = MyBusinessRequest.Update(
             taxNumber: "123"
         )
         let request = mockRequest(url: "/mock/:id", pathParameters: ["id": id], content: content)
@@ -161,10 +161,10 @@ final class MyBusineseValidatorTests: XCTestCase {
 
     // MARK: - Update Business Address Tests
 
-    func testValidateUpdateBussineseAddress_WithValidRequest_ShouldReturnCorrectValues() throws {
+    func testValidateUpdateBusineseAddress_WithValidRequest_ShouldReturnCorrectValues() throws {
         let id = UUID()
         let addressID = UUID()
-        let content = MyBusineseRequest.UpdateBussineseAddress(
+        let content = MyBusinessRequest.UpdateBusinessAddress(
             address: "123 Main St",
             branch: nil,
             branchCode: nil,
@@ -179,13 +179,13 @@ final class MyBusineseValidatorTests: XCTestCase {
         )
         let request = mockRequest(url: "/mock/:id/address/:address_id", pathParameters: ["id": id, "address_id": addressID], content: content)
 
-        XCTAssertNoThrow(try validator.validateUpdateBussineseAddress(request))
+        XCTAssertNoThrow(try validator.validateUpdateBusineseAddress(request))
     }
     
-    func testValidateUpdateBussineseAddress_WithInvalidPostCodeRequest_ShouldThrow() throws {
+    func testValidateUpdateBusineseAddress_WithInvalidPostCodeRequest_ShouldThrow() throws {
         let id = UUID()
         let addressID = UUID()
-        let content = MyBusineseRequest.UpdateBussineseAddress(
+        let content = MyBusinessRequest.UpdateBusinessAddress(
             address: nil,
             branch: nil,
             branchCode: nil,
@@ -205,7 +205,7 @@ final class MyBusineseValidatorTests: XCTestCase {
                                   ],
                                   content: content)
 
-        XCTAssertThrowsError(try validator.validateUpdateBussineseAddress(request))
+        XCTAssertThrowsError(try validator.validateUpdateBusineseAddress(request))
     }
 
     // MARK: - Update Shipping Address Tests
@@ -213,7 +213,7 @@ final class MyBusineseValidatorTests: XCTestCase {
     func testValidateUpdateShippingAddress_WithValidRequest_ShouldReturnCorrectValues() throws {
         let id = UUID()
         let addressID = UUID()
-        let content = MyBusineseRequest.UpdateShippingAddress(
+        let content = MyBusinessRequest.UpdateShippingAddress(
             address: "123 Main St",
             subDistrict: nil,
             district: nil,
@@ -230,7 +230,7 @@ final class MyBusineseValidatorTests: XCTestCase {
     func testValidateUpdateShippingAddress_WithInvalidPostCodeRequest_ShouldThrow() throws {
         let id = UUID()
         let addressID = UUID()
-        let content = MyBusineseRequest.UpdateShippingAddress(
+        let content = MyBusinessRequest.UpdateShippingAddress(
             address: nil,
             subDistrict: nil,
             district: nil,

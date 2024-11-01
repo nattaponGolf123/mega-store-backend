@@ -5,12 +5,12 @@ import Mockable
 @Mockable
 protocol ContactValidatorProtocol {
     typealias Search = GeneralRequest.Search
-    typealias UpdateBusineseAdressResponse = ContactRequest.UpdateBusineseAdressResponse
+    typealias UpdateBusinessAddressResponse = ContactRequest.UpdateBusinessAddressResponse
     typealias UpdateShippingAddressResponse = ContactRequest.UpdateShippingAddressResponse
     
     func validateCreate(_ req: Request) throws -> ContactRequest.Create
     func validateUpdate(_ req: Request) throws -> (id: GeneralRequest.FetchById, content: ContactRequest.Update)
-    func validateUpdateBussineseAddress(_ req: Request) throws -> UpdateBusineseAdressResponse
+    func validateUpdateBusineseAddress(_ req: Request) throws -> UpdateBusinessAddressResponse
     func validateUpdateShippingAddress(_ req: Request) throws -> UpdateShippingAddressResponse
     func validateID(_ req: Request) throws -> GeneralRequest.FetchById
     func validateSearchQuery(_ req: Request) throws -> Search
@@ -21,7 +21,7 @@ class ContactValidator: ContactValidatorProtocol {
     typealias Create = ContactRequest.Create
     typealias Update = (id: GeneralRequest.FetchById, content: ContactRequest.Update)
     typealias Search = GeneralRequest.Search
-    typealias UpdateBusineseAdressResponse = ContactRequest.UpdateBusineseAdressResponse
+    typealias UpdateBusinessAddressResponse = ContactRequest.UpdateBusinessAddressResponse
     typealias UpdateShippingAddressResponse = ContactRequest.UpdateShippingAddressResponse
     
     func validateCreate(_ req: Request) throws -> Create {
@@ -39,10 +39,10 @@ class ContactValidator: ContactValidatorProtocol {
         return (fetchById, content)
     }
     
-    func validateUpdateBussineseAddress(_ req: Request) throws -> UpdateBusineseAdressResponse {
-        try ContactRequest.UpdateBussineseAddress.validate(content: req)
+    func validateUpdateBusineseAddress(_ req: Request) throws -> UpdateBusinessAddressResponse {
+        try ContactRequest.UpdateBusinessAddress.validate(content: req)
         
-        let content = try req.content.decode(ContactRequest.UpdateBussineseAddress.self)
+        let content = try req.content.decode(ContactRequest.UpdateBusinessAddress.self)
         guard
             let id = req.parameters.get("id", as: UUID.self),
             let addressID: UUID = req.parameters.get("address_id", as: UUID.self)

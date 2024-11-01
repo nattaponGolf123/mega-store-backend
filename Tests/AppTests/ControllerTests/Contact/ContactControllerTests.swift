@@ -179,13 +179,13 @@ final class ContactControllerTests: XCTestCase {
                                             legalStatus: .companyLimited,
                                             website: "website",
                                             note: "note",
-                                            groupId: nil,
+                                            groupIds: nil,
                                             paymentTermsDays: 30)
         given(validator).validateCreate(.any).willReturn(request)
         
         let stub = Contact(id: .init(),
                            name: request.name,
-                           groupId: request.groupId,
+                           groupIds: request.groupIds,
                            vatRegistered: request.vatRegistered,
                            contactInformation: request.contactInformation!,
                            taxNumber: request.taxNumber,
@@ -203,7 +203,7 @@ final class ContactControllerTests: XCTestCase {
             $0.contactInformation == request.contactInformation &&
             $0.website == request.website &&
             $0.note == request.note &&
-            $0.groupId == request.groupId &&
+            $0.groupIds == request.groupIds &&
             $0.vatRegistered == request.vatRegistered
         }),on: .any).willReturn(stub)
         
@@ -221,7 +221,7 @@ final class ContactControllerTests: XCTestCase {
             XCTAssertEqual(contact.contactInformation, request.contactInformation)
             XCTAssertEqual(contact.website, "website")
             XCTAssertEqual(contact.note, "note")
-            XCTAssertNil(contact.groupId)
+            XCTAssertNil(contact.groups)
             XCTAssertEqual(contact.vatRegistered, false)
         }
     }
@@ -388,15 +388,15 @@ final class ContactControllerTests: XCTestCase {
     }
     
     // MARK: - Test GET /contacts/:id/addresses/:address_id
-    func testUpdateBussineseAddress_WithInvalidID_ShouldReturnBadRequest() async throws {
+    func testUpdateBusineseAddress_WithInvalidID_ShouldReturnBadRequest() async throws {
         
         // Given
         let id = UUID()
         let addressID = UUID()
-        let content = ContactRequest.UpdateBussineseAddress(address: "Address")
-        given(validator).validateUpdateBussineseAddress(.any).willThrow(DefaultError.invalidInput)
+        let content = ContactRequest.UpdateBusinessAddress(address: "Address")
+        given(validator).validateUpdateBusineseAddress(.any).willThrow(DefaultError.invalidInput)
         
-        given(repo).updateBussineseAddress(byId: .matching({ $0.id.uuidString == id.uuidString }),
+        given(repo).updateBusinessAddress(byId: .matching({ $0.id.uuidString == id.uuidString }),
                                            addressID: .matching({ $0.id.uuidString == addressID.uuidString }),
                                            request: .matching({ $0.address == content.address }),
                                            on: .any).willThrow(DefaultError.invalidInput)
@@ -406,23 +406,23 @@ final class ContactControllerTests: XCTestCase {
         }
     }
     
-    func testUpdateBussineseAddress_WithValidID_ShouldReturnContact() async throws {
+    func testUpdateBusineseAddress_WithValidID_ShouldReturnContact() async throws {
         
         // Given
         let id = UUID()
         let addressID = UUID()
-        let content = ContactRequest.UpdateBussineseAddress(address: "Address")
-        let response = ContactRequest.UpdateBusineseAdressResponse(id: .init(id: id),
+        let content = ContactRequest.UpdateBusinessAddress(address: "Address")
+        let response = ContactRequest.UpdateBusinessAddressResponse(id: .init(id: id),
                                                                    addressID: .init(id: addressID),
                                                                    content: content)
-        given(validator).validateUpdateBussineseAddress(.any).willReturn(response)
+        given(validator).validateUpdateBusineseAddress(.any).willReturn(response)
         
         let stub = Contact(id: .init(),
                            name: "Name",
                            createAt: .now,
                            updatedAt: .now,
                            deletedAt: .now)
-        given(repo).updateBussineseAddress(byId: .matching({ $0.id.uuidString == id.uuidString }),
+        given(repo).updateBusinessAddress(byId: .matching({ $0.id.uuidString == id.uuidString }),
                                            addressID: .matching({ $0.id.uuidString == addressID.uuidString }),
                                            request: .matching({ $0.address == content.address }),
                                            on: .any).willReturn(stub)

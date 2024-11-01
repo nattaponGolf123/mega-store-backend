@@ -65,8 +65,8 @@ final class ContactGroupControllerTests: XCTestCase {
         
         try app.test(.GET, "contact_groups") { res in
             XCTAssertEqual(res.status, .ok)
-            let groups = try res.content.decode(PaginatedResponse<ContactGroup>.self)
-            XCTAssertEqual(groups.items.count, 0)
+            let groups = try res.content.decode([ContactGroup].self)
+            XCTAssertEqual(groups.count, 0)
         }
     }
         
@@ -78,8 +78,8 @@ final class ContactGroupControllerTests: XCTestCase {
     
         try app.test(.GET, "contact_groups") { res in
             XCTAssertEqual(res.status, .ok)
-            let groups = try res.content.decode(PaginatedResponse<ContactGroup>.self)
-            XCTAssertEqual(groups.items.count, 2)
+            let groups = try res.content.decode([ContactGroup].self)
+            XCTAssertEqual(groups.count, 2)
         }
     }
     
@@ -91,8 +91,8 @@ final class ContactGroupControllerTests: XCTestCase {
         
         try app.test(.GET, "contact_groups?show_deleted=true") { res in
             XCTAssertEqual(res.status, .ok)
-            let groups = try res.content.decode(PaginatedResponse<ContactGroup>.self)
-            XCTAssertEqual(groups.items.count, 3)
+            let groups = try res.content.decode([ContactGroup].self)
+            XCTAssertEqual(groups.count, 3)
         }
     }
     
@@ -356,14 +356,14 @@ final class ContactGroupControllerTests: XCTestCase {
         let query = Search(query: "Test")
         given(validator).validateSearchQuery(.any).willReturn(query)
         
-        let stub = PaginatedResponse<ContactGroup>(page: 1, perPage: 20, total: 0, items: [])
+        let stub: [ContactGroup] = []
         given(repo).searchByName(request: .matching({ $0.query == query.query }),
                                  on: .any).willReturn(stub)
         
         try app.test(.GET, "contact_groups/search?query=Test") { res in
             XCTAssertEqual(res.status, .ok)
-            let groups = try res.content.decode(PaginatedResponse<ContactGroup>.self)
-            XCTAssertEqual(groups.total, 0)
+            let groups = try res.content.decode([ContactGroup].self)
+            XCTAssertEqual(groups.count, 0)
         }
     }
     
@@ -373,16 +373,15 @@ final class ContactGroupControllerTests: XCTestCase {
         let query = Search(query: "Test")
         given(validator).validateSearchQuery(.any).willReturn(query)
         
-        let stub = PaginatedResponse<ContactGroup>(page: 1, perPage: 20, total: 2,
-                                                   items: [ContactGroup(name: "Test 1"),
-                                                           ContactGroup(name: "Test 2")])
+        let stub = [ContactGroup(name: "Test 1"),
+                   ContactGroup(name: "Test 2")]
         given(repo).searchByName(request: .matching({ $0.query == query.query }),
                                  on: .any).willReturn(stub)
         
         try app.test(.GET, "contact_groups/search?query=Test") { res in
             XCTAssertEqual(res.status, .ok)
-            let groups = try res.content.decode(PaginatedResponse<ContactGroup>.self)
-            XCTAssertEqual(groups.total, 2)
+            let groups = try res.content.decode([ContactGroup].self)
+            XCTAssertEqual(groups.count, 2)
         }
     }
     
@@ -391,29 +390,19 @@ final class ContactGroupControllerTests: XCTestCase {
 extension ContactGroupControllerTests {
     struct Stub {
         
-        static var emptyPageGroup: PaginatedResponse<ContactGroup> {
-            .init(page: 1,
-                  perPage: 10,
-                  total: 0,
-                  items: [])
+        static var emptyPageGroup: [ContactGroup] {
+            []
         }
         
-        static var pageGroup: PaginatedResponse<ContactGroup> {
-            .init(page: 1,
-                  perPage: 10,
-                  total: 2,
-                  items: [ContactGroup(name: "Supplier"),
-                          ContactGroup(name: "Manufactor")])
+        static var pageGroup: [ContactGroup] {
+            [ContactGroup(name: "Supplier"),
+             ContactGroup(name: "Manufactor")]
         }
         
-        static var pageGroupWithDeleted: PaginatedResponse<ContactGroup> {
-            .init(page: 1,
-                  perPage: 10,
-                  total: 3,
-                  items: [ContactGroup(name: "Supplier"),
-                          ContactGroup(name: "Manufactor"),
-                          ContactGroup(name: "Customer",
-                                       deletedAt: .now)])
+        static var pageGroupWithDeleted: [ContactGroup] {
+            [ContactGroup(name: "Supplier"),
+             ContactGroup(name: "Manufactor"),
+             ContactGroup(name: "Customer", deletedAt: .now)]
         }
         
         static var group: ContactGroup {

@@ -59,8 +59,8 @@ final class ContactGroupRepositoryTests: XCTestCase {
                                                                on: db)
         
         // Then
-        XCTAssertEqual(result.items.count, 1)
-        XCTAssertEqual(result.items.first?.name, "Group1")
+        XCTAssertEqual(result.count, 1)
+        XCTAssertEqual(result.first?.name, "Group1")
     }
     
     func testFetchAll_WithShowDeleted_ShouldDeletedGroup() async throws {
@@ -76,23 +76,7 @@ final class ContactGroupRepositoryTests: XCTestCase {
                                                                on: db)
         
         // Then
-        XCTAssertEqual(result.items.count, 2)
-    }
-    
-    //perPage min at 20
-    func testFetchAll_WithPagination_ShouldReturnGroup() async throws {
-        
-        // Given
-        let groups = Stub.group40
-        await createGroups(groups: groups,
-                           db: db)
-        // When
-        let result = try await contactGroupRepository.fetchAll(request: .init(page: 2,
-                                                                              perPage: 25),
-                                                               on: db)
-        
-        // Then
-        XCTAssertEqual(result.items.count, 15)
+        XCTAssertEqual(result.count, 2)
     }
     
     func testFetchAll_WithSortByNameDesc_ShouldReturnGroup() async throws {
@@ -110,8 +94,8 @@ final class ContactGroupRepositoryTests: XCTestCase {
                                                                on: db)
         
         // Then
-        XCTAssertEqual(result.items.count, 2)
-        XCTAssertEqual(result.items.first?.name, "Group2")
+        XCTAssertEqual(result.count, 2)
+        XCTAssertEqual(result.first?.name, "Group2")
     }
     
     func testFetchAll_WithSortByNameAsc_ShouldReturnGroup() async throws {
@@ -128,8 +112,8 @@ final class ContactGroupRepositoryTests: XCTestCase {
                                                                on: db)
         
         // Then
-        XCTAssertEqual(result.items.count, 2)
-        XCTAssertEqual(result.items.first?.name, "Group1")
+        XCTAssertEqual(result.count, 2)
+        XCTAssertEqual(result.first?.name, "Group1")
     }
     
     func testFetchAll_WithSortByCreateAtDesc_ShouldReturnGroup() async throws {
@@ -148,8 +132,8 @@ final class ContactGroupRepositoryTests: XCTestCase {
                                                                on: db)
         
         // Then
-        XCTAssertEqual(result.items.count, 2)
-        XCTAssertEqual(result.items.first?.name, "Group2")
+        XCTAssertEqual(result.count, 2)
+        XCTAssertEqual(result.first?.name, "Group2")
     }
     
     func testFetchAll_WithSortByCreateAtAsc_ShouldReturnGroup() async throws {
@@ -167,8 +151,8 @@ final class ContactGroupRepositoryTests: XCTestCase {
                                                                on: db)
         
         // Then
-        XCTAssertEqual(result.items.count, 2)
-        XCTAssertEqual(result.items.first?.name, "Group1")
+        XCTAssertEqual(result.count, 2)
+        XCTAssertEqual(result.first?.name, "Group1")
     }
     
     //MARK: fetchById
@@ -217,7 +201,7 @@ final class ContactGroupRepositoryTests: XCTestCase {
                                                                    on: db)
         
         // Then
-        XCTAssertEqual(result.items.count, 2)
+        XCTAssertEqual(result.count, 2)
     }
     
     func testSearchByName_WithNotExistChar_ShouldNotFoundAnyGroup() async throws {
@@ -233,7 +217,7 @@ final class ContactGroupRepositoryTests: XCTestCase {
                                                                    on: db)
         
         // Then
-        XCTAssertEqual(result.items.count, 0)
+        XCTAssertEqual(result.count, 0)
     }
     
     //MARK: create

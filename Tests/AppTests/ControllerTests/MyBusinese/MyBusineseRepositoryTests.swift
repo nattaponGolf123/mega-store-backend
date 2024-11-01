@@ -67,11 +67,11 @@ final class MyBusineseRepositoryTests: XCTestCase {
 
     func testFetchById_ShouldReturnBusinese() async throws {
         // Given
-        let businese = MyBusinese(name: "Business", vatRegistered: true, contactInformation: nil, taxNumber: "1234567890123", legalStatus: .companyLimited, website: "example.com", note: "Test Note")
-        try await businese.save(on: db)
+        let business = MyBusinese(name: "Business", vatRegistered: true, contactInformation: nil, taxNumber: "1234567890123", legalStatus: .companyLimited, website: "example.com", note: "Test Note")
+        try await business.save(on: db)
 
         // When
-        let result = try await myBusineseRepository.fetchById(request: .init(id: businese.id!), on: db)
+        let result = try await myBusineseRepository.fetchById(request: .init(id: business.id!), on: db)
 
         // Then
         XCTAssertEqual(result.name, "Business")
@@ -94,7 +94,7 @@ final class MyBusineseRepositoryTests: XCTestCase {
 
     func testCreate_ShouldCreateBusinese() async throws {
         // Given
-        let request = MyBusineseRequest.Create(name: "Business", vatRegistered: true, contactInformation: nil, taxNumber: "1234567890123", legalStatus: .companyLimited, website: "example.com", note: "Test Note")
+        let request = MyBusinessRequest.Create(name: "Business", vatRegistered: true, contactInformation: nil, taxNumber: "1234567890123", legalStatus: .companyLimited, website: "example.com", note: "Test Note")
 
         // When
         let result = try await myBusineseRepository.create(request: request, on: db)
@@ -113,7 +113,7 @@ final class MyBusineseRepositoryTests: XCTestCase {
         let existingBusinese = MyBusinese(name: "Business", vatRegistered: true, contactInformation: nil, taxNumber: "1234567890123", legalStatus: .companyLimited, website: "example.com", note: "Test Note")
         try await existingBusinese.save(on: db)
 
-        let request = MyBusineseRequest.Create(name: "Business", vatRegistered: true, contactInformation: nil, taxNumber: "1234567890124", legalStatus: .individual, website: nil, note: nil)
+        let request = MyBusinessRequest.Create(name: "Business", vatRegistered: true, contactInformation: nil, taxNumber: "1234567890124", legalStatus: .individual, website: nil, note: nil)
 
         // When
         do {
@@ -128,10 +128,10 @@ final class MyBusineseRepositoryTests: XCTestCase {
 
     func testUpdate_WithValidData_ShouldUpdateBusinese() async throws {
         // Given
-        let businese = MyBusinese(name: "Old Business", vatRegistered: false, contactInformation: nil, taxNumber: "1234567890123", legalStatus: .individual, website: nil, note: nil)
-        try await businese.save(on: db)
+        let business = MyBusinese(name: "Old Business", vatRegistered: false, contactInformation: nil, taxNumber: "1234567890123", legalStatus: .individual, website: nil, note: nil)
+        try await business.save(on: db)
 
-        let request = MyBusineseRequest.Update(name: "Updated Business", 
+        let request = MyBusinessRequest.Update(name: "Updated Business", 
                                                vatRegistered: true,
                                                contactInformation: .init(contactPerson: "A",
                                                                          phone: "phone",
@@ -142,7 +142,7 @@ final class MyBusineseRepositoryTests: XCTestCase {
                                                note: "Updated Note")
 
         // When
-        let result = try await myBusineseRepository.update(byId: .init(id: businese.id!), request: request, on: db)
+        let result = try await myBusineseRepository.update(byId: .init(id: business.id!), request: request, on: db)
 
         // Then
         XCTAssertEqual(result.name, "Updated Business")
@@ -158,7 +158,7 @@ final class MyBusineseRepositoryTests: XCTestCase {
         try await businese1.save(on: db)
         try await businese2.save(on: db)
 
-        let request = MyBusineseRequest.Update(name: "Business2")
+        let request = MyBusinessRequest.Update(name: "Business2")
 
         // When
         do {
@@ -177,7 +177,7 @@ final class MyBusineseRepositoryTests: XCTestCase {
         var address = BusinessAddress(id: UUID(),
                                       branch: "Branch",
                                       address: "Address")
-        let businese = MyBusinese(name: "Business",
+        let business = MyBusinese(name: "Business",
                                   vatRegistered: true,
                                   contactInformation: nil,
                                   taxNumber: "1234567890123",
@@ -185,9 +185,9 @@ final class MyBusineseRepositoryTests: XCTestCase {
                                   website: nil,
                                   businessAddress: [address], 
                                   note: nil)
-        try await businese.save(on: db)
+        try await business.save(on: db)
 
-        let request = MyBusineseRequest.UpdateBussineseAddress(address: "New Address",
+        let request = MyBusinessRequest.UpdateBusinessAddress(address: "New Address",
                                                                branch: "New Branch",
                                                                branchCode: nil,
                                                                subDistrict: nil,
@@ -200,7 +200,7 @@ final class MyBusineseRepositoryTests: XCTestCase {
                                                                fax: nil)
 
         // When
-        let result = try await myBusineseRepository.updateBussineseAddress(byId: .init(id: businese.id!),
+        let result = try await myBusineseRepository.updateBusinessAddress(byId: .init(id: business.id!),
                                                                            addressID: .init(id: address.id),
                                                                            request: request, on: db)
 
@@ -216,7 +216,7 @@ final class MyBusineseRepositoryTests: XCTestCase {
         var address = ShippingAddress(id: UUID(), 
                                       address: "Old Shipping Address",
                                       phone: "123-456-789")
-        let businese = MyBusinese(name: "Business",
+        let business = MyBusinese(name: "Business",
                                   vatRegistered: true,
                                   contactInformation: nil,
                                   taxNumber: "1234567890123",
@@ -224,13 +224,13 @@ final class MyBusineseRepositoryTests: XCTestCase {
                                   website: nil,
                                   shippingAddress: [address],
                                   note: nil)
-        try await businese.save(on: db)
+        try await business.save(on: db)
 
-        let request = MyBusineseRequest.UpdateShippingAddress(address: "New Shipping Address",
+        let request = MyBusinessRequest.UpdateShippingAddress(address: "New Shipping Address",
                                                               phone: "987-654-321")
 
         // When
-        let result = try await myBusineseRepository.updateShippingAddress(byId: .init(id: businese.id!),
+        let result = try await myBusineseRepository.updateShippingAddress(byId: .init(id: business.id!),
                                                                           addressID: .init(id: address.id),
                                                                           request: request, on: db)
 

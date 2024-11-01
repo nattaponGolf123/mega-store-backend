@@ -3,10 +3,12 @@ import Vapor
 import Fluent
 import FluentMongoDriver
 
-struct MyBusineseRequest {
+struct MyBusinessRequest {
     
     typealias UpdateShippingAddress = ContactRequest.UpdateShippingAddress
-    typealias UpdateBussineseAddress = ContactRequest.UpdateBussineseAddress
+    typealias UpdateBusinessAddress = ContactRequest.UpdateBusinessAddress
+    typealias CreateShippingAddress = ContactRequest.CreateShippingAddress
+    typealias CreateBusineseAddress = ContactRequest.CreateBusinessAddress
     
     struct Create: Content, Validatable {
         let name: String
@@ -17,7 +19,7 @@ struct MyBusineseRequest {
         let website: String?
         let note: String?
         
-        let businessAddress: CreateBussineseAddress?
+        let businessAddress: CreateBusineseAddress?
         let shippingAddress: CreateShippingAddress?
         
         init(name: String,
@@ -27,7 +29,7 @@ struct MyBusineseRequest {
              legalStatus: BusinessType = .individual,
              website: String? = nil,
              note: String? = nil,
-             businessAddress: CreateBussineseAddress? = nil,
+             businessAddress: CreateBusineseAddress? = nil,
              shippingAddress: CreateShippingAddress? = nil) {
             self.name = name
             self.vatRegistered = vatRegistered
@@ -49,7 +51,7 @@ struct MyBusineseRequest {
                             is: .count(13...13),
                             required: true)
 
-//            validations.add("business_address", as: CreateBussineseAddress?.self, required: false) { businessAddressValidations in
+//            validations.add("business_address", as: CreateBusineseAddress?.self, required: false) { businessAddressValidations in
 //                businessAddressValidations.add("address", as: String.self, is: .count(1...300), required: true)
 //                businessAddressValidations.add("sub_district", as: String.self, is: .count(1...300), required: true)
 //                businessAddressValidations.add("district", as: String.self, is: .count(1...300), required: true)
@@ -143,237 +145,15 @@ struct MyBusineseRequest {
         }
     }
 
-    struct UpdateBusineseAdressResponse {
+    struct UpdateBusinessAddressResponse {
         let id: GeneralRequest.FetchById
         let addressID: GeneralRequest.FetchById
-        let content: UpdateBussineseAddress
+        let content: UpdateBusinessAddress
     }
     
     struct UpdateShippingAddressResponse {
         let id: GeneralRequest.FetchById
         let addressID: GeneralRequest.FetchById
         let content: UpdateShippingAddress
-    }
-    
-    struct CreateBussineseAddress: Content, Validatable  {
-        let branchName: String
-        let branchCode: String
-        
-        let address: String
-        let subDistrict: String
-        let district: String
-        let province: String
-        let country: String
-        let postalCode: String
-        
-        let phone: String?
-        let fax: String?
-        let email: String?
-        
-        init(branchName: String,
-             branchCode: String,
-             address: String,
-             subDistrict: String,
-             district: String,
-             province: String,
-             country: String,
-             postalCode: String,
-             phone: String?,
-             fax: String?,
-             email: String?) {
-            self.address = address
-            self.subDistrict = subDistrict
-            self.district = district
-            self.province = province
-            self.country = country
-            self.postalCode = postalCode
-            self.branchCode = branchCode
-            self.branchName = branchName
-            self.phone = phone
-            self.fax = fax
-            self.email = email
-        }
-        
-        //decode
-        init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.branchName = try container.decode(String.self, forKey: .branchName)
-            self.branchCode = try container.decode(String.self, forKey: .branchCode)
-            
-            self.address = try container.decode(String.self, forKey: .address)
-            self.subDistrict = try container.decode(String.self, forKey: .subDistrict)
-            self.district = try container.decode(String.self, forKey: .district)
-            self.province = try container.decode(String.self, forKey: .province)
-            self.country = try container.decode(String.self, forKey: .country)
-            self.postalCode = try container.decode(String.self, forKey: .postalCode)
-            
-            self.phone = try container.decodeIfPresent(String.self, forKey: .phone)
-            self.fax = try container.decodeIfPresent(String.self, forKey: .fax)
-            self.email = try container.decodeIfPresent(String.self, forKey: .email)
-        }
-        
-        func toBusinessAddress() -> BusinessAddress {
-            return BusinessAddress(branch: branchName,
-                                   branchCode: branchCode,
-                                   address: address,
-                                   subDistrict: subDistrict,
-                                   district: district,
-                                   province: province,
-                                   postalCode: postalCode,
-                                   country: country,
-                                   phone: phone ?? "",
-                                   email: email ?? "",
-                                   fax: fax ?? "")
-        }
-        
-        static func validations(_ validations: inout Validations) {
-            validations.add("branch_name",
-                            as: String.self,
-                            is: .count(1...300),
-                            required: true)
-            validations.add("branch_code",
-                            as: String.self,
-                            is: .count(5...5),
-                            required: true)
-            validations.add("postal_code",
-                            as: String.self,
-                            is: .count(5...5),
-                            required: true)
-            validations.add("address",
-                            as: String.self,
-                            is: .count(1...300),
-                            required: true)
-            validations.add("sub_district",
-                            as: String.self,
-                            is: .count(1...300),
-                            required: true)
-            validations.add("district",
-                            as: String.self,
-                            is: .count(1...300),
-                            required: true)
-            validations.add("province",
-                            as: String.self,
-                            is: .count(1...300),
-                            required: true)
-            validations.add("country",
-                            as: String.self,
-                            is: .count(1...300),
-                            required: true)
-            validations.add("phone",
-                            as: String.self,
-                            is: .count(10...10),
-                            required: false)
-            validations.add("fax",
-                            as: String.self,
-                            is: .count(1...10),
-                            required: false)
-            validations.add("email",
-                            as: String.self,
-                            is: .count(1...100),
-                            required: false)
-        }
-        
-        enum CodingKeys: String, CodingKey {
-            case branchName = "branch"
-            case branchCode = "branch_code"
-            case address
-            case subDistrict = "sub_district"
-            case district
-            case province
-            case postalCode = "postal_code"
-            case country
-            case phone
-            case fax
-            case email
-        }
-    }
-    
-    struct CreateShippingAddress: Content, Validatable {
-        let address: String
-        let subDistrict: String
-        let district: String
-        let province: String
-        let country: String
-        let postalCode: String
-        let phone: String?
-        
-        init(address: String,
-             subDistrict: String,
-             district: String,
-             province: String,
-             country: String,
-             postalCode: String,
-             phone: String? = nil) {
-            self.address = address
-            self.subDistrict = subDistrict
-            self.district = district
-            self.province = province
-            self.country = country
-            self.postalCode = postalCode
-            self.phone = phone
-        }
-        
-        //decode
-        init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.address = try container.decode(String.self, forKey: .address)
-            self.subDistrict = try container.decode(String.self, forKey: .subDistrict)
-            self.district = try container.decode(String.self, forKey: .district)
-            self.province = try container.decode(String.self, forKey: .province)
-            self.country = try container.decode(String.self, forKey: .country)
-            self.postalCode = try container.decode(String.self, forKey: .postalCode)
-            self.phone = try container.decodeIfPresent(String.self, forKey: .phone)
-        }
-        
-        func toShippingAddress() -> ShippingAddress {
-            return ShippingAddress(address: address,
-                                   subDistrict: subDistrict,
-                                   district: district,
-                                   province: province,
-                                   country: country,
-                                   postalCode: postalCode,
-                                   phone: phone ?? "")
-        }
-        
-        static func validations(_ validations: inout Validations) {
-            validations.add("postal_code",
-                            as: String.self,
-                            is: .count(5...5),
-                            required: true)
-            validations.add("address",
-                            as: String.self,
-                            is: .count(1...300),
-                            required: true)
-            validations.add("sub_district",
-                            as: String.self,
-                            is: .count(1...300),
-                            required: true)
-            validations.add("district",
-                            as: String.self,
-                            is: .count(1...300),
-                            required: true)
-            validations.add("province",
-                            as: String.self,
-                            is: .count(1...300),
-                            required: true)
-            validations.add("country",
-                            as: String.self,
-                            is: .count(1...300),
-                            required: true)
-            validations.add("phone",
-                            as: String.self,
-                            is: .count(10...10),
-                            required: false)
-        }
-        
-        enum CodingKeys: String, CodingKey {
-            case address
-            case subDistrict = "sub_district"
-            case district
-            case province
-            case postalCode = "postal_code"
-            case country
-            case phone
-        }
     }
 }

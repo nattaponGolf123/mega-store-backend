@@ -24,7 +24,7 @@ class MyBusineseController: RouteCollection {
             
             // PUT /my_busineses/:id/businese_address/:address_id
             withID.group("businese_address") { bussineseAddress in
-                bussineseAddress.grouped(":address_id").put(use: updateBussineseAddress)
+                bussineseAddress.grouped(":address_id").put(use: updateBusinessAddress)
             }
             
             //PUT /my_busineses/:id/shipping_address/:address_id
@@ -67,9 +67,9 @@ class MyBusineseController: RouteCollection {
     }
     
     // PUT /my_busineses/:id/businese_address/:address_id
-    func updateBussineseAddress(req: Request) async throws -> MyBusinese {
-        let content = try validator.validateUpdateBussineseAddress(req)
-        return try await repository.updateBussineseAddress(byId: content.id,
+    func updateBusinessAddress(req: Request) async throws -> MyBusinese {
+        let content = try validator.validateUpdateBusineseAddress(req)
+        return try await repository.updateBusinessAddress(byId: content.id,
                                                            addressID: content.addressID,
                                                            request: content.content,
                                                            on: req.db)

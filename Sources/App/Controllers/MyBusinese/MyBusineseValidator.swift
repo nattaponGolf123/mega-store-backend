@@ -4,23 +4,23 @@ import Mockable
 
 @Mockable
 protocol MyBusineseValidatorProtocol {
-    typealias CreateContent = MyBusineseRequest.Create
-    typealias UpdateContent = MyBusineseRequest.Update
-    typealias UpdateBusineseAdressResponse = MyBusineseRequest.UpdateBusineseAdressResponse
-    typealias UpdateShippingAddressResponse = MyBusineseRequest.UpdateShippingAddressResponse
+    typealias CreateContent = MyBusinessRequest.Create
+    typealias UpdateContent = MyBusinessRequest.Update
+    typealias UpdateBusinessAddressResponse = MyBusinessRequest.UpdateBusinessAddressResponse
+    typealias UpdateShippingAddressResponse = MyBusinessRequest.UpdateShippingAddressResponse
     
     func validateCreate(_ req: Request) throws -> CreateContent
     func validateUpdate(_ req: Request) throws -> (id: GeneralRequest.FetchById, content: UpdateContent)
-    func validateUpdateBussineseAddress(_ req: Request) throws -> UpdateBusineseAdressResponse
+    func validateUpdateBusineseAddress(_ req: Request) throws -> UpdateBusinessAddressResponse
     func validateUpdateShippingAddress(_ req: Request) throws -> UpdateShippingAddressResponse
     func validateID(_ req: Request) throws -> GeneralRequest.FetchById
 }
 
 class MyBusineseValidator: MyBusineseValidatorProtocol {
-    typealias CreateContent = MyBusineseRequest.Create
-    typealias UpdateContent = MyBusineseRequest.Update
-    typealias UpdateBusineseAdressResponse = MyBusineseRequest.UpdateBusineseAdressResponse
-    typealias UpdateShippingAddressResponse = MyBusineseRequest.UpdateShippingAddressResponse
+    typealias CreateContent = MyBusinessRequest.Create
+    typealias UpdateContent = MyBusinessRequest.Update
+    typealias UpdateBusinessAddressResponse = MyBusinessRequest.UpdateBusinessAddressResponse
+    typealias UpdateShippingAddressResponse = MyBusinessRequest.UpdateShippingAddressResponse
     
     func validateCreate(_ req: Request) throws -> CreateContent {
         try CreateContent.validate(content: req)
@@ -37,10 +37,10 @@ class MyBusineseValidator: MyBusineseValidatorProtocol {
         return (fetchById, content)
     }
     
-    func validateUpdateBussineseAddress(_ req: Request) throws -> UpdateBusineseAdressResponse {
-        try MyBusineseRequest.UpdateBussineseAddress.validate(content: req)
+    func validateUpdateBusineseAddress(_ req: Request) throws -> UpdateBusinessAddressResponse {
+        try MyBusinessRequest.UpdateBusinessAddress.validate(content: req)
         
-        let content = try req.content.decode(MyBusineseRequest.UpdateBussineseAddress.self)
+        let content = try req.content.decode(MyBusinessRequest.UpdateBusinessAddress.self)
         
         guard
             let id = req.parameters.get("id", as: UUID.self),
@@ -53,9 +53,9 @@ class MyBusineseValidator: MyBusineseValidatorProtocol {
     }
     
     func validateUpdateShippingAddress(_ req: Request) throws -> UpdateShippingAddressResponse {
-        try MyBusineseRequest.UpdateShippingAddress.validate(content: req)
+        try MyBusinessRequest.UpdateShippingAddress.validate(content: req)
         
-        let content = try req.content.decode(MyBusineseRequest.UpdateShippingAddress.self)
+        let content = try req.content.decode(MyBusinessRequest.UpdateShippingAddress.self)
         
         guard
             let id = req.parameters.get("id", as: UUID.self),

@@ -14,7 +14,7 @@ extension MyBusineseRepository {
         var reason: String {
             switch self {
             case .existingMyBusinese:
-                return "Businese already exists"
+                return "Business already exists"
             }
         }
         

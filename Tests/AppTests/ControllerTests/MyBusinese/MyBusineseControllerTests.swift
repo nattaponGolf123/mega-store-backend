@@ -117,7 +117,7 @@ final class MyBusineseControllerTests: XCTestCase {
         // Given
         let contactInfo = ContactInformation(phone: "123456789",
                                              email: "test@example.com")
-        let request = MyBusineseRequest.Create(
+        let request = MyBusinessRequest.Create(
             name: "",
             vatRegistered: true,
             contactInformation: contactInfo,
@@ -145,7 +145,7 @@ final class MyBusineseControllerTests: XCTestCase {
         // Given
         let contactInfo = ContactInformation(phone: "123456789",
                                              email: "test@example.com")
-        let request = MyBusineseRequest.Create(
+        let request = MyBusinessRequest.Create(
             name: "Test",
             vatRegistered: true,
             contactInformation: contactInfo,
@@ -175,7 +175,7 @@ final class MyBusineseControllerTests: XCTestCase {
         // Given
         let contactInfo = ContactInformation(phone: "123456789",
                                              email: "test@example.com")
-        let request = MyBusineseRequest.Create(
+        let request = MyBusinessRequest.Create(
             name: "Test",
             vatRegistered: true,
             contactInformation: contactInfo,
@@ -220,7 +220,7 @@ final class MyBusineseControllerTests: XCTestCase {
         // Given
         let id = UUID()
         let requestId = GeneralRequest.FetchById(id: id)
-        let requestUpdate = MyBusineseRequest.Update(name: "")
+        let requestUpdate = MyBusinessRequest.Update(name: "")
         given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
 
         given(repo).update(byId: .matching({ $0.id.uuidString == id.uuidString }),
@@ -240,7 +240,7 @@ final class MyBusineseControllerTests: XCTestCase {
         // Given
         let id = UUID()
         let requestId = GeneralRequest.FetchById(id: id)
-        let requestUpdate = MyBusineseRequest.Update(name: "Test")
+        let requestUpdate = MyBusinessRequest.Update(name: "Test")
         given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
 
         given(repo).update(byId: .matching({ $0.id.uuidString == id.uuidString }),
@@ -262,7 +262,7 @@ final class MyBusineseControllerTests: XCTestCase {
         // Given
         let id = UUID()
         let requestId = GeneralRequest.FetchById(id: id)
-        let requestUpdate = MyBusineseRequest.Update(taxNumber: "123")
+        let requestUpdate = MyBusinessRequest.Update(taxNumber: "123")
         given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
 
         given(repo).update(byId: .matching({ $0.id.uuidString == id.uuidString }),
@@ -282,7 +282,7 @@ final class MyBusineseControllerTests: XCTestCase {
         // Given
         let id = UUID()
         let requestId = GeneralRequest.FetchById(id: id)
-        let requestUpdate = MyBusineseRequest.Update(taxNumber: "1234567890123")
+        let requestUpdate = MyBusinessRequest.Update(taxNumber: "1234567890123")
         given(validator).validateUpdate(.any).willReturn((requestId, requestUpdate))
 
         given(repo).update(byId: .matching({ $0.id.uuidString == id.uuidString }),
@@ -300,15 +300,15 @@ final class MyBusineseControllerTests: XCTestCase {
     }
 
     // MARK: - Test GET /my_busineses/:id/addresses/:address_id
-    func testUpdateBussineseAddress_WithInvalidID_ShouldReturnBadRequest() async throws {
+    func testUpdateBusineseAddress_WithInvalidID_ShouldReturnBadRequest() async throws {
 
         // Given
         let id = UUID()
         let addressID = UUID()
-        let content = MyBusineseRequest.UpdateBussineseAddress(address: "Address")
-        given(validator).validateUpdateBussineseAddress(.any).willThrow(DefaultError.invalidInput)
+        let content = MyBusinessRequest.UpdateBusinessAddress(address: "Address")
+        given(validator).validateUpdateBusineseAddress(.any).willThrow(DefaultError.invalidInput)
 
-        given(repo).updateBussineseAddress(byId: .matching({ $0.id.uuidString == id.uuidString }),
+        given(repo).updateBusinessAddress(byId: .matching({ $0.id.uuidString == id.uuidString }),
                                            addressID: .matching({ $0.id.uuidString == addressID.uuidString }),
                                            request: .matching({ $0.address == content.address }),
                                            on: .any).willThrow(DefaultError.invalidInput)
@@ -318,23 +318,23 @@ final class MyBusineseControllerTests: XCTestCase {
         }
     }
 
-    func testUpdateBussineseAddress_WithValidID_ShouldReturnMyBusinese() async throws {
+    func testUpdateBusineseAddress_WithValidID_ShouldReturnMyBusinese() async throws {
 
         // Given
         let id = UUID()
         let addressID = UUID()
-        let content = MyBusineseRequest.UpdateBussineseAddress(address: "Address")
-        let response = MyBusineseRequest.UpdateBusineseAdressResponse(id: .init(id: id),
+        let content = MyBusinessRequest.UpdateBusinessAddress(address: "Address")
+        let response = MyBusinessRequest.UpdateBusinessAddressResponse(id: .init(id: id),
                                                                    addressID: .init(id: addressID),
                                                                    content: content)
-        given(validator).validateUpdateBussineseAddress(.any).willReturn(response)
+        given(validator).validateUpdateBusineseAddress(.any).willReturn(response)
         
         let stub = MyBusinese(id: .init(),
                               name: "Name",
                               taxNumber: "1234567890123", 
                               createdAt: .now,
                               updatedAt: .now)
-        given(repo).updateBussineseAddress(byId: .matching({ $0.id.uuidString == id.uuidString }),
+        given(repo).updateBusinessAddress(byId: .matching({ $0.id.uuidString == id.uuidString }),
                                            addressID: .matching({ $0.id.uuidString == addressID.uuidString }),
                                            request: .matching({ $0.address == content.address }),
                                            on: .any).willReturn(stub)
@@ -352,7 +352,7 @@ final class MyBusineseControllerTests: XCTestCase {
         // Given
         let id = UUID()
         let addressID = UUID()
-        let content = MyBusineseRequest.UpdateShippingAddress(address: "Address")
+        let content = MyBusinessRequest.UpdateShippingAddress(address: "Address")
         given(validator).validateUpdateShippingAddress(.any).willThrow(DefaultError.invalidInput)
 
         given(repo).updateShippingAddress(byId: .matching({ $0.id.uuidString == id.uuidString }),
@@ -370,8 +370,8 @@ final class MyBusineseControllerTests: XCTestCase {
         // Given
         let id = UUID()
         let addressID = UUID()
-        let content = MyBusineseRequest.UpdateShippingAddress(address: "Address")
-        let response = MyBusineseRequest.UpdateShippingAddressResponse(id: .init(id: id),
+        let content = MyBusinessRequest.UpdateShippingAddress(address: "Address")
+        let response = MyBusinessRequest.UpdateShippingAddressResponse(id: .init(id: id),
                                                                      addressID: .init(id: addressID),
                                                                      content: content)
         given(validator).validateUpdateShippingAddress(.any).willReturn(response)

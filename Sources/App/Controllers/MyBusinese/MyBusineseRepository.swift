@@ -16,27 +16,27 @@ protocol MyBusineseRepositoryProtocol {
     ) async throws -> MyBusinese
     
     func create(
-        request: MyBusineseRequest.Create,
+        request: MyBusinessRequest.Create,
         on db: Database
     ) async throws -> MyBusinese
     
     func update(
         byId: GeneralRequest.FetchById,
-        request: MyBusineseRequest.Update,
+        request: MyBusinessRequest.Update,
         on db: Database
     ) async throws -> MyBusinese
     
-    func updateBussineseAddress(
+    func updateBusinessAddress(
         byId: GeneralRequest.FetchById,
         addressID: GeneralRequest.FetchById,
-        request: MyBusineseRequest.UpdateBussineseAddress,
+        request: MyBusinessRequest.UpdateBusinessAddress,
         on db: Database
     ) async throws -> MyBusinese
     
     func updateShippingAddress(
         byId: GeneralRequest.FetchById,
         addressID: GeneralRequest.FetchById,
-        request: MyBusineseRequest.UpdateShippingAddress,
+        request: MyBusinessRequest.UpdateShippingAddress,
         on db: Database
     ) async throws -> MyBusinese
 }
@@ -54,15 +54,15 @@ class MyBusineseRepository: MyBusineseRepositoryProtocol {
         on db: Database
     ) async throws -> MyBusinese {
         guard
-            let businese = try await MyBusinese.find(request.id,
+            let business = try await MyBusinese.find(request.id,
                                                      on: db)
         else { throw DefaultError.notFound }
         
-        return businese
+        return business
     }
 
     func create(
-        request: MyBusineseRequest.Create,
+        request: MyBusinessRequest.Create,
         on db: Database
     ) async throws -> MyBusinese {
         
@@ -70,7 +70,7 @@ class MyBusineseRepository: MyBusineseRepositoryProtocol {
             throw Self.Error.existingMyBusinese
         }
               
-        let businessAddress: [BusinessAddress] = { (content: MyBusineseRequest.CreateBussineseAddress?) -> [BusinessAddress] in
+        let businessAddress: [BusinessAddress] = { (content: ContactRequest.CreateBusinessAddress?) -> [BusinessAddress] in
             if let businessAddressContent = request.businessAddress {
                 return [businessAddressContent.toBusinessAddress()]
             }
@@ -78,7 +78,7 @@ class MyBusineseRepository: MyBusineseRepositoryProtocol {
             
         }(request.businessAddress)
       
-        let shippingAddress: [ShippingAddress] = { (content: MyBusineseRequest.CreateShippingAddress?) -> [ShippingAddress] in
+        let shippingAddress: [ShippingAddress] = { (content: ContactRequest.CreateShippingAddress?) -> [ShippingAddress] in
             if let shippingAddressContent = request.shippingAddress {
                 return [shippingAddressContent.toShippingAddress()]
             }
@@ -86,7 +86,7 @@ class MyBusineseRepository: MyBusineseRepositoryProtocol {
             
         }(request.shippingAddress)
         
-        let businese = MyBusinese(name: request.name,
+        let business = MyBusinese(name: request.name,
                                   vatRegistered: request.vatRegistered,
                                   contactInformation: request.contactInformation,
                                   taxNumber: request.taxNumber,
@@ -96,76 +96,76 @@ class MyBusineseRepository: MyBusineseRepositoryProtocol {
                                   shippingAddress: shippingAddress,
                                   note: request.note)
         
-        try await businese.save(on: db)
+        try await business.save(on: db)
         
-        return businese
+        return business
     }
     
     func update(
         byId: GeneralRequest.FetchById,
-        request: MyBusineseRequest.Update,
+        request: MyBusinessRequest.Update,
         on db: Database
     ) async throws -> MyBusinese {
-        let businese = try await fetchById(request: .init(id: byId.id), on: db)
+        let business = try await fetchById(request: .init(id: byId.id), on: db)
                 
         if let name = request.name {
             guard
                 try await MyBusinese.query(on: db).filter(\.$name == name).count() == 0
             else { throw CommonError.duplicateName }
             
-            businese.name = name
+            business.name = name
         }
         
         if let vatRegistered = request.vatRegistered {
-            businese.vatRegistered = vatRegistered
+            business.vatRegistered = vatRegistered
         }
         
         if let contactInformation = request.contactInformation {
-            businese.contactInformation = contactInformation
+            business.contactInformation = contactInformation
         }
 
         if let taxNumber = request.taxNumber {
-            businese.taxNumber = taxNumber
+            business.taxNumber = taxNumber
         }
 
         if let legalStatus = request.legalStatus {
-            businese.legalStatus = legalStatus
+            business.legalStatus = legalStatus
         }
 
         if let website = request.website {
-            businese.website = website
+            business.website = website
         }
 
         if let logo = request.logo {
-            businese.logo = logo
+            business.logo = logo
         }
 
         if let stampLogo = request.stampLogo {
-            businese.stampLogo = stampLogo
+            business.stampLogo = stampLogo
         }
         
         if let authorizedSignSignature = request.authorizedSignSignature {
-            businese.authorizedSignSignature = authorizedSignSignature
+            business.authorizedSignSignature = authorizedSignSignature
         }
 
         if let note = request.note {
-            businese.note = note
+            business.note = note
         }
         
-        try await businese.save(on: db)
-        return businese
+        try await business.save(on: db)
+        return business
     }
 
-    func updateBussineseAddress(
+    func updateBusinessAddress(
         byId: GeneralRequest.FetchById,
         addressID: GeneralRequest.FetchById,
-        request: MyBusineseRequest.UpdateBussineseAddress,
+        request: MyBusinessRequest.UpdateBusinessAddress,
         on db: Database
     ) async throws -> MyBusinese {
-        let businese = try await fetchById(request: .init(id: byId.id), on: db)
+        let business = try await fetchById(request: .init(id: byId.id), on: db)
         
         guard
-            var addr = businese.businessAddress.first(where: { $0.id == addressID.id })
+            var addr = business.businessAddress.first(where: { $0.id == addressID.id })
         else { throw DefaultError.notFound }
         
         if let address = request.address {
@@ -211,22 +211,22 @@ class MyBusineseRepository: MyBusineseRepositoryProtocol {
         if let fax = request.fax {
             addr.fax = fax
         }
-        businese.businessAddress = [addr]
+        business.businessAddress = [addr]
 
-        try await businese.save(on: db)
-        return businese
+        try await business.save(on: db)
+        return business
     }
 
     func updateShippingAddress(
         byId: GeneralRequest.FetchById,
         addressID: GeneralRequest.FetchById,
-        request: MyBusineseRequest.UpdateShippingAddress,
+        request: MyBusinessRequest.UpdateShippingAddress,
         on db: Database
     ) async throws -> MyBusinese {
-        let businese = try await fetchById(request: .init(id: byId.id), on: db)
+        let business = try await fetchById(request: .init(id: byId.id), on: db)
         
         guard
-            var addr = businese.shippingAddress.first(where: { $0.id == addressID.id })
+            var addr = business.shippingAddress.first(where: { $0.id == addressID.id })
         else { throw DefaultError.notFound }
         
         if let address = request.address {
@@ -257,10 +257,10 @@ class MyBusineseRepository: MyBusineseRepositoryProtocol {
             addr.phone = phone
         }
 
-        businese.shippingAddress = [addr]
+        business.shippingAddress = [addr]
 
-        try await businese.save(on: db)
-        return businese
+        try await business.save(on: db)
+        return business
     }
 
 }
