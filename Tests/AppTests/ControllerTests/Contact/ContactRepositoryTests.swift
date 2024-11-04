@@ -272,6 +272,14 @@ final class ContactRepositoryTests: XCTestCase {
         XCTAssertEqual(result.items.count, 2)
         XCTAssertTrue(result.items.contains { $0.name == "Contact1" })
         XCTAssertTrue(result.items.contains { $0.name == "Contact3" })
+        
+        let result2 = try await contactRepository.fetchAll(
+            request: .init(kind: .supplier),
+            on: db
+        )
+        XCTAssertEqual(result2.items.count, 1)
+        XCTAssertEqual(result2.items.first?.name, "Contact2")
+            
     }
     
     //MARK: fetchById
