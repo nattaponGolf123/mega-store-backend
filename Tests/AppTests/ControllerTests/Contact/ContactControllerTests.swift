@@ -218,7 +218,7 @@ final class ContactControllerTests: XCTestCase {
                                             legalStatus: .companyLimited,
                                             website: "website",
                                             note: "note",
-                                            groupIds: nil,
+                                            groupIds: [],
                                             paymentTermsDays: 30)
         given(validator).validateCreate(.any).willReturn(request)
         

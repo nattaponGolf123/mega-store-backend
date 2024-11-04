@@ -27,8 +27,8 @@ final class Contact: Model, Content {
     @Enum(key: "kind")
     var kind: ContactKind
     
-    @Field(key: "group_id")
-    var groupIds: [UUID]?
+    @Field(key: "group_ids")
+    var groupIds: [UUID]
     
     @Field(key: "name")
     var name: String
@@ -80,7 +80,7 @@ final class Contact: Model, Content {
     init(id: UUID? = nil,
          number: Int = 1,
          name: String = "",
-         groupIds: [UUID]? = nil,
+         groupIds: [UUID] = [],
          kind: ContactKind = .both,
          vatRegistered: Bool = false,
          contactInformation: ContactInformation = .init(),

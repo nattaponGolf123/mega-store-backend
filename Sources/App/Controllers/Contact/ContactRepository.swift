@@ -8,7 +8,7 @@ import Mockable
 protocol ContactRepositoryProtocol {
     
     func fetchAll(
-        request: GeneralRequest.FetchAll,
+        request: ContactRequest.FetchAll,
         on db: Database
     ) async throws -> PaginatedResponse<Contact>
     
@@ -80,10 +80,19 @@ class ContactRepository: ContactRepositoryProtocol {
         self.contactGroupRepository = contactGroupRepository
     }
     
-    func fetchAll(request: GeneralRequest.FetchAll,
+    func fetchAll(request: ContactRequest.FetchAll,
                   on db: any Database) async throws -> PaginatedResponse<Contact> {
+                    
+        var query = Contact.query(on: db)
         
-        let query = Contact.query(on: db)
+        if let groupId = request.groupId {
+            //query = query.filter("group_ids", .custom("$regex"), groupId.uuidString)
+            query = query.filter("group_ids", .custom("$regex"), groupId.uuidString)
+        }
+
+        if let kind = request.kind {
+            query = query.filter(\.$kind == kind)
+        }
         
         if request.showDeleted {
             query.withDeleted()
@@ -91,19 +100,23 @@ class ContactRepository: ContactRepositoryProtocol {
             query.filter(\.$deletedAt == nil)
         }
         
-        let total = try await query.count()
-        let items = try await sortQuery(query: query,
-                                        sortBy: request.sortBy,
-                                        sortOrder: request.sortOrder,
-                                        page: request.page,
-                                        perPage: request.perPage)
-        
-        let response = PaginatedResponse(page: request.page,
-                                         perPage: request.perPage,
-                                         total: total,
-                                         items: items)
-        
-        return response
+        do {
+            let total = try await query.count()
+            let items = try await sortQuery(query: query,
+                                            sortBy: request.sortBy,
+                                            sortOrder: request.sortOrder,
+                                            page: request.page,
+                                            perPage: request.perPage)
+            
+            let response = PaginatedResponse(page: request.page,
+                                             perPage: request.perPage,
+                                             total: total,
+                                             items: items)
+            
+            return response
+        } catch {
+            throw error
+        }
     }
     
     func fetchById(
@@ -160,14 +173,12 @@ class ContactRepository: ContactRepositoryProtocol {
         }
         
         // validate exist contact group id
-        if let groupIds = request.groupIds {
-            for groupId in groupIds {
-                // try to fetch group id to check is exist
-                guard
-                    let _ = try? await contactGroupRepository.fetchById(request: .init(id: groupId),
-                                                                        on: db)
-                else { throw DefaultError.notFound }
-            }
+        for groupId in request.groupIds {
+            // try to fetch group id to check is exist
+            guard
+                let _ = try? await contactGroupRepository.fetchById(request: .init(id: groupId),
+                                                                    on: db)
+            else { throw DefaultError.notFound }
         }
         
         let lastedNumber = try await fetchLastedNumber(on: db)
@@ -431,7 +442,7 @@ class ContactRepository: ContactRepositoryProtocol {
         
         // Update each contact
         for contactId in request.contactIds {
-            guard var contact = try await Contact.find(contactId, on: db) else {
+            guard let contact = try await Contact.find(contactId, on: db) else {
                 throw DefaultError.notFound
             }
             

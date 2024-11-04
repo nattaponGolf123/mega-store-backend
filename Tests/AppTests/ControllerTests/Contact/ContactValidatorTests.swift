@@ -43,7 +43,7 @@ final class ContactValidatorTests: XCTestCase {
             legalStatus: .companyLimited,
             website: "https://example.com",
             note: "A note",
-            groupIds: nil,
+            groupIds: [],
             paymentTermsDays: 30,
             businessAddress: nil,
             shippingAddress: nil
@@ -62,7 +62,7 @@ final class ContactValidatorTests: XCTestCase {
             legalStatus: .companyLimited,
             website: "https://example.com",
             note: "A note",
-            groupIds: nil,
+            groupIds: [],
             paymentTermsDays: 30,
             businessAddress: nil,
             shippingAddress: nil
@@ -82,7 +82,7 @@ final class ContactValidatorTests: XCTestCase {
             legalStatus: .companyLimited,
             website: "https://example.com",
             note: "A note",
-            groupIds: nil,
+            groupIds: [],
             paymentTermsDays: 30,
             businessAddress: nil,
             shippingAddress: nil
@@ -101,7 +101,7 @@ final class ContactValidatorTests: XCTestCase {
             legalStatus: .companyLimited,
             website: "https://example.com",
             note: "A note",
-            groupIds: nil,
+            groupIds: [],
             paymentTermsDays: 30,
             businessAddress: nil,
             shippingAddress: nil

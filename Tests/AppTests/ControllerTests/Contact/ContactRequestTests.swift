@@ -29,7 +29,7 @@ final class ContactRequestTests: XCTestCase {
         XCTAssertEqual(create.legalStatus, .individual)
         XCTAssertEqual(create.website, "https://example.com")
         XCTAssertEqual(create.note, "Test note")
-        XCTAssertEqual(create.groupIds?.count, 1)
+        XCTAssertEqual(create.groupIds.count, 1)
         XCTAssertEqual(create.paymentTermsDays, 30)
     }
 

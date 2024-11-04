@@ -3,8 +3,6 @@ import Foundation
 import Vapor
 
 class ContactController: RouteCollection {
-    typealias FetchAll = GeneralRequest.FetchAll
-    
     typealias ContactWithGroups = (contact: Contact, groups: [ContactGroup])
 
     private(set) var repository: ContactRepositoryProtocol
@@ -55,7 +53,7 @@ class ContactController: RouteCollection {
 
     // GET /contacts?show_deleted=true&page=1&per_page=10
     func all(req: Request) async throws -> PaginatedResponse<ContactResponse> {
-        let content = try req.query.decode(FetchAll.self)
+        let content = try req.query.decode(ContactRequest.FetchAll.self)
         let pageResponse = try await repository.fetchAll(
             request: content,
             on: req.db)
@@ -227,13 +225,11 @@ extension ContactController {
     func fetchSingleContactGroups(from contact: Contact,
                                     on db: Database) async throws
             -> ContactWithGroups
-        {
-            var groups: [ContactGroup] = []
-            if let groupIds = contact.groupIds {
-                groups = try await groupRepository.fetchByIds(
-                    request: .init(ids: groupIds),
-                    on: db)
-            }
-            return (contact: contact, groups: groups)
-        }
+    {
+        var groups: [ContactGroup] = try await groupRepository.fetchByIds(
+            request: .init(ids: contact.groupIds),
+            on: db)
+        
+        return (contact: contact, groups: groups)
+    }
 }
