@@ -84,12 +84,8 @@ class ContactRepository: ContactRepositoryProtocol {
                   on db: any Database) async throws -> PaginatedResponse<Contact> {
                     
         var query = Contact.query(on: db)
-        
-        if let groupId = request.groupId {
-            //query = query.filter("group_ids", .custom("$regex"), groupId.uuidString)
-            query = query.filter("group_ids", .custom("$regex"), groupId.uuidString)
-        }
-
+        var document = Document()
+                
         if let kind = request.kind {
             query = query.filter(\.$kind == kind)
         }
@@ -100,8 +96,17 @@ class ContactRepository: ContactRepositoryProtocol {
             query.filter(\.$deletedAt == nil)
         }
         
+        if let groupId = request.groupId {
+            document["group_ids"]["$regex"] = groupId.uuidString
+            document["group_ids"]["$options"] = "i"
+            
+            query = query.filter(.custom(document))
+        }
+        
         do {
             let total = try await query.count()
+            // log
+            print("total: \(total)")
             let items = try await sortQuery(query: query,
                                             sortBy: request.sortBy,
                                             sortOrder: request.sortOrder,

@@ -476,7 +476,7 @@ final class ContactRepositoryTests: XCTestCase {
         XCTAssertNotNil(result.id)
         XCTAssertEqual(result.number, 1)
         XCTAssertEqual(result.name, "Contact")
-        XCTAssertNil(result.groupIds)
+        XCTAssertEqual(result.groupIds.count, 0)
         XCTAssertEqual(result.kind, .both)
         XCTAssertEqual(result.vatRegistered, true)
         XCTAssertNil(result.taxNumber)
