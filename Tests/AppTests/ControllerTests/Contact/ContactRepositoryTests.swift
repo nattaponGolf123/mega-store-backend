@@ -280,6 +280,7 @@ final class ContactRepositoryTests: XCTestCase {
         XCTAssertEqual(result2.items.count, 1)
         XCTAssertEqual(result2.items.first?.name, "Contact2")
             
+        
     }
     
     //MARK: fetchById
