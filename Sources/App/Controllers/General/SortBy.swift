@@ -31,6 +31,7 @@ enum SortBy: String, Sortable {
     case groupId = "GROUP_ID"
     case groupName = "GROUP_NAME"
     case createdAt = "CREATED_AT"
+    case contactInfoName = "CONTACT_INFO_NAME"
     
     static func == (lhs: SortBy, rhs: SortBy) -> Bool {
         return lhs.rawValue == rhs.rawValue

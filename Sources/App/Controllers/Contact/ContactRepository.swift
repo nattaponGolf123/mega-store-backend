@@ -104,9 +104,7 @@ class ContactRepository: ContactRepositoryProtocol {
         }
         
         do {
-            let total = try await query.count()
-            // log
-            print("total: \(total)")
+            let total = try await query.count()            
             let items = try await sortQuery(query: query,
                                             sortBy: request.sortBy,
                                             sortOrder: request.sortOrder,
@@ -452,7 +450,7 @@ class ContactRepository: ContactRepositoryProtocol {
             }
             
             // Initialize groupIds array if nil
-            var groupIds = contact.groupIds ?? []
+            var groupIds = contact.groupIds
             
             // Add group if not already present
             if !groupIds.contains(request.toGroupId) {
@@ -480,38 +478,19 @@ private extension ContactRepository {
         
         let range = pageStart..<pageEnd
         
+        let direction: DatabaseQuery.Sort.Direction = sortOrder == .asc ? .ascending : .descending
+        
         switch sortBy {
         case .name:
-            switch sortOrder {
-            case .asc:
-                return try await query.sort(\.$name).range(range).all()
-            case .desc:
-                return try await query.sort(\.$name, .descending).range(range).all()
-            }
+            return try await query.sort(\.$name, direction).range(range).all()
         case .createdAt:
-            switch sortOrder {
-            case .asc:
-                return try await query.sort(\.$createdAt).range(range).all()
-            case .desc:
-                return try await query.sort(\.$createdAt, .descending).range(range).all()
-            }
-//        case .groupId:
-//            switch sortOrder {
-//            case .asc:
-//                return try await query.sort(\.$groupId).range(range).all()
-//            case .desc:
-//                return try await query.sort(\.$groupId, .descending).range(range).all()
-//            }
+            return try await query.sort(\.$createdAt, direction).range(range).all()
+        case .contactInfoName:
+            return try await query.sort("contact_information.contact_person", direction).range(range).all()
         case .number:
-            switch sortOrder {
-            case .asc:
-                return try await query.sort(\.$number).range(range).all()
-            case .desc:
-                return try await query.sort(\.$number, .descending).range(range).all()
-            }
+            return try await query.sort(\.$number, direction).range(range).all()
         default:
             return try await query.range(range).all()
         }
-        
     }
 }

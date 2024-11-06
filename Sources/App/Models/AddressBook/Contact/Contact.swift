@@ -37,7 +37,7 @@ final class Contact: Model, Content {
     var vatRegistered: Bool
     
     @Field(key: "contact_information")
-    var contactInformation: ContactInformation
+    var contactInformation: ContactInformation    
     
     @Field(key: "tax_number")
     var taxNumber: String?

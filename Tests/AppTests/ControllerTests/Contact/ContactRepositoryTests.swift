@@ -188,6 +188,54 @@ final class ContactRepositoryTests: XCTestCase {
         XCTAssertEqual(result.items.count, 2)
         XCTAssertEqual(result.items.first?.name, "Contact1")
     }
+     
+    func testFetchAll_WithSortByContactInfoNameAsc_ShouldReturnContact() async throws {
+        // Given
+        given(contactGroupRepository).fetchAll(request: .any,
+                                               on: .any).willReturn([])
+
+        let contact1 = Contact(name: "Contact1",
+                               contactInformation: ContactInformation(contactPerson: "Bob"))
+        let contact2 = Contact(name: "Contact2",
+                               contactInformation: ContactInformation(contactPerson: "Alice"))
+        try await contact1.create(on: db)
+        try await contact2.create(on: db)
+        
+        // When
+        let result = try await contactRepository.fetchAll(
+            request: .init(sortBy: .contactInfoName, sortOrder: .asc),
+            on: db
+        )
+        
+        // Then
+        XCTAssertEqual(result.items.count, 2)
+        XCTAssertEqual(result.items.first?.contactInformation.contactPerson, "Alice")
+        XCTAssertEqual(result.items.last?.contactInformation.contactPerson, "Bob")
+                
+    }
+
+    func testFetchAll_WithSortByContactInfoNameDesc_ShouldReturnContact() async throws {
+        // Given
+        given(contactGroupRepository).fetchAll(request: .any,
+                                                on: .any).willReturn([])
+        let contact1 = Contact(name: "Contact1",
+                               contactInformation: ContactInformation(contactPerson: "Bob"))
+        let contact2 = Contact(name: "Contact2",
+                               contactInformation: ContactInformation(contactPerson: "Alice"))
+        try await contact1.create(on: db)
+        try await contact2.create(on: db)
+
+        // When
+        let result = try await contactRepository.fetchAll(
+            request: .init(sortBy: .contactInfoName, sortOrder: .desc),
+            on: db
+        )
+
+        // Then
+        XCTAssertEqual(result.items.count, 2)
+        XCTAssertEqual(result.items.first?.contactInformation.contactPerson, "Bob")
+        XCTAssertEqual(result.items.last?.contactInformation.contactPerson, "Alice")
+    }
  
     func testFetchAll_WithGroupIdAndKind_ShouldReturnFilteredContacts() async throws {
         // Given
@@ -964,6 +1012,7 @@ final class ContactRepositoryTests: XCTestCase {
         // Then
         XCTAssertEqual(result, 0)
     }
+
 
 }
 
