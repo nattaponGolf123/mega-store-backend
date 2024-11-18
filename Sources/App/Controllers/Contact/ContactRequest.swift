@@ -19,7 +19,7 @@ struct ContactRequest {
         let sortOrder: SortOrder
 
         static let minPageRange: (min: Int, max: Int) = (1, .max)
-        static let perPageRange: (min: Int, max: Int) = (20, 1000)
+        static let perPageRange: (min: Int, max: Int) = (10, 1000)
 
         init(groupId: UUID? = nil,
              kind: ContactKind? = nil,
@@ -41,7 +41,7 @@ struct ContactRequest {
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             groupId = try container.decodeIfPresent(UUID.self, forKey: .groupId)
-            kind = try container.decodeIfPresent(ContactKind.self, forKey: .kind)
+            kind = (try? container.decodeIfPresent(ContactKind.self, forKey: .kind)) ?? .both
             showDeleted = (try? container.decodeIfPresent(Bool.self, forKey: .showDeleted)) ?? false
             page = (try? container.decodeIfPresent(Int.self, forKey: .page)) ?? Self.minPageRange.min
             perPage = (try? container.decodeIfPresent(Int.self, forKey: .perPage)) ?? Self.perPageRange.min

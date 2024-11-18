@@ -87,7 +87,16 @@ class ContactRepository: ContactRepositoryProtocol {
         var document = Document()
                 
         if let kind = request.kind {
-            query = query.filter(\.$kind == kind)
+            switch kind {
+            case .customer:
+                document["kind"] = ContactKind.customer.rawValue
+            case .supplier:
+                document["kind"] = ContactKind.supplier.rawValue
+            default:
+                break
+            }
+            
+            query = query.filter(.custom(document))
         }
         
         if request.showDeleted {

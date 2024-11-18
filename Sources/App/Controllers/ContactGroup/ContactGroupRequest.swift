@@ -8,7 +8,7 @@ struct ContactGroupRequest {
         let sortOrder: SortOrder
 
         static let minPageRange: (min: Int, max: Int) = (1, .max)
-        static let perPageRange: (min: Int, max: Int) = (20, 1000)
+        static let perPageRange: (min: Int, max: Int) = (10, 1000)
 
         init(
             showDeleted: Bool = false,

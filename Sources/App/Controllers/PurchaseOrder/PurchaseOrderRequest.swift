@@ -168,7 +168,7 @@ struct PurchaseOrderRequest {
         let periodDate: PeriodDate
         
         static let minPageRange: (min: Int, max: Int) = (1, .max)
-        static let perPageRange: (min: Int, max: Int) = (20, 1000)
+        static let perPageRange: (min: Int, max: Int) = (10, 1000)
         
         init(status: Status = .all,
              page: Int = Self.minPageRange.min,
@@ -260,7 +260,7 @@ struct PurchaseOrderRequest {
         let periodDate: PeriodDate
 
         static let minPageRange: (min: Int, max: Int) = (1, .max)
-        static let perPageRange: (min: Int, max: Int) = (20, 1000)
+        static let perPageRange: (min: Int, max: Int) = (10, 1000)
         
         init(query: String,
              page: Int = Self.minPageRange.min,

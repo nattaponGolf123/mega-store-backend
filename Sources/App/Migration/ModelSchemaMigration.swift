@@ -54,6 +54,11 @@ struct ModelSchemaMigration: AsyncMigration {
             try await PurchaseOrderSchema.createBuilder(database: database).create()
             try await PurchaseOrder.Stub.po1.save(on: database)
             
+//            try await ContactSchema.createBuilder(database: database).create()
+//            try await Contact.Stub.supplier.save(on: database)
+//            try await Contact.Stub.supplier2.save(on: database)
+//            try await Contact.Stub.customer.save(on: database)
+//            try await Contact.Stub.both.save(on: database)
             
         } catch {
             print(error)

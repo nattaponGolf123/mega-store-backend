@@ -11,7 +11,7 @@ import Vapor
 
 struct ContactMigration: AsyncMigration {
     func prepare(on database: Database) async throws {
-        try await ContactSchema.createBuilder(database: database).create()
+        try await ContactSchema.createBuilder(database: database).create()        
     }
     
     func revert(on database: Database) async throws {

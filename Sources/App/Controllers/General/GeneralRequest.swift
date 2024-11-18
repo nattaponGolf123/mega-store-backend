@@ -41,7 +41,7 @@ struct GeneralRequest {
         let sortOrder: SortOrder
         
         static let minPageRange: (min: Int, max: Int) = (1, .max)
-        static let perPageRange: (min: Int, max: Int) = (20, 1000)
+        static let perPageRange: (min: Int, max: Int) = (10, 1000)
         
         init(showDeleted: Bool = false,
              page: Int = Self.minPageRange.min,
@@ -90,7 +90,7 @@ struct GeneralRequest {
         let sortOrder: SortOrder
         
         static let minPageRange: (min: Int, max: Int) = (1, .max)
-        static let perPageRange: (min: Int, max: Int) = (20, 1000)
+        static let perPageRange: (min: Int, max: Int) = (10, 1000)
         
         init(query: String,
              page: Int = Self.minPageRange.min,

@@ -81,11 +81,18 @@ final class ContactRepositoryTests: XCTestCase {
         try await contact2.create(on: db)
         
         // When
-        let result = try await contactRepository.fetchAll(request: .init(showDeleted: true),
+        let result1 = try await contactRepository.fetchAll(request: .init(showDeleted: false),
                                                                on: db)
         
         // Then
-        XCTAssertEqual(result.items.count, 2)
+        XCTAssertEqual(result1.items.count, 1)
+        
+        // When
+        let result2 = try await contactRepository.fetchAll(request: .init(showDeleted: true),
+                                                               on: db)
+        
+        // Then
+        XCTAssertEqual(result2.items.count, 2)
     }
     
     //perPage min at 20
