@@ -86,13 +86,16 @@ final class ContactRepositoryTests: XCTestCase {
         
         // Then
         XCTAssertEqual(result1.items.count, 1)
+        XCTAssertEqual(result1.items.first?.name, "Contact1")
         
         // When
         let result2 = try await contactRepository.fetchAll(request: .init(showDeleted: true),
                                                                on: db)
         
         // Then
-        XCTAssertEqual(result2.items.count, 2)
+        XCTAssertEqual(result2.items.count, 1)
+        XCTAssertTrue(result2.items.contains { $0.name == "Contact2" })
+        
     }
     
     //perPage min at 20

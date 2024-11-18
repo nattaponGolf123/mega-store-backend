@@ -101,6 +101,7 @@ class ContactRepository: ContactRepositoryProtocol {
         
         if request.showDeleted {
             query.withDeleted()
+            query.filter(\.$deletedAt != nil)
         } else {
             query.filter(\.$deletedAt == nil)
         }
