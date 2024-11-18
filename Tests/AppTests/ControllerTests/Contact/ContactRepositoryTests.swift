@@ -1020,6 +1020,79 @@ final class ContactRepositoryTests: XCTestCase {
         XCTAssertEqual(result, 0)
     }
 
+    func testFetchAll_WithKindBoth_ShouldReturnBothContacts() async throws {
+        // Given
+        given(contactGroupRepository).fetchAll(request: .any,
+                                            on: .any).willReturn([])
+        
+        let contact1 = Contact(name: "Contact1", kind: .both)
+        let contact2 = Contact(name: "Contact2", kind: .customer)
+        let contact3 = Contact(name: "Contact3", kind: .supplier)
+        try await contact1.create(on: db)
+        try await contact2.create(on: db)
+        try await contact3.create(on: db)
+        
+        // When
+        let result = try await contactRepository.fetchAll(
+            request: .init(kind: .both),
+            on: db
+        )
+        
+        // Then
+        XCTAssertEqual(result.items.count, 3)
+    }
+
+    func testFetchAll_WithKindCustomer_ShouldReturnCustomerContacts() async throws {
+        // Given
+        given(contactGroupRepository).fetchAll(request: .any,
+                                            on: .any).willReturn([])
+        
+        let contact1 = Contact(name: "Contact1", kind: .both)
+        let contact2 = Contact(name: "Contact2", kind: .customer)
+        let contact3 = Contact(name: "Contact3", kind: .supplier)
+        let contact4 = Contact(name: "Contact4", kind: .customer)
+        try await contact1.create(on: db)
+        try await contact2.create(on: db)
+        try await contact3.create(on: db)
+        try await contact4.create(on: db)
+        
+        // When
+        let result = try await contactRepository.fetchAll(
+            request: .init(kind: .customer),
+            on: db
+        )
+        
+        // Then
+        XCTAssertEqual(result.items.count, 2)
+        XCTAssertTrue(result.items.contains { $0.name == "Contact2" && $0.kind == .customer })
+        XCTAssertTrue(result.items.contains { $0.name == "Contact4" && $0.kind == .customer })
+    }
+
+    func testFetchAll_WithKindSupplier_ShouldReturnSupplierContacts() async throws {
+        // Given
+        given(contactGroupRepository).fetchAll(request: .any,
+                                            on: .any).willReturn([])
+        
+        let contact1 = Contact(name: "Contact1", kind: .both)
+        let contact2 = Contact(name: "Contact2", kind: .customer)
+        let contact3 = Contact(name: "Contact3", kind: .supplier)
+        let contact4 = Contact(name: "Contact4", kind: .supplier)
+        try await contact1.create(on: db)
+        try await contact2.create(on: db)
+        try await contact3.create(on: db)
+        try await contact4.create(on: db)
+        
+        // When
+        let result = try await contactRepository.fetchAll(
+            request: .init(kind: .supplier),
+            on: db
+        )
+        
+        // Then
+        XCTAssertEqual(result.items.count, 2)
+        XCTAssertTrue(result.items.contains { $0.name == "Contact3" && $0.kind == .supplier })
+        XCTAssertTrue(result.items.contains { $0.name == "Contact4" && $0.kind == .supplier })
+    }
 
 }
 
