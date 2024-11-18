@@ -1066,7 +1066,8 @@ final class ContactRepositoryTests: XCTestCase {
         )
         
         // Then
-        XCTAssertEqual(result.items.count, 2)
+        XCTAssertEqual(result.items.count, 3)
+        XCTAssertTrue(result.items.contains { $0.name == "Contact1" && $0.kind == .both })
         XCTAssertTrue(result.items.contains { $0.name == "Contact2" && $0.kind == .customer })
         XCTAssertTrue(result.items.contains { $0.name == "Contact4" && $0.kind == .customer })
     }
@@ -1092,7 +1093,8 @@ final class ContactRepositoryTests: XCTestCase {
         )
         
         // Then
-        XCTAssertEqual(result.items.count, 2)
+        XCTAssertEqual(result.items.count, 3)
+        XCTAssertTrue(result.items.contains { $0.name == "Contact1" && $0.kind == .both })
         XCTAssertTrue(result.items.contains { $0.name == "Contact3" && $0.kind == .supplier })
         XCTAssertTrue(result.items.contains { $0.name == "Contact4" && $0.kind == .supplier })
     }

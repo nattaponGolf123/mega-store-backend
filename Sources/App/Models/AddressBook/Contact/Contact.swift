@@ -9,7 +9,7 @@ import Foundation
 import Vapor
 import Fluent
 
-enum ContactKind: String, Codable {
+enum ContactKind: String, Codable, CaseIterable {
     case customer = "CUSTOMER"
     case supplier = "SUPPLIER"
     case both = "BOTH"
