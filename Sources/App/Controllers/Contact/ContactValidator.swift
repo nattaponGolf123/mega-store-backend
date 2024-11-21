@@ -4,33 +4,23 @@ import Mockable
 
 @Mockable
 protocol ContactValidatorProtocol {
-    typealias Search = GeneralRequest.Search
-    typealias UpdateBusinessAddressResponse = ContactRequest.UpdateBusinessAddressResponse
-    typealias UpdateShippingAddressResponse = ContactRequest.UpdateShippingAddressResponse
-    
     func validateCreate(_ req: Request) throws -> ContactRequest.Create
     func validateUpdate(_ req: Request) throws -> (id: GeneralRequest.FetchById, content: ContactRequest.Update)
-    func validateUpdateBusineseAddress(_ req: Request) throws -> UpdateBusinessAddressResponse
-    func validateUpdateShippingAddress(_ req: Request) throws -> UpdateShippingAddressResponse
+    func validateUpdateBusineseAddress(_ req: Request) throws -> ContactRequest.UpdateBusinessAddressResponse
+    func validateUpdateShippingAddress(_ req: Request) throws -> ContactRequest.UpdateShippingAddressResponse
     func validateID(_ req: Request) throws -> GeneralRequest.FetchById
-    func validateSearchQuery(_ req: Request) throws -> Search
+    func validateSearchQuery(_ req: Request) throws -> ContactRequest.Search
     func validateAddToGroup(_ req: Request) throws -> ContactRequest.AddToGroup
 }
 
 class ContactValidator: ContactValidatorProtocol {
-    typealias Create = ContactRequest.Create
-    typealias Update = (id: GeneralRequest.FetchById, content: ContactRequest.Update)
-    typealias Search = GeneralRequest.Search
-    typealias UpdateBusinessAddressResponse = ContactRequest.UpdateBusinessAddressResponse
-    typealias UpdateShippingAddressResponse = ContactRequest.UpdateShippingAddressResponse
-    
-    func validateCreate(_ req: Request) throws -> Create {
-        try Create.validate(content: req)
+    func validateCreate(_ req: Request) throws -> ContactRequest.Create {
+        try ContactRequest.Create.validate(content: req)
         
-        return try req.content.decode(Create.self)
+        return try req.content.decode(ContactRequest.Create.self)
     }
     
-    func validateUpdate(_ req: Request) throws -> Update {
+    func validateUpdate(_ req: Request) throws -> (id: GeneralRequest.FetchById, content: ContactRequest.Update) {
         try ContactRequest.Update.validate(content: req)
         
         let id = try req.parameters.require("id", as: UUID.self)
@@ -39,7 +29,7 @@ class ContactValidator: ContactValidatorProtocol {
         return (fetchById, content)
     }
     
-    func validateUpdateBusineseAddress(_ req: Request) throws -> UpdateBusinessAddressResponse {
+    func validateUpdateBusineseAddress(_ req: Request) throws -> ContactRequest.UpdateBusinessAddressResponse {
         try ContactRequest.UpdateBusinessAddress.validate(content: req)
         
         let content = try req.content.decode(ContactRequest.UpdateBusinessAddress.self)
@@ -53,7 +43,7 @@ class ContactValidator: ContactValidatorProtocol {
                      content: content)
     }
     
-    func validateUpdateShippingAddress(_ req: Request) throws -> UpdateShippingAddressResponse {
+    func validateUpdateShippingAddress(_ req: Request) throws -> ContactRequest.UpdateShippingAddressResponse {
         try ContactRequest.UpdateShippingAddress.validate(content: req)
         
         let content = try req.content.decode(ContactRequest.UpdateShippingAddress.self)
@@ -75,10 +65,10 @@ class ContactValidator: ContactValidatorProtocol {
         return .init(id: id)
     }
     
-    func validateSearchQuery(_ req: Request) throws -> Search {
-        try Search.validate(content: req)
+    func validateSearchQuery(_ req: Request) throws -> ContactRequest.Search {
+        //try ContactRequest.Search.validate(content: req)
         
-        let content = try req.query.decode(Search.self)
+        let content = try req.query.decode(ContactRequest.Search.self)
         
         guard content.query.isEmpty == false else { throw DefaultError.invalidInput }
         

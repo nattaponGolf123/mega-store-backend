@@ -58,7 +58,7 @@ protocol ContactRepositoryProtocol {
     ) async throws -> Contact
     
     func search(
-        request: GeneralRequest.Search,
+        request: ContactRequest.Search,
         on db: Database
     ) async throws -> PaginatedResponse<Contact>
     
@@ -400,19 +400,60 @@ class ContactRepository: ContactRepositoryProtocol {
         return group
     }
     
-    func search(request: GeneralRequest.Search,
+    func search(request: ContactRequest.Search,
                 on db: Database) async throws -> PaginatedResponse<Contact> {
         
         let q = request.query
         let regexPattern = "(?i)\(q)"  // (?i) makes the regex case-insensitive
         let query = Contact.query(on: db).group(.or) { or in
             or.filter(\.$name =~ regexPattern)
+            
             if let number = Int(q) {
                 or.filter(\.$number == number)
             }
             or.filter(\.$taxNumber =~ regexPattern)
             or.filter(\.$website =~ regexPattern)
-            or.filter(\.$note =~ regexPattern)
+            or.filter(\.$note =~ regexPattern)            
+
+            var document = Document()
+            document["contact_information.contact_person"]["$regex"] = regexPattern
+            document["contact_information.contact_person"]["$options"] = "i"
+            document["contact_information.phone"]["$regex"] = regexPattern 
+            document["contact_information.phone"]["$options"] = "i"
+            document["contact_information.email"]["$regex"] = regexPattern
+            document["contact_information.email"]["$options"] = "i"
+            
+            or.filter(.custom(document))
+        }
+        
+        // Add filters for showDeleted
+        if request.showDeleted {
+            query.withDeleted()
+            query.filter(\.$deletedAt != nil)
+        } else {
+            query.filter(\.$deletedAt == nil)
+        }
+        
+        // Add filter for groupId if present
+        if let groupId = request.groupId {
+            var groupDocument = Document()
+            groupDocument["group_ids"]["$regex"] = groupId.uuidString
+            groupDocument["group_ids"]["$options"] = "i"
+            query.filter(.custom(groupDocument))
+        }
+        
+        // Add filter for kind if present
+        if let kind = request.kind {
+            var filterKinds: [ContactKind] = ContactKind.allCases
+            switch kind {
+            case .customer:
+                filterKinds.removeAll(where: { $0 == .supplier })
+            case .supplier:
+                filterKinds.removeAll(where: { $0 == .customer })
+            default:
+                break
+            }
+            query.filter(\.$kind ~~ filterKinds)
         }
         
         let total = try await query.count()
@@ -421,7 +462,6 @@ class ContactRepository: ContactRepositoryProtocol {
                                         sortOrder: request.sortOrder,
                                         page: request.page,
                                         perPage: request.perPage)
-        
         
         let response = PaginatedResponse(page: request.page,
                                          perPage: request.perPage,

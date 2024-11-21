@@ -9,6 +9,79 @@ import Foundation
 import Vapor
 
 struct ContactRequest {
+    struct Search: Content, Validatable {
+        let query: String
+        let page: Int
+        let perPage: Int
+        let sortBy: SortBy
+        let sortOrder: SortOrder
+        let showDeleted: Bool
+        let groupId: UUID?
+        let kind: ContactKind?
+        
+        static let minPageRange: (min: Int, max: Int) = (1, .max)
+        static let perPageRange: (min: Int, max: Int) = (10, 1000)
+        
+        init(query: String,
+             page: Int = Self.minPageRange.min,
+             perPage: Int = Self.perPageRange.min,
+             sortBy: SortBy = .createdAt,
+             sortOrder: SortOrder = .asc,
+             showDeleted: Bool = false,
+             groupId: UUID? = nil,
+             kind: ContactKind? = nil) {
+            self.query = query
+            self.page = min(max(page, Self.minPageRange.min), Self.minPageRange.max)
+            self.perPage = min(max(perPage, Self.perPageRange.min), Self.perPageRange.max)
+            self.sortBy = sortBy
+            self.sortOrder = sortOrder
+            self.showDeleted = showDeleted
+            self.groupId = groupId
+            self.kind = kind
+        }
+        
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            self.query = try container.decode(String.self, forKey: .query)
+            self.page = (try? container.decode(Int.self, forKey: .page)) ?? Self.minPageRange.min
+            self.perPage = (try? container.decode(Int.self, forKey: .perPage)) ?? Self.perPageRange.min
+            self.sortBy = (try? container.decode(SortBy.self, forKey: .sortBy)) ?? .createdAt
+            self.sortOrder = (try? container.decode(SortOrder.self, forKey: .sortOrder)) ?? .asc
+            self.showDeleted = (try? container.decode(Bool.self, forKey: .showDeleted)) ?? false
+            self.groupId = try container.decodeIfPresent(UUID.self, forKey: .groupId)
+            self.kind = try container.decodeIfPresent(ContactKind.self, forKey: .kind)
+        }
+        
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(query, forKey: .query)
+            try container.encode(page, forKey: .page)
+            try container.encode(perPage, forKey: .perPage)
+            try container.encode(sortBy, forKey: .sortBy)
+            try container.encode(sortOrder, forKey: .sortOrder)
+            try container.encode(showDeleted, forKey: .showDeleted)
+            try container.encodeIfPresent(groupId, forKey: .groupId)
+            try container.encodeIfPresent(kind, forKey: .kind)
+        }
+        
+        enum CodingKeys: String, CodingKey {
+            case query = "q"
+            case page
+            case perPage = "per_page"
+            case sortBy = "sort_by"
+            case sortOrder = "sort_order"
+            case showDeleted = "show_deleted"
+            case groupId = "group_id"
+            case kind
+        }
+        
+        static func validations(_ validations: inout Validations) {
+            validations.add("q", as: String.self,
+                            is: .count(1...200),
+                            required: true)
+        }
+    }
+    
     struct FetchAll: Content {
         let groupId: UUID?
         let kind: ContactKind?
