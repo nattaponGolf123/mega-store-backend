@@ -947,37 +947,194 @@ final class ContactRepositoryTests: XCTestCase {
     
     //MARK: search
     func testSearch_WithName_ShouldReturnContact() async throws {
-        
         // Given
-        let contact = Contact(name: "Contact")
-        try await contact.create(on: db)
-        
-        let request = GeneralRequest.Search(query: "Contact")
+        let contact1 = Contact(name: "ABC Company")
+        let contact2 = Contact(name: "XYZ Company")
+        let contact3 = Contact(name: "ABC Services")
+        try await contact1.create(on: db)
+        try await contact2.create(on: db)
+        try await contact3.create(on: db)
         
         // When
-        let result = try await contactRepository.search(request: request,
-                                                        on: db)
+        let result = try await contactRepository.search(
+            request: .init(query: "ABC"),
+            on: db
+        )
         
         // Then
-        XCTAssertEqual(result.items.count, 1)
-        XCTAssertEqual(result.items.first?.name, "Contact")
+        XCTAssertEqual(result.items.count, 2)
+        XCTAssertTrue(result.items.contains { $0.name == "ABC Company" })
+        XCTAssertTrue(result.items.contains { $0.name == "ABC Services" })
     }
-    
-    func testSearch_WithNumber_ShouldReturnContact() async throws {
-        
+
+    func testSearch_WithTaxNumber_ShouldReturnContact() async throws {
         // Given
-        let contact = Contact(number: 123)
-        try await contact.create(on: db)
-        
-        let request = GeneralRequest.Search(query: "123")
+        let contact1 = Contact(name: "Contact 1", taxNumber: "1234567890123")
+        let contact2 = Contact(name: "Contact 2", taxNumber: "9876543210123")
+        try await contact1.create(on: db)
+        try await contact2.create(on: db)
         
         // When
-        let result = try await contactRepository.search(request: request,
-                                                        on: db)
+        let result = try await contactRepository.search(
+            request: .init(query: "123456"),
+            on: db
+        )
         
         // Then
         XCTAssertEqual(result.items.count, 1)
-        XCTAssertEqual(result.items.first?.number, 123)
+        XCTAssertEqual(result.items.first?.taxNumber, "1234567890123")
+    }
+
+    func testSearch_WithContactPerson_ShouldReturnContact() async throws {
+        // Given
+        let contact1 = Contact(name: "Company 1", 
+                              contactInformation: ContactInformation(contactPerson: "John Smith"))
+        let contact2 = Contact(name: "Company 2", 
+                              contactInformation: ContactInformation(contactPerson: "John Doe"))
+        let contact3 = Contact(name: "Company 3", 
+                              contactInformation: ContactInformation(contactPerson: "Jane Doe"))
+        try await contact1.create(on: db)
+        try await contact2.create(on: db)
+        try await contact3.create(on: db)
+        
+        // When
+        let result = try await contactRepository.search(
+            request: .init(query: "john"),
+            on: db
+        )
+        
+        // Then
+        XCTAssertEqual(result.items.count, 2)
+        XCTAssertTrue(result.items.contains { $0.contactInformation.contactPerson == "John Smith" })
+        XCTAssertTrue(result.items.contains { $0.contactInformation.contactPerson == "John Doe" })
+    }
+
+    func testSearch_WithContactPhone_ShouldReturnContact() async throws {
+        // Given
+        let contact1 = Contact(name: "Company 1", 
+                              contactInformation: ContactInformation(phone: "0123456789"))
+        let contact2 = Contact(name: "Company 2", 
+                              contactInformation: ContactInformation(phone: "9876543210"))
+        let contact3 = Contact(name: "Company 3", 
+                              contactInformation: ContactInformation(phone: "1111111111"))
+        try await contact1.create(on: db)
+        try await contact2.create(on: db)
+        try await contact3.create(on: db)
+        
+        // When
+        let result = try await contactRepository.search(
+            request: .init(query: "012345"),
+            on: db
+        )
+        
+        // Then
+        XCTAssertEqual(result.items.count, 1)
+        XCTAssertTrue(result.items.contains { $0.contactInformation.phone == "0123456789" })
+    }
+
+    func testSearch_WithContactEmail_ShouldReturnContact() async throws {
+        // Given
+        let contact1 = Contact(name: "Company 1", 
+                              contactInformation: ContactInformation(email: "john@example.com"))
+        let contact2 = Contact(name: "Company 2", 
+                              contactInformation: ContactInformation(email: "jane@example.com"))
+        let contact3 = Contact(name: "Company 3", 
+                              contactInformation: ContactInformation(email: "bob@test.com"))
+        try await contact1.create(on: db)
+        try await contact2.create(on: db)
+        try await contact3.create(on: db)
+        
+        // When
+        let result = try await contactRepository.search(
+            request: .init(query: "example.com"),
+            on: db
+        )
+        
+        // Then
+        XCTAssertEqual(result.items.count, 2)
+        XCTAssertTrue(result.items.contains { $0.contactInformation.email == "john@example.com" })
+        XCTAssertTrue(result.items.contains { $0.contactInformation.email == "jane@example.com" })
+    }
+
+    func testSearch_WithPagination_ShouldReturnPaginatedResults() async throws {
+        // Given
+        let contacts = (1...25).map { Contact(name: "Test Company \($0)") }
+        for contact in contacts {
+            try await contact.create(on: db)
+        }
+        
+        // When
+        let result = try await contactRepository.search(
+            request: .init(query: "Test", page: 2, perPage: 10),
+            on: db
+        )
+        
+        // Then
+        XCTAssertEqual(result.items.count, 10)
+        XCTAssertEqual(result.page, 2)
+        XCTAssertEqual(result.perPage, 10)
+        XCTAssertEqual(result.total, 25)
+    }
+
+    func testSearch_WithDeletedContacts_ShouldNotReturnDeletedByDefault() async throws {
+        // Given
+        let contact1 = Contact(name: "Test Company 1")
+        let contact2 = Contact(name: "Test Company 2", deletedAt: Date())
+        try await contact1.create(on: db)
+        try await contact2.create(on: db)
+        
+        // When
+        let result = try await contactRepository.search(
+            request: .init(query: "Test"),
+            on: db
+        )
+        
+        // Then
+        XCTAssertEqual(result.items.count, 1)
+        XCTAssertEqual(result.total, 1)
+        XCTAssertEqual(result.items.first?.name, "Test Company 1")
+    }
+
+    func testSearch_WithShowDeleted_ShouldReturnDeletedContacts() async throws {
+        // Given
+        let contact1 = Contact(name: "Test Company 1")
+        let contact2 = Contact(name: "Test Company 2", deletedAt: Date())
+        try await contact1.create(on: db)
+        try await contact2.create(on: db)
+        
+        // When
+        let result = try await contactRepository.search(
+            request: .init(query: "Test", showDeleted: true),
+            on: db
+        )
+        
+        // Then
+        XCTAssertEqual(result.items.count, 1)
+        XCTAssertEqual(result.total, 1)
+        XCTAssertFalse(result.items.contains { $0.name == "Test Company 1" })
+        XCTAssertTrue(result.items.contains { $0.name == "Test Company 2" })
+    }
+
+    func testSearch_WithSorting_ShouldReturnSortedResults() async throws {
+        // Given
+        let contact1 = Contact(name: "ABC Company")
+        let contact2 = Contact(name: "XYZ Company")
+        let contact3 = Contact(name: "MNO Company")
+        try await contact1.create(on: db)
+        try await contact2.create(on: db)
+        try await contact3.create(on: db)
+        
+        // When
+        let result = try await contactRepository.search(
+            request: .init(query: "Company", sortBy: .name, sortOrder: .desc),
+            on: db
+        )
+        
+        // Then
+        XCTAssertEqual(result.items.count, 3)
+        XCTAssertEqual(result.items[0].name, "XYZ Company")
+        XCTAssertEqual(result.items[1].name, "MNO Company")
+        XCTAssertEqual(result.items[2].name, "ABC Company")
     }
     
     //MARK: test fetchLastedNumber

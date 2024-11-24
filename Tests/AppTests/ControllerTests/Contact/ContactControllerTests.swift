@@ -365,7 +365,7 @@ final class ContactControllerTests: XCTestCase {
     func testSearch_WithEmptyQuery_ShouldReturnBadRequest() async throws {
         
         // Given
-        let query = GeneralRequest.Search(query: "")
+        let query = ContactRequest.Search(query: "")
         given(validator).validateSearchQuery(.any).willThrow(DefaultError.invalidInput)
         
         given(repo).search(request: .matching({ $0.query == query.query }),
@@ -379,7 +379,7 @@ final class ContactControllerTests: XCTestCase {
     func testSearch_WithMore200CharQuery_ShouldReturnBadRequest() async throws {
         
         // Given
-        let query = GeneralRequest.Search(query: String(repeating: "A", count: 210))
+        let query = ContactRequest.Search(query: String(repeating: "A", count: 210))
         given(validator).validateSearchQuery(.any).willThrow(DefaultError.invalidInput)
         
         given(repo).search(request: .matching({ $0.query == query.query }),
@@ -393,7 +393,7 @@ final class ContactControllerTests: XCTestCase {
     func testSearch_WithValidQuery_ShouldReturnEmptyContacts() async throws {
         
         // Given
-        let query = GeneralRequest.Search(query: "Test")
+        let query = ContactRequest.Search(query: "Test")
         given(validator).validateSearchQuery(.any).willReturn(query)
         
         let stub = PaginatedResponse<Contact>(page: 1, perPage: 20, total: 0, items: [])
@@ -410,7 +410,7 @@ final class ContactControllerTests: XCTestCase {
     func testSearch_WithValidQuery_ShouldReturnContacts() async throws {
         
         // Given
-        let query = GeneralRequest.Search(query: "Test")
+        let query = ContactRequest.Search(query: "Test")
         given(validator).validateSearchQuery(.any).willReturn(query)
         
         let stub = PaginatedResponse<Contact>(page: 1, perPage: 20, total: 2,

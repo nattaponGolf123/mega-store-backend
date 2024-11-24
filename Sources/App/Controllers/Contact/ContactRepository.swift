@@ -403,6 +403,7 @@ class ContactRepository: ContactRepositoryProtocol {
     func search(request: ContactRequest.Search,
                 on db: Database) async throws -> PaginatedResponse<Contact> {
         
+       
         let q = request.query
         let regexPattern = "(?i)\(q)"  // (?i) makes the regex case-insensitive
         let query = Contact.query(on: db).group(.or) { or in
@@ -415,15 +416,21 @@ class ContactRepository: ContactRepositoryProtocol {
             or.filter(\.$website =~ regexPattern)
             or.filter(\.$note =~ regexPattern)            
 
-            var document = Document()
-            document["contact_information.contact_person"]["$regex"] = regexPattern
-            document["contact_information.contact_person"]["$options"] = "i"
-            document["contact_information.phone"]["$regex"] = regexPattern 
-            document["contact_information.phone"]["$options"] = "i"
-            document["contact_information.email"]["$regex"] = regexPattern
-            document["contact_information.email"]["$options"] = "i"
+            var contactpersonDocument = Document()
+            contactpersonDocument["contact_information.contact_person"]["$regex"] = regexPattern
+            contactpersonDocument["contact_information.contact_person"]["$options"] = "i"
+            or.filter(.custom(contactpersonDocument))
+
+            var contactPhoneDocument = Document()
+            contactPhoneDocument["contact_information.phone"]["$regex"] = regexPattern
+            contactPhoneDocument["contact_information.phone"]["$options"] = "i"
+            or.filter(.custom(contactPhoneDocument))
+
+            var contactEmailDocument = Document()
+            contactEmailDocument["contact_information.email"]["$regex"] = regexPattern
+            contactEmailDocument["contact_information.email"]["$options"] = "i"
+            or.filter(.custom(contactEmailDocument))
             
-            or.filter(.custom(document))
         }
         
         // Add filters for showDeleted
