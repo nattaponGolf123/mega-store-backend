@@ -540,15 +540,13 @@ private extension ContactRepository {
         
         switch sortBy {
         case .name:
-            return try await query.sort(\.$name, direction).range(range).all()
-        case .createdAt:
-            return try await query.sort(\.$createdAt, direction).range(range).all()
+            return try await query.sort(\.$name, direction).range(range).all()        
         case .contactInfoName:
             return try await query.sort("contact_information.contact_person", direction).range(range).all()
         case .number:
             return try await query.sort(\.$number, direction).range(range).all()
         default:
-            return try await query.range(range).all()
+            return try await query.sort(\.$createdAt, direction).range(range).all()
         }
     }
 }
